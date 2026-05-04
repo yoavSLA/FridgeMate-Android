@@ -4,6 +4,7 @@ import com.project.fridgemate.data.remote.ApiClient
 import com.project.fridgemate.data.remote.TokenManager
 import com.project.fridgemate.data.remote.api.AuthApi
 import com.project.fridgemate.data.remote.dto.ForgotPasswordRequest
+import com.project.fridgemate.data.remote.dto.GoogleLoginRequest
 import com.project.fridgemate.data.remote.dto.LoginRequest
 import com.project.fridgemate.data.remote.dto.RegisterRequest
 import com.project.fridgemate.data.remote.dto.ResetPasswordRequest
@@ -20,6 +21,21 @@ class AuthRepository {
     suspend fun login(email: String, password: String): AuthResult {
         return try {
             val response = authApi.login(LoginRequest(email.trim(), password))
+            if (response.isSuccessful) {
+                val body = response.body()!!
+                tokenManager.saveTokens(body.accessToken, body.refreshToken)
+                AuthResult.Success
+            } else {
+                AuthResult.Error(parseError(response.errorBody()?.string()))
+            }
+        } catch (e: Exception) {
+            AuthResult.Error(networkErrorMessage(e))
+        }
+    }
+
+    suspend fun loginWithGoogle(idToken: String): AuthResult {
+        return try {
+            val response = authApi.loginWithGoogle(GoogleLoginRequest(idToken))
             if (response.isSuccessful) {
                 val body = response.body()!!
                 tokenManager.saveTokens(body.accessToken, body.refreshToken)
