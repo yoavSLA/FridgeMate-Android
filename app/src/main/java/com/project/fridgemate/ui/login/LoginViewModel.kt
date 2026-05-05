@@ -19,6 +19,9 @@ class LoginViewModel : ViewModel() {
     private val _validationResult = MutableLiveData<AuthValidator.ValidationResult>()
     val validationResult: LiveData<AuthValidator.ValidationResult> = _validationResult
 
+    private val _googleError = MutableLiveData<String?>(null)
+    val googleError: LiveData<String?> = _googleError
+
     fun login(email: String, password: String) {
         val validation = AuthValidator.validateLogin(email, password)
         _validationResult.value = validation
@@ -30,6 +33,29 @@ class LoginViewModel : ViewModel() {
         viewModelScope.launch {
             _loginResult.value = repository.login(email, password)
         }
+    }
+
+    fun loginWithGoogle(idToken: String) {
+        _googleError.value = null
+        _loginResult.value = AuthResult.Loading
+        viewModelScope.launch {
+            val result = repository.loginWithGoogle(idToken)
+            if (result is AuthResult.Error) {
+                _googleError.value = result.message
+                _loginResult.value = AuthResult.Idle
+            } else {
+                _loginResult.value = result
+            }
+        }
+    }
+
+    fun reportGoogleError(message: String) {
+        _googleError.value = message
+        _loginResult.value = AuthResult.Idle
+    }
+
+    fun clearGoogleError() {
+        _googleError.value = null
     }
 
     fun resetLoginResult() {

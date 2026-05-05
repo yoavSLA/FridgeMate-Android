@@ -1,6 +1,7 @@
 package com.project.fridgemate.data.remote.api
 
 import com.project.fridgemate.data.remote.dto.ForgotPasswordRequest
+import com.project.fridgemate.data.remote.dto.GoogleLoginRequest
 import com.project.fridgemate.data.remote.dto.LoginRequest
 import com.project.fridgemate.data.remote.dto.LoginResponse
 import com.project.fridgemate.data.remote.dto.MessageResponse
@@ -17,6 +18,9 @@ interface AuthApi {
 
     @POST("auth/login")
     suspend fun login(@Body request: LoginRequest): Response<LoginResponse>
+
+    @POST("auth/login/google/android")
+    suspend fun loginWithGoogle(@Body request: GoogleLoginRequest): Response<LoginResponse>
 
     @POST("auth/register")
     suspend fun register(@Body request: RegisterRequest): Response<RegisterResponse>

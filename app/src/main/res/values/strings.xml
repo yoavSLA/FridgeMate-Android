@@ -14,6 +14,12 @@
     <string name="sign_up">Sign up</string>
     <string name="signing_up">Signing up…</string>
     <string name="error_enter_credentials">Please enter email and password</string>
+    <string name="auth_or">or</string>
+    <string name="continue_with_google">Continue with Google</string>
+    <string name="google_sign_in_cancelled">Google sign-in cancelled</string>
+    <string name="google_sign_in_failed">Google sign-in failed. Please try again.</string>
+    <string name="google_sign_in_unconfigured">Google sign-in is not configured for this build.</string>
+    <string name="google_sign_in_no_account">No Google accounts available on this device.</string>
 
     <!-- Register Screen -->
     <string name="create_account">Create Account</string>
