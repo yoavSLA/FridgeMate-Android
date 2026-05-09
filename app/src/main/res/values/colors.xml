@@ -17,6 +17,15 @@
     <color name="app_title_green">#00BC8B</color>
     <color name="accent_green">#00BC90</color>
 
+    <!-- Chat -->
+    <color name="chat_background">#ECF4F1</color>
+    <color name="chat_bubble_received">#FFFFFF</color>
+    <color name="chat_bubble_sent">#00BC90</color>
+    <color name="chat_text_sent">#FFFFFF</color>
+    <color name="chat_time_sent">#CCFFFFFF</color>
+    <color name="chat_time_received">#8E8E8E</color>
+    <color name="chat_sender_name">#2D5D57</color>
+
     <!-- Popup colors -->
     <color name="popup_stroke">#E0E0E0</color>
     <color name="popup_icon_tint">#455A64</color>

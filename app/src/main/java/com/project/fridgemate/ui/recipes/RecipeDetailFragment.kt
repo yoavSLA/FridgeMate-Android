@@ -12,16 +12,23 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
+import androidx.lifecycle.lifecycleScope
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import com.project.fridgemate.BuildConfig
 import com.project.fridgemate.R
 import com.project.fridgemate.data.local.entity.RecipeEntity
+import com.project.fridgemate.data.remote.dto.RecipeIngredientDto
+import com.project.fridgemate.data.repository.FridgeChatRepository
+import com.project.fridgemate.data.repository.FridgeRepository
+import com.project.fridgemate.data.repository.FridgeResult
+import com.project.fridgemate.data.repository.RecipeSharePayload
+import com.project.fridgemate.databinding.FragmentRecipeDetailBinding
 import com.project.fridgemate.databinding.ItemDetailIngredientBinding
 import com.project.fridgemate.databinding.ItemDetailStepBinding
-import com.project.fridgemate.data.remote.dto.RecipeIngredientDto
-import com.project.fridgemate.databinding.FragmentRecipeDetailBinding
 import com.squareup.picasso.Picasso
+import kotlinx.coroutines.launch
 
 class RecipeDetailFragment : Fragment() {
 
@@ -30,6 +37,10 @@ class RecipeDetailFragment : Fragment() {
     private val gson = Gson()
     private val viewModel: RecipesViewModel by activityViewModels()
     private val args: RecipeDetailFragmentArgs by navArgs()
+    private val chatRepo by lazy { FridgeChatRepository() }
+    private val fridgeRepo by lazy { FridgeRepository(requireContext().applicationContext) }
+    private var activeFridgeId: String? = null
+    private var activeFridgeName: String? = null
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
@@ -117,12 +128,60 @@ class RecipeDetailFragment : Fragment() {
                     )
                 findNavController().navigate(action)
             }
+
+            setupShareToChat(recipe)
         } else {
             binding.btnShareAsPost.visibility = View.GONE
+            binding.btnShareChat.visibility = View.GONE
         }
 
         populateIngredients(recipe.ingredientsJson)
         populateSteps(recipe.stepsJson)
+    }
+
+    private fun setupShareToChat(recipe: RecipeEntity) {
+        val serverId = recipe.serverId ?: return
+        viewLifecycleOwner.lifecycleScope.launch {
+            when (val result = fridgeRepo.getMyFridge()) {
+                is FridgeResult.Success -> {
+                    activeFridgeId = result.data.id
+                    activeFridgeName = result.data.name
+                    if (_binding == null) return@launch
+                    binding.btnShareChat.visibility = View.VISIBLE
+                    binding.btnShareChat.setOnClickListener {
+                        showShareToChatDialog(serverId, recipe)
+                    }
+                }
+                else -> {
+                    if (_binding != null) binding.btnShareChat.visibility = View.GONE
+                }
+            }
+        }
+    }
+
+    private fun showShareToChatDialog(serverId: String, recipe: RecipeEntity) {
+        val fridgeId = activeFridgeId ?: run {
+            Toast.makeText(requireContext(), R.string.share_to_chat_no_fridge, Toast.LENGTH_SHORT).show()
+            return
+        }
+        MaterialAlertDialogBuilder(requireContext())
+            .setTitle(R.string.share_to_chat_confirm_title)
+            .setMessage(getString(R.string.share_to_chat_confirm_msg, recipe.title))
+            .setNegativeButton(R.string.share_to_chat_cancel, null)
+            .setPositiveButton(R.string.share_to_chat_action) { _, _ ->
+                chatRepo.sendRecipeShare(
+                    fridgeId = fridgeId,
+                    snapshot = RecipeSharePayload(
+                        recipeId = serverId,
+                        title = recipe.title,
+                        imageUrl = recipe.imageUrl.ifBlank { null },
+                        cookingTime = recipe.cookingTime.ifBlank { null },
+                        difficulty = recipe.difficulty.ifBlank { null },
+                    ),
+                )
+                Toast.makeText(requireContext(), R.string.share_to_chat_success, Toast.LENGTH_SHORT).show()
+            }
+            .show()
     }
 
     private fun updateFavoriteIcon(isFavorite: Boolean) {

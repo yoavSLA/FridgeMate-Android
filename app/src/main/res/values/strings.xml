@@ -100,6 +100,25 @@
     <string name="scanning_fridge">Scanning your fridge…</string>
     <string name="detected_items">Detected Items</string>
 
+    <!-- Fridge Chat -->
+    <string name="chat_title">Fridge Chat</string>
+    <string name="chat_input_hint">Type a message…</string>
+    <string name="chat_send">Send</string>
+    <string name="chat_empty_title">No messages yet</string>
+    <string name="chat_empty_desc">Send the first message or share a recipe with your fridge mates.</string>
+    <string name="chat_date_today">Today</string>
+    <string name="chat_date_yesterday">Yesterday</string>
+    <string name="share_recipe_label">Recipe</string>
+    <string name="share_recipe_image_desc">Recipe image</string>
+    <string name="share_to_chat">Share to chat</string>
+    <string name="share_to_chat_confirm_title">Share to chat</string>
+    <string name="share_to_chat_confirm_msg">Share \u201C%1$s\u201D with your fridge mates?</string>
+    <string name="share_to_chat_action">Share</string>
+    <string name="share_to_chat_cancel">Cancel</string>
+    <string name="share_to_chat_success">Recipe shared</string>
+    <string name="share_to_chat_no_fridge">Join a fridge to share recipes</string>
+    <string name="open_chat">Open chat</string>
+
     <!-- Recipes Screen -->
     <string name="recipes_empty_title">Ready to cook?</string>
     <string name="recipes_empty_desc">Create or join a fridge to get started!</string>
