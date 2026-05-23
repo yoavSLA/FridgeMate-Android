@@ -31,6 +31,7 @@ interface NominatimApi {
                 .addInterceptor { chain ->
                     val request = chain.request().newBuilder()
                         .header("User-Agent", "FridgeMate-Android/1.0")
+                        .header("Accept-Language", "en")
                         .build()
                     chain.proceed(request)
                 }
