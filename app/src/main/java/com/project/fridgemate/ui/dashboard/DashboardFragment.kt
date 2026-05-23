@@ -64,6 +64,7 @@ class DashboardFragment : Fragment() {
 
         setupTabListeners()
         setupProfileMenu()
+        setupNotificationsIcon()
         loadGreeting()
 
         profileViewModel.loggedOut.observe(viewLifecycleOwner) { loggedOut ->
@@ -226,7 +227,12 @@ class DashboardFragment : Fragment() {
 
         popupWindow.showAsDropDown(anchor, xOffset, yOffset)
     }
-
+    private fun setupNotificationsIcon() {
+        binding.ivNotifications.setOnClickListener {
+            val action = DashboardFragmentDirections.actionDashboardFragmentToNotificationsFragment()
+            findNavController().navigate(action)
+        }
+    }
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null

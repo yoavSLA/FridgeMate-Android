@@ -51,6 +51,9 @@
         <action
             android:id="@+id/action_dashboardFragment_to_fridgeChatFragment"
             app:destination="@id/fridgeChatFragment" />
+        <action
+            android:id="@+id/action_dashboardFragment_to_notificationsFragment"
+            app:destination="@id/notificationsFragment" />
     </fragment>
     <fragment
         android:id="@+id/fridgeChatFragment"
