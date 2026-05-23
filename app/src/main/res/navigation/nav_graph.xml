@@ -51,7 +51,15 @@
         <action
             android:id="@+id/action_dashboardFragment_to_fridgeChatFragment"
             app:destination="@id/fridgeChatFragment" />
+        <action
+            android:id="@+id/action_dashboardFragment_to_addJournalEntryFragment"
+            app:destination="@id/addJournalEntryFragment" />
     </fragment>
+    <fragment
+        android:id="@+id/addJournalEntryFragment"
+        android:name="com.project.fridgemate.ui.journal.AddJournalEntryFragment"
+        android:label="AddJournalEntryFragment"
+        tools:layout="@layout/fragment_add_journal_entry" />
     <fragment
         android:id="@+id/fridgeChatFragment"
         android:name="com.project.fridgemate.ui.chat.FridgeChatFragment"

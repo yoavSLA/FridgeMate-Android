@@ -231,4 +231,14 @@
     <string name="cd_back">Back</string>
     <string name="cd_location">Location</string>
 
+    <!-- Journal Screen -->
+    <string name="add_journal_entry">Add Journal Entry</string>
+    <string name="journal_title_hint">Title</string>
+    <string name="journal_content_hint">How was your meal or day?</string>
+    <string name="journal_meal_type_hint">Meal Type (e.g. Breakfast)</string>
+    <string name="journal_mood_hint">Mood (e.g. 😊)</string>
+    <string name="journal_calories_hint">Calories (kcal)</string>
+    <string name="journal_macros_hint">Macros (e.g. 20g P / 50g C / 10g F)</string>
+    <string name="no_journal_entries">No journal entries yet. Tap + to add one!</string>
+
 </resources>
