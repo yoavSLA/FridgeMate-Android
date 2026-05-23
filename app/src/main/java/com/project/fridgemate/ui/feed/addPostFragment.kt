@@ -216,7 +216,7 @@ class AddPostFragment : Fragment() {
 
     private suspend fun getShortAddress(lat: Double, lng: Double): String? = withContext(Dispatchers.IO) {
         try {
-            val geocoder = Geocoder(requireContext(), Locale.getDefault())
+            val geocoder = Geocoder(requireContext(), Locale.ENGLISH)
             val addresses = geocoder.getFromLocation(lat, lng, 1)
             if (!addresses.isNullOrEmpty()) {
                 val address = addresses[0]

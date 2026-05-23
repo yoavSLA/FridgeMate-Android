@@ -87,6 +87,10 @@ class FeedFragment : Fragment() {
                         serverRecipeId = recipe.id
                     )
                 requireParentFragment().findNavController().navigate(action)
+            },
+            onLocationClick = {
+                val action = DashboardFragmentDirections.actionDashboardFragmentToMapViewFragment()
+                requireParentFragment().findNavController().navigate(action)
             }
         )
         binding.rvPosts.adapter = postAdapter
