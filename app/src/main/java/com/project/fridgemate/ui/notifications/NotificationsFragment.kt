@@ -4,7 +4,9 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.activity.addCallback
 import androidx.fragment.app.Fragment
+import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.project.fridgemate.data.model.Notification
 import com.project.fridgemate.data.model.NotificationType
@@ -31,6 +33,7 @@ class NotificationsFragment : Fragment() {
 
         setupRecyclerView()
         loadNotifications()
+        setupBackButton()
     }
 
     private fun setupRecyclerView() {
@@ -88,6 +91,18 @@ class NotificationsFragment : Fragment() {
         // TODO: Navigate based on notification type
         // For example: if LIKE/COMMENT -> navigate to post
         //              if SCAN_COMPLETE -> navigate to scan results
+    }
+
+    private fun setupBackButton() {
+        // Handle toolbar back button click
+        binding.btnBack.setOnClickListener {
+            findNavController().navigateUp()
+        }
+
+        // Handle Android system back button
+        requireActivity().onBackPressedDispatcher.addCallback(viewLifecycleOwner) {
+            findNavController().navigateUp()
+        }
     }
 
     override fun onDestroyView() {
