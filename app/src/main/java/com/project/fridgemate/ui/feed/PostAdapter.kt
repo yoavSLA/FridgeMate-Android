@@ -27,7 +27,8 @@ class PostAdapter(
     private val onDeleteComment: (postId: String, commentId: String) -> Unit,
     private val onEditComment: (postId: String, commentId: String, newText: String) -> Unit,
     private val onExpandComments: (String) -> Unit,
-    private val onRecipeClick: (LinkedRecipe) -> Unit = {}
+    private val onRecipeClick: (LinkedRecipe) -> Unit = {},
+    private val onLocationClick: (Post) -> Unit = {}
 ) : ListAdapter<Post, PostAdapter.PostViewHolder>(DIFF_CALLBACK) {
 
     companion object {
@@ -63,6 +64,15 @@ class PostAdapter(
 
             tvUserName.text = post.userName
             tvUserLocation.text = post.userLocation
+            val hasCoords = post.latitude != 0.0 || post.longitude != 0.0
+            if (hasCoords && post.userLocation.isNotBlank()) {
+                tvUserLocation.setOnClickListener { onLocationClick(post) }
+                tvUserLocation.alpha = 1f
+                tvUserLocation.paintFlags = tvUserLocation.paintFlags or android.graphics.Paint.UNDERLINE_TEXT_FLAG
+            } else {
+                tvUserLocation.setOnClickListener(null)
+                tvUserLocation.paintFlags = tvUserLocation.paintFlags and android.graphics.Paint.UNDERLINE_TEXT_FLAG.inv()
+            }
             if (post.authorImageUrl.isNotEmpty()) {
                 val url = if (post.authorImageUrl.startsWith("/"))
                     BuildConfig.BASE_URL.trimEnd('/') + post.authorImageUrl

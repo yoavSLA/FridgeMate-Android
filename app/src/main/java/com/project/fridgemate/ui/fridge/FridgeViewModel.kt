@@ -93,7 +93,7 @@ class FridgeViewModel(application: Application) : AndroidViewModel(application) 
         val result = mutableListOf<FridgeItem>()
         val lowItems = items.filter { it.isRunningLow }
         if (lowItems.isNotEmpty()) {
-            result.add(FridgeItem.RunningLow(lowItems.map { it.name }))
+            result.add(FridgeItem.RunningLow(lowItems.map { Pair(it.name, it.quantity) }))
         }
         result.add(FridgeItem.CategoryHeader("Items"))
         items.forEach { result.add(FridgeItem.Product(it.name, it.quantity, it.isRunningLow)) }
