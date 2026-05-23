@@ -41,9 +41,22 @@ class JournalViewModel : ViewModel() {
         _entries.value = currentList
     }
 
+    fun updateEntry(updatedEntry: JournalEntry) {
+        val currentList = _entries.value?.toMutableList() ?: return
+        val index = currentList.indexOfFirst { it.id == updatedEntry.id }
+        if (index != -1) {
+            currentList[index] = updatedEntry
+            _entries.value = currentList
+        }
+    }
+
     fun deleteEntry(id: String) {
         val currentList = _entries.value?.toMutableList() ?: return
         currentList.removeAll { it.id == id }
         _entries.value = currentList
+    }
+
+    fun getEntryById(id: String): JournalEntry? {
+        return _entries.value?.find { it.id == id }
     }
 }

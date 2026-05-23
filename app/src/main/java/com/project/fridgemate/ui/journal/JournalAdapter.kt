@@ -1,5 +1,6 @@
 package com.project.fridgemate.ui.journal
 
+import android.net.Uri
 import android.text.format.DateUtils
 import android.view.LayoutInflater
 import android.view.View
@@ -10,9 +11,18 @@ import androidx.recyclerview.widget.RecyclerView
 import com.project.fridgemate.data.model.JournalEntry
 import com.project.fridgemate.databinding.ItemJournalEntryBinding
 
-class JournalAdapter : ListAdapter<JournalEntry, JournalAdapter.JournalViewHolder>(DiffCallback) {
+class JournalAdapter(private val onItemClick: (JournalEntry) -> Unit) : ListAdapter<JournalEntry, JournalAdapter.JournalViewHolder>(DiffCallback) {
 
-    class JournalViewHolder(private val binding: ItemJournalEntryBinding) : RecyclerView.ViewHolder(binding.root) {
+    inner class JournalViewHolder(private val binding: ItemJournalEntryBinding) : RecyclerView.ViewHolder(binding.root) {
+        init {
+            binding.root.setOnClickListener {
+                val position = absoluteAdapterPosition
+                if (position != RecyclerView.NO_POSITION) {
+                    onItemClick(getItem(position))
+                }
+            }
+        }
+
         fun bind(entry: JournalEntry) {
             binding.tvTitle.text = entry.title
             binding.tvContent.text = entry.content
@@ -39,6 +49,13 @@ class JournalAdapter : ListAdapter<JournalEntry, JournalAdapter.JournalViewHolde
                 binding.tvMacros.text = entry.macros
             } else {
                 binding.tvMacros.visibility = View.GONE
+            }
+
+            if (!entry.imageUrl.isNullOrEmpty()) {
+                binding.ivEntryImage.visibility = View.VISIBLE
+                binding.ivEntryImage.setImageURI(Uri.parse(entry.imageUrl))
+            } else {
+                binding.ivEntryImage.visibility = View.GONE
             }
         }
     }

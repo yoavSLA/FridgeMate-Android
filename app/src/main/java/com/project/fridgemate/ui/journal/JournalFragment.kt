@@ -15,7 +15,6 @@ class JournalFragment : Fragment() {
     private var _binding: FragmentJournalBinding? = null
     private val binding get() = _binding!!
 
-    // We use activityViewModels so Dashboard and AddJournalEntry can share data
     private val viewModel: JournalViewModel by activityViewModels()
     private lateinit var adapter: JournalAdapter
 
@@ -30,7 +29,10 @@ class JournalFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        adapter = JournalAdapter()
+        adapter = JournalAdapter { entry ->
+            val action = DashboardFragmentDirections.actionDashboardFragmentToAddJournalEntryFragment(entry.id)
+            findNavController().navigate(action)
+        }
         binding.rvJournal.adapter = adapter
 
         viewModel.entries.observe(viewLifecycleOwner) { entries ->
@@ -39,8 +41,7 @@ class JournalFragment : Fragment() {
         }
 
         binding.fabAddEntry.setOnClickListener {
-            // Navigate to AddJournalEntryFragment
-            val action = DashboardFragmentDirections.actionDashboardFragmentToAddJournalEntryFragment()
+            val action = DashboardFragmentDirections.actionDashboardFragmentToAddJournalEntryFragment("")
             findNavController().navigate(action)
         }
     }
