@@ -94,15 +94,12 @@ dependencies {
     implementation(libs.androidx.credentials.play.services.auth)
     implementation(libs.googleid)
 
-    implementation(libs.socket.io.client) {
-        exclude(group = "org.json", module = "json")
-    }
-// Socket.IO
+    // Socket.IO
     implementation(libs.socket.io.client) {
         exclude(group = "org.json", module = "json")
     }
 
-// Firebase Cloud Messaging
+    // Firebase Cloud Messaging
     implementation(platform("com.google.firebase:firebase-bom:33.1.0"))
     implementation("com.google.firebase:firebase-messaging-ktx")
 
@@ -110,3 +107,5 @@ dependencies {
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
 }
+
+apply(plugin = "com.google.gms.google-services")
