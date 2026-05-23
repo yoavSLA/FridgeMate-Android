@@ -12,12 +12,12 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.project.fridgemate.ui.dashboard.DashboardFragmentDirections
 import com.project.fridgemate.R
 import com.project.fridgemate.databinding.FragmentFeedBinding
-
+import androidx.recyclerview.widget.RecyclerView
 class FeedFragment : Fragment() {
 
     private var _binding: FragmentFeedBinding? = null
     private val binding get() = _binding!!
-
+    private var isScrolling = false
     private val viewModel: FeedViewModel by activityViewModels()
 
     override fun onCreateView(
@@ -34,7 +34,7 @@ class FeedFragment : Fragment() {
 
         binding.swipeRefresh.setColorSchemeResources(R.color.teal_primary)
         binding.swipeRefresh.setOnRefreshListener {
-            viewModel.loadPosts()
+            viewModel.loadPosts(refresh = true)
         }
 
         binding.btnMapView.setOnClickListener {
@@ -94,7 +94,20 @@ class FeedFragment : Fragment() {
             }
         )
         binding.rvPosts.adapter = postAdapter
-
+        binding.rvPosts.addOnScrollListener(object : RecyclerView.OnScrollListener() {
+            override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
+                super.onScrolled(recyclerView, dx, dy)
+                if ( dy <= 0) return
+                val layoutManager = recyclerView.layoutManager as? LinearLayoutManager ?: return
+                val visibleItemCount = layoutManager.childCount
+                val totalItemCount = layoutManager.itemCount
+                val firstVisibleItemPosition = layoutManager.findFirstVisibleItemPosition()
+                if (visibleItemCount + firstVisibleItemPosition >= totalItemCount - 3
+                    && firstVisibleItemPosition >= 0) {
+                    viewModel.loadMorePosts()
+                }
+            }
+        })
         viewModel.posts.observe(viewLifecycleOwner) { posts ->
             postAdapter?.submitList(posts)
             updateEmptyState(posts)
@@ -135,10 +148,6 @@ class FeedFragment : Fragment() {
         }
     }
 
-    override fun onResume() {
-        super.onResume()
-        viewModel.loadPosts()
-    }
 
     override fun onDestroyView() {
         super.onDestroyView()
