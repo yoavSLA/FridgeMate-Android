@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.navigation.fragment.findNavController
@@ -30,19 +31,42 @@ class JournalFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
 
         adapter = JournalAdapter { entry ->
-            val action = DashboardFragmentDirections.actionDashboardFragmentToAddJournalEntryFragment(entry.id)
-            findNavController().navigate(action)
+            try {
+                val action = DashboardFragmentDirections.actionDashboardFragmentToAddJournalEntryFragment(entry.id)
+                requireParentFragment().findNavController().navigate(action)
+            } catch (e: Exception) {
+                Toast.makeText(requireContext(), "Navigation error: ${e.message}", Toast.LENGTH_SHORT).show()
+            }
         }
         binding.rvJournal.adapter = adapter
+
+        binding.swipeRefresh.setOnRefreshListener {
+            viewModel.loadEntries()
+        }
 
         viewModel.entries.observe(viewLifecycleOwner) { entries ->
             adapter.submitList(entries)
             binding.emptyState.visibility = if (entries.isEmpty()) View.VISIBLE else View.GONE
         }
 
+        viewModel.isLoading.observe(viewLifecycleOwner) { isLoading ->
+            binding.swipeRefresh.isRefreshing = isLoading
+        }
+
+        viewModel.error.observe(viewLifecycleOwner) { errorMsg ->
+            errorMsg?.let {
+                Toast.makeText(requireContext(), it, Toast.LENGTH_SHORT).show()
+                viewModel.resetActionState()
+            }
+        }
+
         binding.fabAddEntry.setOnClickListener {
-            val action = DashboardFragmentDirections.actionDashboardFragmentToAddJournalEntryFragment("")
-            findNavController().navigate(action)
+            try {
+                val action = DashboardFragmentDirections.actionDashboardFragmentToAddJournalEntryFragment("")
+                requireParentFragment().findNavController().navigate(action)
+            } catch (e: Exception) {
+                Toast.makeText(requireContext(), "Navigation error: ${e.message}", Toast.LENGTH_SHORT).show()
+            }
         }
     }
 

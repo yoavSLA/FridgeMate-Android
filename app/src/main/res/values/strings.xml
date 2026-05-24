@@ -239,6 +239,10 @@
     <string name="journal_mood_hint">Mood (e.g. 😊)</string>
     <string name="journal_calories_hint">Calories (kcal)</string>
     <string name="journal_macros_hint">Macros (e.g. 20g P / 50g C / 10g F)</string>
+    <string name="journal_protein_hint">Protein</string>
+    <string name="journal_carbs_hint">Carbs</string>
+    <string name="journal_fat_hint">Fat</string>
+    <string name="journal_macro_suffix">g</string>
     <string name="no_journal_entries">No journal entries yet. Tap + to add one!</string>
 
 </resources>

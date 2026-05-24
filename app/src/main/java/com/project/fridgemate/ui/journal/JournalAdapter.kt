@@ -1,6 +1,5 @@
 package com.project.fridgemate.ui.journal
 
-import android.net.Uri
 import android.text.format.DateUtils
 import android.view.LayoutInflater
 import android.view.View
@@ -10,6 +9,7 @@ import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.project.fridgemate.data.model.JournalEntry
 import com.project.fridgemate.databinding.ItemJournalEntryBinding
+import com.squareup.picasso.Picasso
 
 class JournalAdapter(private val onItemClick: (JournalEntry) -> Unit) : ListAdapter<JournalEntry, JournalAdapter.JournalViewHolder>(DiffCallback) {
 
@@ -44,18 +44,47 @@ class JournalAdapter(private val onItemClick: (JournalEntry) -> Unit) : ListAdap
                 binding.tvCalories.visibility = View.GONE
             }
 
-            if (entry.macros.isNotEmpty()) {
-                binding.tvMacros.visibility = View.VISIBLE
-                binding.tvMacros.text = entry.macros
-            } else {
-                binding.tvMacros.visibility = View.GONE
-            }
+            // Parse macros and show individual badges
+            parseMacroBadges(entry.macros)
 
             if (!entry.imageUrl.isNullOrEmpty()) {
                 binding.ivEntryImage.visibility = View.VISIBLE
-                binding.ivEntryImage.setImageURI(Uri.parse(entry.imageUrl))
+                Picasso.get()
+                    .load(entry.imageUrl)
+                    .into(binding.ivEntryImage)
             } else {
                 binding.ivEntryImage.visibility = View.GONE
+            }
+        }
+
+        private fun parseMacroBadges(macros: String) {
+            val regexP = Regex("""(\d+)\s*g?\s*P""")
+            val regexC = Regex("""(\d+)\s*g?\s*C""")
+            val regexF = Regex("""(\d+)\s*g?\s*F""")
+
+            val protein = regexP.find(macros)?.groupValues?.getOrNull(1)
+            val carbs = regexC.find(macros)?.groupValues?.getOrNull(1)
+            val fat = regexF.find(macros)?.groupValues?.getOrNull(1)
+
+            if (protein != null) {
+                binding.tvProtein.visibility = View.VISIBLE
+                binding.tvProtein.text = "${protein}g P"
+            } else {
+                binding.tvProtein.visibility = View.GONE
+            }
+
+            if (carbs != null) {
+                binding.tvCarbs.visibility = View.VISIBLE
+                binding.tvCarbs.text = "${carbs}g C"
+            } else {
+                binding.tvCarbs.visibility = View.GONE
+            }
+
+            if (fat != null) {
+                binding.tvFat.visibility = View.VISIBLE
+                binding.tvFat.text = "${fat}g F"
+            } else {
+                binding.tvFat.visibility = View.GONE
             }
         }
     }
