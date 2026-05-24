@@ -49,6 +49,8 @@ object ApiClient {
 
     fun getAuthApi(): AuthApi = publicRetrofit.create(AuthApi::class.java)
 
+    fun getJournalApi(): com.project.fridgemate.data.remote.api.JournalApi = authenticatedRetrofit.create(com.project.fridgemate.data.remote.api.JournalApi::class.java)
+
     fun <T> createApi(apiClass: Class<T>): T = authenticatedRetrofit.create(apiClass)
 
     private fun buildRetrofit(client: OkHttpClient): Retrofit {
