@@ -6,7 +6,6 @@
     android:viewportHeight="24">
     <!-- Wheat / grain icon -->
     <path
-        android:fillColor="#F5A623"
         android:pathData="M12,2L12,10M12,10C12,10 8,7 5,9C8,9 10,11 12,10M12,10C12,10 16,7 19,9C16,9 14,11 12,10M12,6C12,6 8,3 5,5C8,5 10,7 12,6M12,6C12,6 16,3 19,5C16,5 14,7 12,6M12,14C12,14 8,11 5,13C8,13 10,15 12,14M12,14C12,14 16,11 19,13C16,13 14,15 12,14M12,10L12,22"
         android:strokeWidth="1.5"
         android:strokeColor="#F5A623"

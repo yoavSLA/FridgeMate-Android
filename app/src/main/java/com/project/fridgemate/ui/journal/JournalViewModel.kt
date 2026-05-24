@@ -72,7 +72,7 @@ class JournalViewModel(application: Application) : AndroidViewModel(application)
                 date = dateFormat.format(Date(entry.dateMillis)),
                 meals = listOf(
                     JournalMealDto(
-                        mealType = if (entry.mealType.isNotEmpty()) entry.mealType else "SNACK",
+                        mealType = if (entry.mealType.isNotEmpty()) entry.mealType.uppercase(Locale.US) else "SNACK",
                         recipeId = null,
                         customRecipeTitle = null,
                         calories = entry.calories.toIntOrNull(),
@@ -110,7 +110,7 @@ class JournalViewModel(application: Application) : AndroidViewModel(application)
                 date = dateFormat.format(Date(updatedEntry.dateMillis)),
                 meals = listOf(
                     JournalMealDto(
-                        mealType = if (updatedEntry.mealType.isNotEmpty()) updatedEntry.mealType else "SNACK",
+                        mealType = if (updatedEntry.mealType.isNotEmpty()) updatedEntry.mealType.uppercase(Locale.US) else "SNACK",
                         recipeId = null,
                         customRecipeTitle = null,
                         calories = updatedEntry.calories.toIntOrNull(),

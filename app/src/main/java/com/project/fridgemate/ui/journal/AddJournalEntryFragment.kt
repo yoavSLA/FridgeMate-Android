@@ -93,7 +93,15 @@ class AddJournalEntryFragment : Fragment() {
             binding.toolbar.inflateMenu(R.menu.menu_edit_journal)
             binding.toolbar.setOnMenuItemClickListener { item ->
                 if (item.itemId == R.id.action_delete) {
-                    viewModel.deleteEntry(entryId)
+                    com.google.android.material.dialog.MaterialAlertDialogBuilder(requireContext())
+                        .setTitle(R.string.delete_journal_entry)
+                        .setMessage(R.string.delete_journal_entry_confirmation)
+                        .setIcon(R.drawable.ic_delete)
+                        .setNegativeButton(R.string.cancel, null)
+                        .setPositiveButton(R.string.delete) { _, _ ->
+                            viewModel.deleteEntry(entryId)
+                        }
+                        .show()
                     true
                 } else {
                     false
@@ -103,7 +111,7 @@ class AddJournalEntryFragment : Fragment() {
     }
 
     private fun setupDropdowns() {
-        val mealTypes = listOf("Breakfast", "Lunch", "Dinner", "Snack", "Brunch", "Dessert")
+        val mealTypes = listOf("Breakfast", "Lunch", "Dinner", "Snack")
         val mealAdapter = ArrayAdapter(requireContext(), android.R.layout.simple_dropdown_item_1line, mealTypes)
         binding.etMealType.setAdapter(mealAdapter)
 
