@@ -7,7 +7,12 @@ import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
+import java.security.SecureRandom
+import java.security.cert.X509Certificate
 import java.util.concurrent.TimeUnit
+import javax.net.ssl.SSLContext
+import javax.net.ssl.TrustManager
+import javax.net.ssl.X509TrustManager
 
 object ApiClient {
 
@@ -16,6 +21,20 @@ object ApiClient {
     private lateinit var tokenManager: TokenManager
     private lateinit var publicRetrofit: Retrofit
     private lateinit var authenticatedRetrofit: Retrofit
+
+    private fun OkHttpClient.Builder.trustAllCertificates(): OkHttpClient.Builder {
+        val trustManager = object : X509TrustManager {
+            override fun checkClientTrusted(chain: Array<X509Certificate>, authType: String) {}
+            override fun checkServerTrusted(chain: Array<X509Certificate>, authType: String) {}
+            override fun getAcceptedIssuers(): Array<X509Certificate> = arrayOf()
+        }
+        val sslContext = SSLContext.getInstance("TLS").apply {
+            init(null, arrayOf<TrustManager>(trustManager), SecureRandom())
+        }
+        sslSocketFactory(sslContext.socketFactory, trustManager)
+        hostnameVerifier { _, _ -> true }
+        return this
+    }
 
     fun init(context: Context) {
         tokenManager = TokenManager(context.applicationContext)
@@ -28,12 +47,14 @@ object ApiClient {
         }
 
         val publicClient = OkHttpClient.Builder()
+            .trustAllCertificates()
             .addInterceptor(loggingInterceptor)
             .connectTimeout(TIMEOUT_SECONDS, TimeUnit.SECONDS)
             .readTimeout(TIMEOUT_SECONDS, TimeUnit.SECONDS)
             .build()
 
         val authenticatedClient = OkHttpClient.Builder()
+            .trustAllCertificates()
             .addInterceptor(AuthInterceptor(tokenManager))
             .addInterceptor(loggingInterceptor)
             .authenticator(TokenAuthenticator(tokenManager))
