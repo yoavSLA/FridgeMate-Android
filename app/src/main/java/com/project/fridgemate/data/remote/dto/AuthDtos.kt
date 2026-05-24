@@ -29,6 +29,10 @@ data class ResetPasswordRequest(
     val newPassword: String
 )
 
+data class GoogleLoginRequest(
+    val idToken: String
+)
+
 // ── Responses ───────────────────────────────────────────────────────────────
 
 data class LoginResponse(

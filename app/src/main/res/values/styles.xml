@@ -4,4 +4,20 @@
         <item name="cornerFamily">rounded</item>
         <item name="cornerSize">50%</item>
     </style>
+
+    <style name="ChatBubble.Sent" parent="">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSizeTopLeft">18dp</item>
+        <item name="cornerSizeTopRight">18dp</item>
+        <item name="cornerSizeBottomLeft">18dp</item>
+        <item name="cornerSizeBottomRight">4dp</item>
+    </style>
+
+    <style name="ChatBubble.Received" parent="">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSizeTopLeft">4dp</item>
+        <item name="cornerSizeTopRight">18dp</item>
+        <item name="cornerSizeBottomLeft">18dp</item>
+        <item name="cornerSizeBottomRight">18dp</item>
+    </style>
 </resources>

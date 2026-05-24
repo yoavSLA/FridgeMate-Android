@@ -21,6 +21,7 @@ import com.project.fridgemate.ui.fridge.FridgeFragment
 import com.project.fridgemate.ui.profile.ProfileViewModel
 import com.project.fridgemate.ui.recipes.RecipesFragment
 import com.project.fridgemate.ui.feed.FeedFragment
+import com.project.fridgemate.ui.journal.JournalFragment
 
 class DashboardFragment : Fragment() {
 
@@ -80,6 +81,7 @@ class DashboardFragment : Fragment() {
             R.id.tab_feed -> fragment !is FeedFragment
             R.id.tab_recipes -> fragment !is RecipesFragment
             R.id.tab_my_fridge -> fragment !is FridgeFragment
+            R.id.tab_journal -> fragment !is JournalFragment
             else -> false
         }
     }
@@ -135,12 +137,20 @@ class DashboardFragment : Fragment() {
                 showFragmentForTab(currentTabId)
             }
         }
+        binding.tabJournal.setOnClickListener { 
+            if (currentTabId != it.id) {
+                currentTabId = it.id
+                updateTabUI(currentTabId)
+                showFragmentForTab(currentTabId)
+            }
+        }
     }
 
     private fun updateTabUI(tabId: Int) {
         resetTab(binding.tabFeed, binding.ivTabFeed, binding.tvTabFeed)
         resetTab(binding.tabMyFridge, binding.ivTabFridge, binding.tvTabFridge)
         resetTab(binding.tabRecipes, binding.ivTabRecipes, binding.tvTabRecipes)
+        resetTab(binding.tabJournal, binding.ivTabJournal, binding.tvTabJournal)
 
         val accentColor = ContextCompat.getColor(requireContext(), R.color.teal_primary)
         when (tabId) {
@@ -159,6 +169,11 @@ class DashboardFragment : Fragment() {
                 binding.tvTabFeed.setTextColor(accentColor)
                 binding.tvTabFeed.setTypeface(null, android.graphics.Typeface.BOLD)
             }
+            R.id.tab_journal -> {
+                binding.ivTabJournal.setColorFilter(accentColor)
+                binding.tvTabJournal.setTextColor(accentColor)
+                binding.tvTabJournal.setTypeface(null, android.graphics.Typeface.BOLD)
+            }
         }
     }
 
@@ -174,6 +189,7 @@ class DashboardFragment : Fragment() {
             R.id.tab_feed -> FeedFragment()
             R.id.tab_recipes -> RecipesFragment()
             R.id.tab_my_fridge -> FridgeFragment()
+            R.id.tab_journal -> JournalFragment()
             else -> FeedFragment()
         }
         childFragmentManager.beginTransaction()

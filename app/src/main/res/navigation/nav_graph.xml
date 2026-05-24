@@ -48,6 +48,38 @@
         <action
             android:id="@+id/action_dashboardFragment_to_myPostsFragment"
             app:destination="@id/myPostsFragment" />
+        <action
+            android:id="@+id/action_dashboardFragment_to_fridgeChatFragment"
+            app:destination="@id/fridgeChatFragment" />
+        <action
+            android:id="@+id/action_dashboardFragment_to_addJournalEntryFragment"
+            app:destination="@id/addJournalEntryFragment" />
+    </fragment>
+    <fragment
+        android:id="@+id/addJournalEntryFragment"
+        android:name="com.project.fridgemate.ui.journal.AddJournalEntryFragment"
+        android:label="AddJournalEntryFragment"
+        tools:layout="@layout/fragment_add_journal_entry">
+        <argument
+            android:name="entryId"
+            app:argType="string"
+            android:defaultValue="" />
+    </fragment>
+    <fragment
+        android:id="@+id/fridgeChatFragment"
+        android:name="com.project.fridgemate.ui.chat.FridgeChatFragment"
+        android:label="FridgeChatFragment"
+        tools:layout="@layout/fragment_fridge_chat">
+        <argument
+            android:name="fridgeId"
+            app:argType="string" />
+        <argument
+            android:name="fridgeName"
+            app:argType="string"
+            android:defaultValue="" />
+        <action
+            android:id="@+id/action_fridgeChatFragment_to_recipeDetailFragment"
+            app:destination="@id/recipeDetailFragment" />
     </fragment>
     <fragment
         android:id="@+id/myProfileFragment"
