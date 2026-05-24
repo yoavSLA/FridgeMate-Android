@@ -233,4 +233,29 @@
 
     <!-- Notification Types -->
     <string name="notification_msg">When you get notifications, they will show up here</string>
+    <!-- Journal Screen -->
+    <string name="add_journal_entry">Add Journal Entry</string>
+    <string name="journal_title_hint">Title</string>
+    <string name="journal_content_hint">How was your meal or day?</string>
+    <string name="journal_meal_type_hint">Meal Type (e.g. Breakfast)</string>
+    <string name="journal_mood_hint">Mood (e.g. 😊)</string>
+    <string name="journal_calories_hint">Calories (kcal)</string>
+    <string name="journal_macros_hint">Macros (e.g. 20g P / 50g C / 10g F)</string>
+    <string name="journal_protein_hint">Protein</string>
+    <string name="journal_carbs_hint">Carbs</string>
+    <string name="journal_fat_hint">Fat</string>
+    <string name="journal_macro_suffix">g</string>
+    <string name="no_journal_entries">No journal entries yet. Tap + to add one!</string>
+    <string name="journal_search_hint">Search journal entries…</string>
+    <string name="journal_no_results">No entries match your search</string>
+    <string name="filter_all">All</string>
+    <string name="filter_breakfast">🌅 Breakfast</string>
+    <string name="filter_lunch">☀️ Lunch</string>
+    <string name="filter_dinner">🌙 Dinner</string>
+    <string name="filter_snack">🍎 Snack</string>
+    <string name="filter_brunch">🥂 Brunch</string>
+    <string name="filter_dessert">🍰 Dessert</string>
+    <string name="delete_journal_entry">Delete Entry</string>
+    <string name="delete_journal_entry_confirmation">Are you sure you want to delete this journal entry? This action cannot be undone.</string>
+
 </resources>
