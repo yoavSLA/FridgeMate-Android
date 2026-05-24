@@ -61,7 +61,7 @@ class FridgeAdapter(private val items: List<FridgeItem>) :
     class RunningLowViewHolder(private val binding: ItemRunningLowBinding) :
         RecyclerView.ViewHolder(binding.root) {
         fun bind(item: FridgeItem.RunningLow) {
-            val listString = item.ingredients.joinToString(", ")
+            val listString = item.ingredients.joinToString(", ") { (name, qty) -> "$name ($qty)" }
             binding.tvLowStockList.text = binding.root.context.getString(R.string.low_stock_restock_format, listString)
         }
     }

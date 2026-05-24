@@ -14,7 +14,6 @@ import com.project.fridgemate.data.remote.dto.UpdatePostRequest
 import com.project.fridgemate.data.repository.FridgeResult
 import com.project.fridgemate.data.repository.PostRepository
 import kotlinx.coroutines.launch
-
 data class LinkedRecipe(
     val id: String,
     val title: String,
@@ -73,6 +72,15 @@ class FeedViewModel(application: Application) : AndroidViewModel(application) {
     private val _updateSuccess = MutableLiveData<Boolean?>(null)
     val updateSuccess: LiveData<Boolean?> = _updateSuccess
 
+    private var currentPage = 1
+    private var isLastPage = false
+
+    private val _isLoadingMore = MutableLiveData(false)
+    val isLoadingMore: LiveData<Boolean> = _isLoadingMore
+
+    companion object {
+        private const val PAGE_SIZE = 10
+    }
     init {
         loadPosts()
     }
@@ -84,18 +92,23 @@ class FeedViewModel(application: Application) : AndroidViewModel(application) {
     fun clearError() {
         _error.value = null
     }
-
-    fun loadPosts() {
+    fun loadPosts(refresh: Boolean = false) {
         viewModelScope.launch {
+            if (refresh) {
+                currentPage = 1
+                isLastPage = false
+                _posts.value = emptyList()
+            }
+
             if (_posts.value.isNullOrEmpty()) {
                 _isLoading.value = true
             }
             _error.value = null
-            
-            when (val result = repository.getPosts()) {
+
+            when (val result = repository.getPosts(page = currentPage, limit = PAGE_SIZE)) {
                 is FridgeResult.Success -> {
                     val currentPostsMap = _posts.value?.associateBy { it.id } ?: emptyMap()
-                    val posts = result.data.items.map { dto ->
+                    val newPosts = result.data.items.map { dto ->
                         val post = dto.toPost()
                         currentPostsMap[post.id]?.let { existing ->
                             post.copy(
@@ -104,7 +117,14 @@ class FeedViewModel(application: Application) : AndroidViewModel(application) {
                             )
                         } ?: post
                     }
-                    _posts.value = posts
+
+                    isLastPage = newPosts.size < PAGE_SIZE
+
+                    if (refresh) {
+                        _posts.value = newPosts
+                    } else {
+                        _posts.value = (_posts.value ?: emptyList()) + newPosts
+                    }
                 }
                 is FridgeResult.Error -> {
                     _error.value = result.message
@@ -114,7 +134,39 @@ class FeedViewModel(application: Application) : AndroidViewModel(application) {
             _isLoading.value = false
         }
     }
+    fun loadMorePosts() {
+        if (isLastPage || _isLoadingMore.value == true || _isLoading.value == true) {
+            return
+        }
+        viewModelScope.launch {
+            _isLoadingMore.value = true
+            currentPage++
 
+            when (val result = repository.getPosts(page = currentPage, limit = PAGE_SIZE)) {
+                is FridgeResult.Success -> {
+                    val currentPostsMap = _posts.value?.associateBy { it.id } ?: emptyMap()
+                    val newPosts = result.data.items.map { dto ->
+                        val post = dto.toPost()
+                        currentPostsMap[post.id]?.let { existing ->
+                            post.copy(
+                                comments = existing.comments,
+                                isExpanded = existing.isExpanded
+                            )
+                        } ?: post
+                    }
+
+                    isLastPage = newPosts.size < PAGE_SIZE
+                    _posts.value = (_posts.value ?: emptyList()) + newPosts
+                }
+                is FridgeResult.Error -> {
+                    currentPage--
+                    _error.value = result.message
+                }
+                else -> {}
+            }
+            _isLoadingMore.value = false
+        }
+    }
     fun loadMyPosts() {
         viewModelScope.launch {
             _isMyPostsLoading.value = true

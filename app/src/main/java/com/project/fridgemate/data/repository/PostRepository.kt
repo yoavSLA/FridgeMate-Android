@@ -10,7 +10,7 @@ import com.project.fridgemate.ui.feed.Post
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.MultipartBody
 import okhttp3.RequestBody.Companion.toRequestBody
-
+import android.util.Log
 class PostRepository(context: Context) {
 
     private val postApi: PostApi = ApiClient.createApi(PostApi::class.java)
@@ -18,6 +18,7 @@ class PostRepository(context: Context) {
 
     suspend fun getPosts(page: Int = 1, limit: Int = 20): FridgeResult<PostListResponse> {
         return try {
+            Log.d("PostRepository", "Loading page=$page limit=$limit")
             val response = postApi.getPosts(page, limit)
             if (response.isSuccessful) {
                 val data = response.body()!!
