@@ -44,4 +44,19 @@
     <!-- Gradient colors -->
     <color name="title_gradient_start">#00BC7D</color>
     <color name="title_gradient_end">#00B8DB</color>
+
+    <!-- Notification colors -->
+    <color name="notification_icon_like">#E91E63</color>
+    <color name="notification_icon_comment">#2196F3</color>
+    <color name="notification_icon_scan">#4CAF50</color>
+    <color name="notification_icon_chat">#00BCD4</color>
+    <color name="notification_icon_system">#FF9800</color>
+    <color name="gray_dark">#757575</color>
+    <color name="gray_medium">#9E9E9E</color>
+
+
+
+
+
+
 </resources>

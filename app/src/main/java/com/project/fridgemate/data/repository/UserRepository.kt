@@ -13,7 +13,7 @@ import com.project.fridgemate.data.remote.dto.UserDto
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.MultipartBody
 import okhttp3.RequestBody.Companion.toRequestBody
-
+import com.project.fridgemate.data.remote.dto.FcmTokenRequest
 class UserRepository(context: Context) {
 
     private val api = ApiClient.createApi(UserApi::class.java)
@@ -92,5 +92,17 @@ class UserRepository(context: Context) {
             activeFridgeId = activeFridgeId,
             address = addressDto
         )
+    }
+    suspend fun registerFcmToken(token: String): Result<Unit> {
+        return try {
+            val response = api.registerFcmToken(FcmTokenRequest(token))
+            if (response.isSuccessful) {
+                Result.success(Unit)
+            } else {
+                Result.failure(Exception("Failed to register FCM token: ${response.code()}"))
+            }
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
     }
 }

@@ -1,6 +1,8 @@
 package com.project.fridgemate.data.remote.api
 
 import com.project.fridgemate.data.remote.dto.ApiOkResponse
+import com.project.fridgemate.data.remote.dto.FcmTokenRequest
+import com.project.fridgemate.data.remote.dto.FcmTokenResponse
 import com.project.fridgemate.data.remote.dto.UpdateProfileRequest
 import com.project.fridgemate.data.remote.dto.UploadImageResponse
 import com.project.fridgemate.data.remote.dto.UserDto
@@ -30,4 +32,7 @@ interface UserApi {
     suspend fun uploadProfileImage(
         @Part image: MultipartBody.Part
     ): Response<ApiOkResponse<UploadImageResponse>>
+
+    @POST("user/fcm-token")
+    suspend fun registerFcmToken(@Body request: FcmTokenRequest): Response<FcmTokenResponse>
 }
