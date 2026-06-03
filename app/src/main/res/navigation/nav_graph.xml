@@ -97,6 +97,15 @@
         <action
             android:id="@+id/action_userProfileFragment_to_userListFragment"
             app:destination="@id/userListFragment" />
+        <action
+            android:id="@+id/action_userProfileFragment_to_recipeDetailFragment"
+            app:destination="@id/recipeDetailFragment" />
+        <action
+            android:id="@+id/action_userProfileFragment_to_mapViewFragment"
+            app:destination="@id/mapViewFragment" />
+        <action
+            android:id="@+id/action_userProfileFragment_to_editPostFragment"
+            app:destination="@id/editPostFragment" />
         <!-- Self-action so the screen can navigate to another user's profile -->
         <action
             android:id="@+id/action_userProfileFragment_self"

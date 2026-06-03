@@ -72,15 +72,37 @@ class UserProfileFragment : Fragment() {
 
     private fun setupPosts() {
         postAdapter = PostAdapter(
-            onLikeClick = { /* read-only on profile for now */ },
-            onAddComment = { _, _ -> },
-            onDeleteClick = { /* hidden via isOwner=false for other users */ },
-            onEditClick = { },
-            onDeleteComment = { _, _ -> },
-            onEditComment = { _, _, _ -> },
-            onExpandComments = { },
-            onRecipeClick = { },
-            onLocationClick = { },
+            onLikeClick = { post -> viewModel.toggleLike(post) },
+            onAddComment = { postId, text -> viewModel.addComment(postId, text) },
+            onDeleteClick = { post -> viewModel.deletePost(post.id) },
+            onEditClick = { post ->
+                findNavController().navigate(
+                    UserProfileFragmentDirections.actionUserProfileFragmentToEditPostFragment(
+                        postId = post.id,
+                        postTitle = post.postTitle,
+                        postDescription = post.description,
+                        postImageUrl = post.imageUrl,
+                        linkedRecipeName = post.linkedRecipe?.title ?: "",
+                        linkedRecipeTime = post.linkedRecipe?.cookingTime ?: "",
+                        linkedRecipeDifficulty = post.linkedRecipe?.difficulty ?: ""
+                    )
+                )
+            },
+            onDeleteComment = { postId, commentId -> viewModel.deleteComment(postId, commentId) },
+            onEditComment = { postId, commentId, newText -> viewModel.editComment(postId, commentId, newText) },
+            onExpandComments = { postId -> viewModel.toggleExpanded(postId) },
+            onRecipeClick = { recipe ->
+                findNavController().navigate(
+                    UserProfileFragmentDirections.actionUserProfileFragmentToRecipeDetailFragment(
+                        serverRecipeId = recipe.id
+                    )
+                )
+            },
+            onLocationClick = {
+                findNavController().navigate(
+                    UserProfileFragmentDirections.actionUserProfileFragmentToMapViewFragment()
+                )
+            },
             onAuthorClick = { post ->
                 // No-op when already on that user's profile
                 if (post.authorId.isNotEmpty() && post.authorId != resolvedUserId) {
