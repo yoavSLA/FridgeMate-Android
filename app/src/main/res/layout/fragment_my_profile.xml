@@ -2,6 +2,7 @@
 <FrameLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
@@ -160,6 +161,77 @@
                         android:text="@string/profile_name_placeholder"
                         android:textSize="16sp" />
                 </com.google.android.material.textfield.TextInputLayout>
+                <!-- Label: Email (read-only) -->
+                <TextView
+                    android:id="@+id/email_label"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/email"
+                    android:textSize="14sp"
+                    android:textColor="@color/dark_teal"
+                    android:layout_marginTop="16dp"
+                    android:layout_marginStart="14dp"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/tilFullName" />
+
+                <TextView
+                    android:id="@+id/tvEmail"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="14dp"
+                    android:layout_marginEnd="14dp"
+                    android:layout_marginTop="4dp"
+                    android:padding="14dp"
+                    android:background="@android:color/transparent"
+                    android:textColor="@color/black"
+                    android:textSize="16sp"
+                    tools:text="alex\@example.com"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/email_label" />
+
+                <!-- Label: Bio -->
+                <TextView
+                    android:id="@+id/bio_label"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/bio_label"
+                    android:textSize="14sp"
+                    android:textColor="@color/dark_teal"
+                    android:layout_marginTop="8dp"
+                    android:layout_marginStart="14dp"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/tvEmail" />
+
+                <com.google.android.material.textfield.TextInputLayout
+                    android:id="@+id/tilBio"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:hint="@string/bio_hint"
+                    style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                    app:counterEnabled="true"
+                    app:counterMaxLength="280"
+                    app:boxCornerRadiusTopStart="12dp"
+                    app:boxCornerRadiusTopEnd="12dp"
+                    app:boxCornerRadiusBottomStart="12dp"
+                    app:boxCornerRadiusBottomEnd="12dp"
+                    app:boxStrokeColor="@color/light_teal"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/bio_label">
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/etBio"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:gravity="top|start"
+                        android:inputType="textMultiLine|textCapSentences"
+                        android:minLines="2"
+                        android:maxLines="4"
+                        android:maxLength="280"
+                        android:textSize="14sp" />
+                </com.google.android.material.textfield.TextInputLayout>
+
                 <!-- Label: Location -->
                 <TextView
                     android:id="@+id/location_label"
@@ -171,7 +243,7 @@
                     android:layout_marginTop="16dp"
                     android:layout_marginStart="14dp"
                     app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toBottomOf="@id/tilFullName" />
+                    app:layout_constraintTop_toBottomOf="@id/tilBio" />
                 <!-- Location (read-only, auto-detected) -->
                 <LinearLayout
                     android:id="@+id/locationRow"
