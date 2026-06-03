@@ -14,7 +14,6 @@ import androidx.navigation.fragment.navArgs
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.project.fridgemate.R
 import com.project.fridgemate.databinding.FragmentUserListBinding
-import com.project.fridgemate.ui.profile.UserProfileFragmentDirections
 
 /**
  * Generic list screen for [UserListMode] = followers / following / search.
@@ -68,7 +67,7 @@ class UserListFragment : Fragment() {
             currentUserId = viewModel.meId,
             onUserClick = { user ->
                 findNavController().navigate(
-                    UserProfileFragmentDirections.actionUserProfileFragmentSelf(user.id)
+                    UserListFragmentDirections.actionUserListFragmentToUserProfileFragment(user.id)
                 )
             },
             onFollowClick = { user -> viewModel.toggleFollow(user) }

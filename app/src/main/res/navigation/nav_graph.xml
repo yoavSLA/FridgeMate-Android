@@ -115,6 +115,9 @@
         <argument
             android:name="type"
             app:argType="string" />
+        <action
+            android:id="@+id/action_userListFragment_to_userProfileFragment"
+            app:destination="@id/userProfileFragment" />
     </fragment>
 
     <fragment
