@@ -54,6 +54,7 @@
         <action
             android:id="@+id/action_dashboardFragment_to_notificationsFragment"
             app:destination="@id/notificationsFragment" />
+        <action
             android:id="@+id/action_dashboardFragment_to_addJournalEntryFragment"
             app:destination="@id/addJournalEntryFragment" />
     </fragment>

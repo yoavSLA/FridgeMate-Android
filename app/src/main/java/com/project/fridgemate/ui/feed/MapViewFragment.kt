@@ -17,7 +17,10 @@ import com.project.fridgemate.ui.feed.MapViewFragmentDirections
 import com.project.fridgemate.BuildConfig
 import com.project.fridgemate.R
 import com.project.fridgemate.databinding.FragmentMapViewBinding
+import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.project.fridgemate.databinding.DialogCommentsViewerBinding
+import com.google.android.material.bottomsheet.BottomSheetDialog
 import androidx.viewpager2.widget.ViewPager2
 import com.google.android.material.tabs.TabLayoutMediator
 import com.squareup.picasso.Picasso
@@ -167,6 +170,19 @@ class MapViewFragment : Fragment() {
         }
 
         viewModel.posts.observe(viewLifecycleOwner) { posts ->
+            if (binding.cvPostDetail.visibility == View.VISIBLE) {
+                val currentAdapter = binding.vpPostDetail.adapter as? MapPostDetailAdapter
+                if (currentAdapter != null) {
+                    // Update the list of posts being displayed in the ViewPager
+                    // We need to keep the same subset of posts that was originally shown
+                    val currentItems = currentAdapter.currentList
+                    val updatedItems = currentItems.map { current ->
+                        posts.find { it.id == current.id } ?: current
+                    }
+                    currentAdapter.submitList(updatedItems)
+                }
+            }
+
             binding.mapView.overlays.clear()
             
             val validPosts = posts.filter { it.latitude != 0.0 || it.longitude != 0.0 }
@@ -199,18 +215,29 @@ class MapViewFragment : Fragment() {
         }
     }
 
+    private var detailAdapter: MapPostDetailAdapter? = null
+
     private fun showPostDetails(posts: List<Post>) {
         binding.cvPostDetail.visibility = View.VISIBLE
         
         tabLayoutMediator?.detach()
         
-        val adapter = MapPostDetailAdapter(posts) { linkedRecipe ->
-            val action = MapViewFragmentDirections.actionMapViewFragmentToRecipeDetailFragment(
-                serverRecipeId = linkedRecipe.id
-            )
-            findNavController().navigate(action)
-        }
-        binding.vpPostDetail.adapter = adapter
+        detailAdapter = MapPostDetailAdapter(
+            onRecipeClick = { linkedRecipe ->
+                val action = MapViewFragmentDirections.actionMapViewFragmentToRecipeDetailFragment(
+                    serverRecipeId = linkedRecipe.id
+                )
+                findNavController().navigate(action)
+            },
+            onLikeClick = { post ->
+                viewModel.toggleLike(post)
+            },
+            onCommentClick = { post ->
+                showCommentsDialog(post)
+            }
+        )
+        binding.vpPostDetail.adapter = detailAdapter
+        detailAdapter?.submitList(posts)
         
         // Reset height for the first item
         binding.vpPostDetail.post {
@@ -224,6 +251,29 @@ class MapViewFragment : Fragment() {
         } else {
             binding.tlDots.visibility = View.GONE
         }
+    }
+
+    private fun showCommentsDialog(post: Post) {
+        val dialog = BottomSheetDialog(requireContext())
+        val dialogBinding = DialogCommentsViewerBinding.inflate(layoutInflater)
+        dialog.setContentView(dialogBinding.root)
+
+        val commentAdapter = CommentAdapter(showOptions = false)
+        dialogBinding.rvComments.layoutManager = LinearLayoutManager(requireContext())
+        dialogBinding.rvComments.adapter = commentAdapter
+
+        viewModel.loadComments(post.id)
+
+        viewModel.posts.observe(viewLifecycleOwner) { posts ->
+            val updatedPost = posts.find { it.id == post.id }
+            if (updatedPost != null) {
+                commentAdapter.submitList(updatedPost.comments)
+                dialogBinding.layoutEmptyComments.visibility = 
+                    if (updatedPost.comments.isEmpty()) View.VISIBLE else View.GONE
+            }
+        }
+
+        dialog.show()
     }
 
     override fun onResume() {
