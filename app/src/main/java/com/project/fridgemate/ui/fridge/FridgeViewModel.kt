@@ -41,6 +41,9 @@ class FridgeViewModel(application: Application) : AndroidViewModel(application) 
     private val _unreadCount = MutableLiveData<Int>(0)
     val unreadCount: LiveData<Int> = _unreadCount
 
+    private val _lastScannedAt = MutableLiveData<String?>(null)
+    val lastScannedAt: LiveData<String?> = _lastScannedAt
+
     fun refreshUnreadCount() {
         val fridgeId = _activeFridgeId.value ?: return
         viewModelScope.launch {
@@ -71,6 +74,7 @@ class FridgeViewModel(application: Application) : AndroidViewModel(application) 
                     itemRepository.clearCache()
                     _activeFridgeId.value = null
                     _activeFridgeName.value = null
+                    _lastScannedAt.value = null
                     _unreadCount.value = 0
                     _state.value = State.NoFridge
                 }
@@ -80,6 +84,7 @@ class FridgeViewModel(application: Application) : AndroidViewModel(application) 
                 is FridgeResult.Success -> {
                     _activeFridgeId.value = fridgeResult.data.id
                     _activeFridgeName.value = fridgeResult.data.name
+                    _lastScannedAt.value = fridgeResult.data.lastScannedAt
                     val items = itemRepository.getItems(fridgeResult.data.id)
                     _state.value = if (items.isEmpty()) State.Empty
                                    else State.Items(buildFridgeItemList(items))
@@ -91,6 +96,9 @@ class FridgeViewModel(application: Application) : AndroidViewModel(application) 
 
     private fun buildFridgeItemList(items: List<InventoryItemDto>): List<FridgeItem> {
         val result = mutableListOf<FridgeItem>()
+        _lastScannedAt.value?.let {
+            result.add(FridgeItem.LastScanned(it))
+        }
         val lowItems = items.filter { it.isRunningLow }
         if (lowItems.isNotEmpty()) {
             result.add(FridgeItem.RunningLow(lowItems.map { Pair(it.name, it.quantity) }))

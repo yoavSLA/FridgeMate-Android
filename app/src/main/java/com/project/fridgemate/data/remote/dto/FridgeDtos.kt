@@ -20,6 +20,7 @@ data class FridgeDto(
     @SerializedName("_id") val id: String,
     val name: String,
     val inviteCode: String,
+    val lastScannedAt: String? = null,
     val members: List<FridgeMemberDto>
 )
 
