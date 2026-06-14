@@ -46,10 +46,12 @@ class NotificationAdapter(
 
             // Set icon based on type
             val iconRes = when (notification.type) {
-                NotificationType.LIKE -> R.drawable.ic_heart_filled
-                NotificationType.COMMENT -> R.drawable.ic_notifications
-                NotificationType.SCAN_COMPLETE -> R.drawable.ic_notifications
-                NotificationType.CHAT_MESSAGE -> R.drawable.ic_notifications
+                NotificationType.POST_LIKE -> R.drawable.ic_heart_filled
+                NotificationType.POST_COMMENT -> R.drawable.ic_comments
+                NotificationType.CHAT_MESSAGE -> R.drawable.ic_send
+                NotificationType.FRIDGE_INVITE -> R.drawable.ic_group
+                NotificationType.EXPIRING_ITEM -> R.drawable.ic_warning
+                NotificationType.SCAN_COMPLETE -> R.drawable.ic_fridge
                 NotificationType.SYSTEM -> R.drawable.ic_notifications
             }
             binding.ivNotificationIcon.setImageResource(iconRes)
