@@ -8,6 +8,7 @@ import com.project.fridgemate.data.model.Notification
 import com.project.fridgemate.data.repository.NotificationRepository
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 
 class NotificationViewModel : ViewModel() {
