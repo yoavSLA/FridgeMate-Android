@@ -1,6 +1,6 @@
 package com.project.fridgemate.data.remote.dto
 data class FcmTokenRequest(
-    val fcmToken: String
+    val token: String
 )
 
 data class FcmTokenResponse(
