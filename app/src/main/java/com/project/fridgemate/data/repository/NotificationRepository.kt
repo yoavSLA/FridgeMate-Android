@@ -8,6 +8,7 @@ import com.project.fridgemate.data.remote.api.NotificationApi
 import com.project.fridgemate.data.remote.dto.NotificationDto
 import com.project.fridgemate.data.remote.dto.NotificationUnreadCountResponse
 import com.project.fridgemate.data.remote.socket.SocketManager
+import io.socket.client.Socket
 import io.socket.emitter.Emitter
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
@@ -55,10 +56,16 @@ class NotificationRepository {
             }.getOrNull()?.let { trySend(it) }
         }
 
+        // Close the flow when the socket is disconnected so the ViewModel can reconnect
+        // to a fresh socket (e.g. after a token refresh recreates the socket).
+        val onDisconnect = Emitter.Listener { close() }
+
         socket.on("new_notification", onNotification)
+        socket.on(Socket.EVENT_DISCONNECT, onDisconnect)
 
         awaitClose {
             socket.off("new_notification", onNotification)
+            socket.off(Socket.EVENT_DISCONNECT, onDisconnect)
         }
     }
 }

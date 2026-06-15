@@ -10,6 +10,11 @@ import android.util.Log
 import androidx.core.app.NotificationCompat
 import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
+import com.project.fridgemate.data.remote.ApiClient
+import com.project.fridgemate.data.repository.UserRepository
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 class FridgeMateMessagingService : FirebaseMessagingService() {
 
@@ -41,8 +46,10 @@ class FridgeMateMessagingService : FirebaseMessagingService() {
     }
 
     private fun sendTokenToServer(token: String) {
-        // TODO: send the endpoint api
-        Log.d(TAG, "Token to send to server: $token")
+        if (!ApiClient.getTokenManager().isLoggedIn) return
+        CoroutineScope(Dispatchers.IO).launch {
+            runCatching { UserRepository(applicationContext).registerFcmToken(token) }
+        }
     }
 
     private fun handleDataPayload(data: Map<String, String>) {

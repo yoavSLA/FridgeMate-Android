@@ -13,12 +13,15 @@ import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
+import com.google.firebase.messaging.FirebaseMessaging
 import com.project.fridgemate.ui.dashboard.DashboardFragmentDirections
 import com.project.fridgemate.BuildConfig
 import com.project.fridgemate.MainActivity
 import com.project.fridgemate.R
 import com.squareup.picasso.Picasso
+import com.project.fridgemate.data.repository.UserRepository
 import com.project.fridgemate.databinding.FragmentDashboardBinding
 import com.project.fridgemate.databinding.PopupProfileMenuBinding
 import com.project.fridgemate.ui.fridge.FridgeFragment
@@ -27,6 +30,7 @@ import com.project.fridgemate.ui.profile.ProfileViewModel
 import com.project.fridgemate.ui.recipes.RecipesFragment
 import com.project.fridgemate.ui.feed.FeedFragment
 import com.project.fridgemate.ui.journal.JournalFragment
+import kotlinx.coroutines.launch
 
 class DashboardFragment : Fragment() {
 
@@ -77,6 +81,7 @@ class DashboardFragment : Fragment() {
         setupNotificationsIcon()
         loadGreeting()
         observeNotifications()
+        registerFcmToken()
 
         profileViewModel.loggedOut.observe(viewLifecycleOwner) { loggedOut ->
             if (loggedOut) {
@@ -253,6 +258,14 @@ class DashboardFragment : Fragment() {
 
         popupWindow.showAsDropDown(anchor, xOffset, yOffset)
     }
+    private fun registerFcmToken() {
+        FirebaseMessaging.getInstance().token.addOnSuccessListener { token ->
+            lifecycleScope.launch {
+                runCatching { UserRepository(requireContext()).registerFcmToken(token) }
+            }
+        }
+    }
+
     private fun setupNotificationsIcon() {
         binding.ivNotifications.setOnClickListener {
             val action = DashboardFragmentDirections.actionDashboardFragmentToNotificationsFragment()
