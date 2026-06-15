@@ -33,6 +33,6 @@ interface UserApi {
         @Part image: MultipartBody.Part
     ): Response<ApiOkResponse<UploadImageResponse>>
 
-    @POST("user/fcm-token")
+    @POST("notifications/fcm-token")
     suspend fun registerFcmToken(@Body request: FcmTokenRequest): Response<FcmTokenResponse>
 }
