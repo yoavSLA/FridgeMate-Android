@@ -7,6 +7,7 @@ import androidx.lifecycle.viewModelScope
 import com.project.fridgemate.data.model.Notification
 import com.project.fridgemate.data.repository.NotificationRepository
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 class NotificationViewModel : ViewModel() {
@@ -76,12 +77,17 @@ class NotificationViewModel : ViewModel() {
     private fun startSocketListener() {
         socketJob?.cancel()
         socketJob = viewModelScope.launch {
-            repo.observeNewNotifications().collect { notification ->
-                _unreadCount.postValue((_unreadCount.value ?: 0) + 1)
-                _incomingNotification.postValue(notification)
-                // Prepend to list if already loaded
-                val current = _notifications.value.orEmpty()
-                _notifications.postValue(listOf(notification) + current)
+            while (isActive) {
+                repo.observeNewNotifications().collect { notification ->
+                    _unreadCount.postValue((_unreadCount.value ?: 0) + 1)
+                    _incomingNotification.postValue(notification)
+                    val current = _notifications.value.orEmpty()
+                    _notifications.postValue(listOf(notification) + current)
+                }
+                // Flow closed because the socket disconnected (e.g. token refresh
+                // caused SocketManager to replace the socket). Wait briefly so the
+                // new socket has time to connect, then re-attach the listener.
+                if (isActive) delay(2000)
             }
         }
     }
