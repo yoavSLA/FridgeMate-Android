@@ -39,12 +39,18 @@ fun NotificationDto.toNotification(): Notification {
         else -> NotificationType.SYSTEM
     }
 
+    val relatedId = when (type) {
+        "POST_LIKE", "POST_COMMENT" -> metadata?.get("postId") as? String
+        else -> null
+    }
+
     return Notification(
         id = id,
         type = notifType,
         title = title,
         message = message,
         timestamp = ts,
-        isRead = isRead
+        isRead = isRead,
+        relatedId = relatedId
     )
 }

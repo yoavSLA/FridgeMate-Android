@@ -270,6 +270,16 @@ class DashboardFragment : Fragment() {
             showBanner(notification.title, notification.message)
             notificationViewModel.consumeIncoming()
         }
+
+        notificationViewModel.pendingPostId.observe(viewLifecycleOwner) { postId ->
+            postId ?: return@observe
+            if (currentTabId != R.id.tab_feed) {
+                currentTabId = R.id.tab_feed
+                updateTabUI(currentTabId)
+                showFragmentForTab(currentTabId)
+            }
+            // FeedFragment observes pendingPostId and scrolls once posts are available
+        }
     }
 
     private fun showBanner(title: String, message: String) {
