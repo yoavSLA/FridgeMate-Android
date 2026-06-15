@@ -28,7 +28,7 @@
         android:layout_height="8dp"
         android:layout_marginStart="4dp"
         android:background="@drawable/circle_background"
-        android:backgroundTint="@color/teal_primary"
+        android:backgroundTint="@color/error_red"
         android:visibility="gone"
         app:layout_constraintEnd_toEndOf="@id/ivNotificationIcon"
         app:layout_constraintTop_toTopOf="@id/ivNotificationIcon" />

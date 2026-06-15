@@ -12,6 +12,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.project.fridgemate.ui.dashboard.DashboardFragmentDirections
 import com.project.fridgemate.R
 import com.project.fridgemate.databinding.FragmentFeedBinding
+import com.project.fridgemate.ui.notifications.NotificationViewModel
 import androidx.recyclerview.widget.RecyclerView
 class FeedFragment : Fragment() {
 
@@ -19,6 +20,7 @@ class FeedFragment : Fragment() {
     private val binding get() = _binding!!
     private var isScrolling = false
     private val viewModel: FeedViewModel by activityViewModels()
+    private val notifViewModel: NotificationViewModel by activityViewModels()
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -111,6 +113,23 @@ class FeedFragment : Fragment() {
         viewModel.posts.observe(viewLifecycleOwner) { posts ->
             postAdapter?.submitList(posts)
             updateEmptyState(posts)
+            notifViewModel.pendingPostId.value?.let { postId ->
+                val idx = posts.indexOfFirst { it.id == postId }
+                if (idx >= 0) {
+                    binding.rvPosts.post { binding.rvPosts.scrollToPosition(idx) }
+                    notifViewModel.consumePendingPostId()
+                }
+            }
+        }
+
+        notifViewModel.pendingPostId.observe(viewLifecycleOwner) { postId ->
+            if (postId == null) return@observe
+            val posts = viewModel.posts.value ?: return@observe
+            val idx = posts.indexOfFirst { it.id == postId }
+            if (idx >= 0) {
+                binding.rvPosts.post { binding.rvPosts.scrollToPosition(idx) }
+                notifViewModel.consumePendingPostId()
+            }
         }
     }
 

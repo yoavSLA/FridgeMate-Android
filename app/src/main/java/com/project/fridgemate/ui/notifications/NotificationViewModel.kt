@@ -25,6 +25,9 @@ class NotificationViewModel : ViewModel() {
     private val _incomingNotification = MutableLiveData<Notification?>(null)
     val incomingNotification: LiveData<Notification?> = _incomingNotification
 
+    private val _pendingPostId = MutableLiveData<String?>(null)
+    val pendingPostId: LiveData<String?> = _pendingPostId
+
     private var socketJob: Job? = null
 
     init {
@@ -60,6 +63,14 @@ class NotificationViewModel : ViewModel() {
 
     fun consumeIncoming() {
         _incomingNotification.value = null
+    }
+
+    fun requestNavToPost(postId: String) {
+        _pendingPostId.value = postId
+    }
+
+    fun consumePendingPostId() {
+        _pendingPostId.value = null
     }
 
     private fun startSocketListener() {

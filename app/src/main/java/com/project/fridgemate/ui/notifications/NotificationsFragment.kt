@@ -9,6 +9,7 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.project.fridgemate.data.model.NotificationType
 import com.project.fridgemate.databinding.FragmentNotificationsBinding
 
 class NotificationsFragment : Fragment() {
@@ -31,7 +32,17 @@ class NotificationsFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        adapter = NotificationAdapter { }
+        adapter = NotificationAdapter { notification ->
+            when (notification.type) {
+                NotificationType.POST_LIKE, NotificationType.POST_COMMENT -> {
+                    notification.relatedId?.let { postId ->
+                        viewModel.requestNavToPost(postId)
+                        findNavController().navigateUp()
+                    }
+                }
+                else -> {}
+            }
+        }
         binding.rvNotifications.layoutManager = LinearLayoutManager(requireContext())
         binding.rvNotifications.adapter = adapter
 
