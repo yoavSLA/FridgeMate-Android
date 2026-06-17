@@ -104,6 +104,7 @@
     <string name="chat_title">Fridge Chat</string>
     <string name="chat_input_hint">Type a message…</string>
     <string name="chat_send">Send</string>
+    <string name="chat_emoji">Emoji</string>
     <string name="chat_empty_title">No messages yet</string>
     <string name="chat_empty_desc">Send the first message or share a recipe with your fridge mates.</string>
     <string name="chat_date_today">Today</string>
