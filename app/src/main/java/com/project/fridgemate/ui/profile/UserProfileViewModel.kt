@@ -42,6 +42,9 @@ class UserProfileViewModel(application: Application) : AndroidViewModel(applicat
     private val _followBusy = MutableLiveData(false)
     val followBusy: LiveData<Boolean> = _followBusy
 
+    private val _isRefreshing = MutableLiveData(false)
+    val isRefreshing: LiveData<Boolean> = _isRefreshing
+
     private var loadedUserId: String? = null
 
     val meId: String? get() = ApiClient.getTokenManager().userId
@@ -73,13 +76,17 @@ class UserProfileViewModel(application: Application) : AndroidViewModel(applicat
         }
     }
 
-    fun refresh(targetUserId: String) {
+    fun refresh(targetUserId: String, showIndicator: Boolean = false) {
         viewModelScope.launch {
+            if (showIndicator) _isRefreshing.value = true
             try {
                 val fresh = userRepository.getUserById(targetUserId)
                 if (fresh != null) _user.value = fresh
                 loadPostsFor(targetUserId)
             } catch (_: Exception) { /* keep current */ }
+            finally {
+                if (showIndicator) _isRefreshing.value = false
+            }
         }
     }
 

@@ -57,6 +57,13 @@ class UserProfileFragment : Fragment() {
             if (isMe) R.string.my_profile_title else R.string.profile_title
         )
 
+        binding.swipeRefresh.setColorSchemeResources(R.color.teal_primary)
+        binding.swipeRefresh.setOnRefreshListener {
+            val uid = resolvedUserId
+            if (uid != null) viewModel.refresh(uid, showIndicator = true)
+            else binding.swipeRefresh.isRefreshing = false
+        }
+
         setupPosts()
         setupActions()
         observe()
@@ -173,14 +180,19 @@ class UserProfileFragment : Fragment() {
             loadAvatar(user.profileImage)
         }
 
-        viewModel.posts.observe(viewLifecycleOwner) { posts ->
-            postAdapter.submitList(posts)
-            binding.tvEmptyPosts.visibility = if (posts.isEmpty()) View.VISIBLE else View.GONE
-            binding.rvPosts.visibility = if (posts.isEmpty()) View.GONE else View.VISIBLE
+        viewModel.posts.observe(viewLifecycleOwner) { _ ->
+            postAdapter.submitList(viewModel.posts.value)
+            updateEmptyState()
         }
 
         viewModel.isLoading.observe(viewLifecycleOwner) { loading ->
             binding.progressBar.visibility = if (loading && viewModel.user.value == null) View.VISIBLE else View.GONE
+            updateEmptyState()
+        }
+
+        viewModel.isRefreshing.observe(viewLifecycleOwner) { refreshing ->
+            binding.swipeRefresh.isRefreshing = refreshing
+            updateEmptyState()
         }
 
         viewModel.followBusy.observe(viewLifecycleOwner) { busy ->
@@ -193,6 +205,15 @@ class UserProfileFragment : Fragment() {
                 viewModel.clearError()
             }
         }
+    }
+
+    private fun updateEmptyState() {
+        val posts = viewModel.posts.value ?: emptyList()
+        val stillLoading = viewModel.isLoading.value == true || viewModel.isRefreshing.value == true
+        val showEmpty = posts.isEmpty() && !stillLoading && viewModel.user.value != null
+
+        binding.tvEmptyPosts.visibility = if (showEmpty) View.VISIBLE else View.GONE
+        binding.rvPosts.visibility = if (posts.isEmpty()) View.GONE else View.VISIBLE
     }
 
     private fun updatePrimaryButton(isFollowing: Boolean) {
