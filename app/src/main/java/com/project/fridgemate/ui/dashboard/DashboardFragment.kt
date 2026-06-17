@@ -15,6 +15,8 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
+import com.google.android.material.badge.BadgeDrawable
+import com.google.android.material.badge.BadgeUtils
 import com.google.firebase.messaging.FirebaseMessaging
 import com.project.fridgemate.ui.dashboard.DashboardFragmentDirections
 import com.project.fridgemate.BuildConfig
@@ -25,6 +27,7 @@ import com.project.fridgemate.data.repository.UserRepository
 import com.project.fridgemate.databinding.FragmentDashboardBinding
 import com.project.fridgemate.databinding.PopupProfileMenuBinding
 import com.project.fridgemate.ui.fridge.FridgeFragment
+import com.project.fridgemate.ui.fridge.FridgeViewModel
 import com.project.fridgemate.ui.notifications.NotificationViewModel
 import com.project.fridgemate.ui.profile.ProfileViewModel
 import com.project.fridgemate.ui.recipes.RecipesFragment
@@ -39,11 +42,15 @@ class DashboardFragment : Fragment() {
 
     private val profileViewModel: ProfileViewModel by activityViewModels()
     private val notificationViewModel: NotificationViewModel by activityViewModels()
+    private val fridgeViewModel: FridgeViewModel by activityViewModels()
 
     private val bannerHandler = Handler(Looper.getMainLooper())
     private val hideBannerRunnable = Runnable { hideBanner() }
 
     private var currentTabId: Int = R.id.tab_feed
+
+    private var chatBadge: BadgeDrawable? = null
+    private var chatBadgeAttached = false
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -79,8 +86,10 @@ class DashboardFragment : Fragment() {
         setupTabListeners()
         setupProfileMenu()
         setupNotificationsIcon()
+        setupChatButton()
         loadGreeting()
         observeNotifications()
+        observeFridgeChat()
         registerFcmToken()
 
         profileViewModel.loggedOut.observe(viewLifecycleOwner) { loggedOut ->
@@ -139,21 +148,21 @@ class DashboardFragment : Fragment() {
                 showFragmentForTab(currentTabId)
             }
         }
-        binding.tabFeed.setOnClickListener { 
+        binding.tabFeed.setOnClickListener {
             if (currentTabId != it.id) {
                 currentTabId = it.id
                 updateTabUI(currentTabId)
                 showFragmentForTab(currentTabId)
             }
         }
-        binding.tabRecipes.setOnClickListener { 
+        binding.tabRecipes.setOnClickListener {
             if (currentTabId != it.id) {
                 currentTabId = it.id
                 updateTabUI(currentTabId)
                 showFragmentForTab(currentTabId)
             }
         }
-        binding.tabJournal.setOnClickListener { 
+        binding.tabJournal.setOnClickListener {
             if (currentTabId != it.id) {
                 currentTabId = it.id
                 updateTabUI(currentTabId)
@@ -273,6 +282,56 @@ class DashboardFragment : Fragment() {
         }
     }
 
+    private fun setupChatButton() {
+        chatBadge = BadgeDrawable.create(requireContext()).apply {
+            backgroundColor = ContextCompat.getColor(requireContext(), R.color.error_red)
+            badgeTextColor = ContextCompat.getColor(requireContext(), R.color.white)
+            maxCharacterCount = 3
+            isVisible = false
+        }
+        binding.btnChat.setOnClickListener {
+            val fridgeId = fridgeViewModel.activeFridgeId.value ?: return@setOnClickListener
+            val fridgeName = fridgeViewModel.activeFridgeName.value.orEmpty()
+            val action = DashboardFragmentDirections
+                .actionDashboardFragmentToFridgeChatFragment(fridgeId, fridgeName)
+            findNavController().navigate(action)
+        }
+            if (fridgeViewModel.activeFridgeId.value.isNullOrBlank()) {
+            fridgeViewModel.loadItems()
+        }
+    }
+
+    private fun observeFridgeChat() {
+        fridgeViewModel.activeFridgeId.observe(viewLifecycleOwner) { id ->
+            binding.btnChat.isVisible = !id.isNullOrBlank()
+        }
+        fridgeViewModel.unreadCount.observe(viewLifecycleOwner) { count ->
+            applyChatUnreadBadge(count)
+        }
+    }
+
+    private fun applyChatUnreadBadge(count: Int) {
+        val badge = chatBadge ?: return
+        if (count <= 0) {
+            if (chatBadgeAttached) {
+                BadgeUtils.detachBadgeDrawable(badge, binding.btnChat)
+                chatBadgeAttached = false
+            }
+            badge.isVisible = false
+            return
+        }
+        badge.number = count
+        badge.isVisible = true
+        if (!chatBadgeAttached) {
+            binding.btnChat.post {
+                if (_binding != null) {
+                    BadgeUtils.attachBadgeDrawable(badge, binding.btnChat)
+                    chatBadgeAttached = true
+                }
+            }
+        }
+    }
+
     private fun observeNotifications() {
         notificationViewModel.unreadCount.observe(viewLifecycleOwner) { count ->
             binding.notificationDot.isVisible = count > 0
@@ -319,6 +378,13 @@ class DashboardFragment : Fragment() {
 
     override fun onDestroyView() {
         bannerHandler.removeCallbacks(hideBannerRunnable)
+        chatBadge?.let { badge ->
+            if (chatBadgeAttached && _binding != null) {
+                BadgeUtils.detachBadgeDrawable(badge, binding.btnChat)
+            }
+        }
+        chatBadge = null
+        chatBadgeAttached = false
         super.onDestroyView()
         _binding = null
     }
