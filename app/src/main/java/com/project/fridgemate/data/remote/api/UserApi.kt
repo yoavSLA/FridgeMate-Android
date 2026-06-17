@@ -1,6 +1,8 @@
 package com.project.fridgemate.data.remote.api
 
 import com.project.fridgemate.data.remote.dto.ApiOkResponse
+import com.project.fridgemate.data.remote.dto.FcmTokenRequest
+import com.project.fridgemate.data.remote.dto.FcmTokenResponse
 import com.project.fridgemate.data.remote.dto.FollowToggleResponse
 import com.project.fridgemate.data.remote.dto.UpdateProfileRequest
 import com.project.fridgemate.data.remote.dto.UploadImageResponse
@@ -59,4 +61,7 @@ interface UserApi {
         @Query("page") page: Int = 1,
         @Query("limit") limit: Int = 20
     ): Response<UserListResponse>
+
+    @POST("notifications/fcm-token")
+    suspend fun registerFcmToken(@Body request: FcmTokenRequest): Response<FcmTokenResponse>
 }

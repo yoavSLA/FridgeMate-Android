@@ -269,7 +269,7 @@ class FeedViewModel(application: Application) : AndroidViewModel(application) {
             )
             when (val result = repository.createPost(request)) {
                 is FridgeResult.Success -> {
-                    loadPosts()
+                    loadPosts(refresh = true)
                     loadMyPosts()
                 }
                 is FridgeResult.Error -> {
@@ -323,6 +323,7 @@ class FeedViewModel(application: Application) : AndroidViewModel(application) {
                     _posts.value = _posts.value?.map(update)
                     _myPosts.value = _myPosts.value?.map(update)
                     _updateSuccess.value = true
+                    loadPosts(refresh = true)
                 }
                 is FridgeResult.Error -> {
                     _error.value = result.message

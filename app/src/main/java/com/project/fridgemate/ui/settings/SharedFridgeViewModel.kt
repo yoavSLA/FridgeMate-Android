@@ -8,6 +8,7 @@ import androidx.lifecycle.viewModelScope
 import com.project.fridgemate.data.local.AppDatabase
 import com.project.fridgemate.data.local.entity.RecipeEntity
 import com.project.fridgemate.data.remote.dto.DetectedItemDto
+import com.project.fridgemate.data.remote.dto.ScanChangesDto
 import com.project.fridgemate.data.remote.dto.FridgeMemberDetailDto
 import com.project.fridgemate.data.repository.FridgeRepository
 import com.project.fridgemate.data.repository.FridgeResult
@@ -29,6 +30,9 @@ class SharedFridgeViewModel(application: Application) : AndroidViewModel(applica
     private val _inviteCode = MutableLiveData<String>()
     val inviteCode: LiveData<String> = _inviteCode
 
+    private val _lastScannedAt = MutableLiveData<String?>(null)
+    val lastScannedAt: LiveData<String?> = _lastScannedAt
+
     private val _members = MutableLiveData<List<FridgeMemberDetailDto>>(emptyList())
     val members: LiveData<List<FridgeMemberDetailDto>> = _members
 
@@ -49,6 +53,7 @@ class SharedFridgeViewModel(application: Application) : AndroidViewModel(applica
                     _hasFridge.value = true
                     _fridgeName.value = result.data.name
                     _inviteCode.value = result.data.inviteCode
+                    _lastScannedAt.value = result.data.lastScannedAt
                     loadMembers()
                 }
                 is FridgeResult.NoFridge -> {
@@ -139,15 +144,21 @@ class SharedFridgeViewModel(application: Application) : AndroidViewModel(applica
     private val _scanResult = MutableLiveData<List<DetectedItemDto>?>()
     val scanResult: LiveData<List<DetectedItemDto>?> = _scanResult
 
+    private val _scanSummary = MutableLiveData<ScanChangesDto?>(null)
+    val scanSummary: LiveData<ScanChangesDto?> = _scanSummary
+
     fun uploadFridgeScan(imageBytes: ByteArray, mimeType: String) {
         _isScanning.value = true
         _scanResult.value = null
+        _scanSummary.value = null
         viewModelScope.launch {
             when (val result = scanRepository.uploadScan(imageBytes, mimeType)) {
                 is FridgeResult.Success -> {
                     val scan = result.data
                     if (scan.status == "completed") {
                         _scanResult.value = scan.detectedItems
+                        _scanSummary.value = scan.changes
+                        _lastScannedAt.value = scan.createdAt // Update timestamp immediately after scan
                         val count = scan.detectedItems.size
                         _actionSuccess.value = getApplication<Application>().resources.getQuantityString(
                             R.plurals.items_detected_success,
@@ -169,7 +180,10 @@ class SharedFridgeViewModel(application: Application) : AndroidViewModel(applica
         }
     }
 
-    fun clearScanResult() { _scanResult.value = null }
+    fun clearScanResult() { 
+        _scanResult.value = null
+        _scanSummary.value = null
+    }
 
     fun clearRecipeCache() {
         viewModelScope.launch {

@@ -1,27 +1,36 @@
 package com.project.fridgemate.ui.dashboard
 
+import android.animation.ObjectAnimator
 import android.content.Intent
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.PopupWindow
 import androidx.core.content.ContextCompat
+import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
+import com.google.firebase.messaging.FirebaseMessaging
 import com.project.fridgemate.ui.dashboard.DashboardFragmentDirections
 import com.project.fridgemate.BuildConfig
 import com.project.fridgemate.MainActivity
 import com.project.fridgemate.R
 import com.squareup.picasso.Picasso
+import com.project.fridgemate.data.repository.UserRepository
 import com.project.fridgemate.databinding.FragmentDashboardBinding
 import com.project.fridgemate.databinding.PopupProfileMenuBinding
 import com.project.fridgemate.ui.fridge.FridgeFragment
+import com.project.fridgemate.ui.notifications.NotificationViewModel
 import com.project.fridgemate.ui.profile.ProfileViewModel
 import com.project.fridgemate.ui.recipes.RecipesFragment
 import com.project.fridgemate.ui.feed.FeedFragment
 import com.project.fridgemate.ui.journal.JournalFragment
+import kotlinx.coroutines.launch
 
 class DashboardFragment : Fragment() {
 
@@ -29,6 +38,10 @@ class DashboardFragment : Fragment() {
     private val binding get() = _binding!!
 
     private val profileViewModel: ProfileViewModel by activityViewModels()
+    private val notificationViewModel: NotificationViewModel by activityViewModels()
+
+    private val bannerHandler = Handler(Looper.getMainLooper())
+    private val hideBannerRunnable = Runnable { hideBanner() }
 
     private var currentTabId: Int = R.id.tab_feed
 
@@ -65,7 +78,10 @@ class DashboardFragment : Fragment() {
 
         setupTabListeners()
         setupProfileMenu()
+        setupNotificationsIcon()
         loadGreeting()
+        observeNotifications()
+        registerFcmToken()
 
         profileViewModel.loggedOut.observe(viewLifecycleOwner) { loggedOut ->
             if (loggedOut) {
@@ -242,8 +258,67 @@ class DashboardFragment : Fragment() {
 
         popupWindow.showAsDropDown(anchor, xOffset, yOffset)
     }
+    private fun registerFcmToken() {
+        FirebaseMessaging.getInstance().token.addOnSuccessListener { token ->
+            lifecycleScope.launch {
+                runCatching { UserRepository(requireContext()).registerFcmToken(token) }
+            }
+        }
+    }
+
+    private fun setupNotificationsIcon() {
+        binding.ivNotifications.setOnClickListener {
+            val action = DashboardFragmentDirections.actionDashboardFragmentToNotificationsFragment()
+            findNavController().navigate(action)
+        }
+    }
+
+    private fun observeNotifications() {
+        notificationViewModel.unreadCount.observe(viewLifecycleOwner) { count ->
+            binding.notificationDot.isVisible = count > 0
+        }
+
+        notificationViewModel.incomingNotification.observe(viewLifecycleOwner) { notification ->
+            notification ?: return@observe
+            showBanner(notification.title, notification.message)
+            notificationViewModel.consumeIncoming()
+        }
+
+        notificationViewModel.pendingPostId.observe(viewLifecycleOwner) { postId ->
+            postId ?: return@observe
+            if (currentTabId != R.id.tab_feed) {
+                currentTabId = R.id.tab_feed
+                updateTabUI(currentTabId)
+                showFragmentForTab(currentTabId)
+            }
+            // FeedFragment observes pendingPostId and scrolls once posts are available
+        }
+    }
+
+    private fun showBanner(title: String, message: String) {
+        binding.bannerTitle.text = title
+        binding.bannerMessage.text = message
+        binding.notificationBanner.visibility = View.VISIBLE
+        ObjectAnimator.ofFloat(binding.notificationBanner, "alpha", 0f, 1f).setDuration(200).start()
+
+        bannerHandler.removeCallbacks(hideBannerRunnable)
+        bannerHandler.postDelayed(hideBannerRunnable, 3500)
+    }
+
+    private fun hideBanner() {
+        val animator = ObjectAnimator.ofFloat(binding.notificationBanner, "alpha", 1f, 0f).apply {
+            duration = 300
+        }
+        animator.addListener(object : android.animation.AnimatorListenerAdapter() {
+            override fun onAnimationEnd(animation: android.animation.Animator) {
+                binding.notificationBanner.visibility = View.GONE
+            }
+        })
+        animator.start()
+    }
 
     override fun onDestroyView() {
+        bannerHandler.removeCallbacks(hideBannerRunnable)
         super.onDestroyView()
         _binding = null
     }

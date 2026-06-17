@@ -14,7 +14,8 @@ import com.squareup.picasso.Picasso
 
 class CommentAdapter(
     private val onDeleteComment: (Comment) -> Unit = {},
-    private val onEditComment: (Comment, String) -> Unit = { _, _ -> }
+    private val onEditComment: (Comment, String) -> Unit = { _, _ -> },
+    private val showOptions: Boolean = true
 ) : RecyclerView.Adapter<CommentAdapter.CommentViewHolder>() {
 
     private var comments: List<Comment> = emptyList()
@@ -65,7 +66,7 @@ class CommentAdapter(
             } else {
                 tvCommentText.visibility = View.VISIBLE
                 layoutEditComment.visibility = View.GONE
-                if (comment.isOwner) {
+                if (showOptions && comment.isOwner) {
                     btnCommentOptions.visibility = View.VISIBLE
                     btnCommentOptions.setOnClickListener {
                         showCommentOptions(it, comment)

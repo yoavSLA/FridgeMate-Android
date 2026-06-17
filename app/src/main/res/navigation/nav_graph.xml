@@ -52,6 +52,9 @@
             android:id="@+id/action_dashboardFragment_to_fridgeChatFragment"
             app:destination="@id/fridgeChatFragment" />
         <action
+            android:id="@+id/action_dashboardFragment_to_notificationsFragment"
+            app:destination="@id/notificationsFragment" />
+        <action
             android:id="@+id/action_dashboardFragment_to_addJournalEntryFragment"
             app:destination="@id/addJournalEntryFragment" />
     </fragment>
@@ -228,4 +231,9 @@
             app:argType="string"
             android:defaultValue="" />
     </fragment>
+    <fragment
+        android:id="@+id/notificationsFragment"
+        android:name="com.project.fridgemate.ui.notifications.NotificationsFragment"
+        android:label="Notifications"
+        tools:layout="@layout/fragment_notifications" />
 </navigation>

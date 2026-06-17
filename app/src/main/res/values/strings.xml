@@ -251,6 +251,8 @@
     <string name="cd_back">Back</string>
     <string name="cd_location">Location</string>
 
+    <!-- Notification Types -->
+    <string name="notification_msg">When you get notifications, they will show up here</string>
     <!-- Journal Screen -->
     <string name="add_journal_entry">Add Journal Entry</string>
     <string name="journal_title_hint">Title</string>
