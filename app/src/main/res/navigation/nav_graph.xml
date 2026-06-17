@@ -28,8 +28,8 @@
             app:popUpTo="@id/nav_graph"
             app:popUpToInclusive="true" />
         <action
-            android:id="@+id/action_dashboardFragment_to_myProfileFragment"
-            app:destination="@id/myProfileFragment" />
+            android:id="@+id/action_dashboardFragment_to_userProfileFragment"
+            app:destination="@id/userProfileFragment" />
         <action
             android:id="@+id/action_dashboardFragment_to_settingsFragment"
             app:destination="@id/settingsFragment" />
@@ -46,8 +46,8 @@
             android:id="@+id/action_dashboardFragment_to_editPostFragment"
             app:destination="@id/editPostFragment" />
         <action
-            android:id="@+id/action_dashboardFragment_to_myPostsFragment"
-            app:destination="@id/myPostsFragment" />
+            android:id="@+id/action_dashboardFragment_to_userListFragment"
+            app:destination="@id/userListFragment" />
         <action
             android:id="@+id/action_dashboardFragment_to_fridgeChatFragment"
             app:destination="@id/fridgeChatFragment" />
@@ -84,6 +84,54 @@
             android:id="@+id/action_fridgeChatFragment_to_recipeDetailFragment"
             app:destination="@id/recipeDetailFragment" />
     </fragment>
+
+    <fragment
+        android:id="@+id/userProfileFragment"
+        android:name="com.project.fridgemate.ui.profile.UserProfileFragment"
+        android:label="UserProfileFragment"
+        tools:layout="@layout/fragment_user_profile">
+        <argument
+            android:name="userId"
+            app:argType="string"
+            android:defaultValue="" />
+        <action
+            android:id="@+id/action_userProfileFragment_to_myProfileFragment"
+            app:destination="@id/myProfileFragment" />
+        <action
+            android:id="@+id/action_userProfileFragment_to_userListFragment"
+            app:destination="@id/userListFragment" />
+        <action
+            android:id="@+id/action_userProfileFragment_to_recipeDetailFragment"
+            app:destination="@id/recipeDetailFragment" />
+        <action
+            android:id="@+id/action_userProfileFragment_to_mapViewFragment"
+            app:destination="@id/mapViewFragment" />
+        <action
+            android:id="@+id/action_userProfileFragment_to_editPostFragment"
+            app:destination="@id/editPostFragment" />
+        <!-- Self-action so the screen can navigate to another user's profile -->
+        <action
+            android:id="@+id/action_userProfileFragment_self"
+            app:destination="@id/userProfileFragment" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/userListFragment"
+        android:name="com.project.fridgemate.ui.users.UserListFragment"
+        android:label="UserListFragment"
+        tools:layout="@layout/fragment_user_list">
+        <argument
+            android:name="userId"
+            app:argType="string"
+            android:defaultValue="" />
+        <argument
+            android:name="type"
+            app:argType="string" />
+        <action
+            android:id="@+id/action_userListFragment_to_userProfileFragment"
+            app:destination="@id/userProfileFragment" />
+    </fragment>
+
     <fragment
         android:id="@+id/myProfileFragment"
         android:name="com.project.fridgemate.ui.profile.MyProfileFragment"
@@ -150,18 +198,6 @@
         tools:layout="@layout/fragment_map_view">
         <action
             android:id="@+id/action_mapViewFragment_to_recipeDetailFragment"
-            app:destination="@id/recipeDetailFragment" />
-    </fragment>
-    <fragment
-        android:id="@+id/myPostsFragment"
-        android:name="com.project.fridgemate.ui.feed.MyPostsFragment"
-        android:label="MyPostsFragment"
-        tools:layout="@layout/fragment_my_posts">
-        <action
-            android:id="@+id/action_myPostsFragment_to_editPostFragment"
-            app:destination="@id/editPostFragment" />
-        <action
-            android:id="@+id/action_myPostsFragment_to_recipeDetailFragment"
             app:destination="@id/recipeDetailFragment" />
     </fragment>
     <fragment

@@ -231,7 +231,7 @@ class DashboardFragment : Fragment() {
 
         popupBinding.menuProfile.setOnClickListener {
             popupWindow.dismiss()
-            val action = DashboardFragmentDirections.actionDashboardFragmentToMyProfileFragment()
+            val action = DashboardFragmentDirections.actionDashboardFragmentToUserProfileFragment("")
             findNavController().navigate(action)
         }
 

@@ -3,9 +3,11 @@ package com.project.fridgemate.data.remote.api
 import com.project.fridgemate.data.remote.dto.ApiOkResponse
 import com.project.fridgemate.data.remote.dto.FcmTokenRequest
 import com.project.fridgemate.data.remote.dto.FcmTokenResponse
+import com.project.fridgemate.data.remote.dto.FollowToggleResponse
 import com.project.fridgemate.data.remote.dto.UpdateProfileRequest
 import com.project.fridgemate.data.remote.dto.UploadImageResponse
 import com.project.fridgemate.data.remote.dto.UserDto
+import com.project.fridgemate.data.remote.dto.UserListResponse
 import okhttp3.MultipartBody
 import retrofit2.Response
 import retrofit2.http.Body
@@ -15,6 +17,7 @@ import retrofit2.http.POST
 import retrofit2.http.PUT
 import retrofit2.http.Part
 import retrofit2.http.Path
+import retrofit2.http.Query
 
 interface UserApi {
 
@@ -32,6 +35,32 @@ interface UserApi {
     suspend fun uploadProfileImage(
         @Part image: MultipartBody.Part
     ): Response<ApiOkResponse<UploadImageResponse>>
+
+    @GET("user/search")
+    suspend fun searchUsers(
+        @Query("q") q: String,
+        @Query("page") page: Int = 1,
+        @Query("limit") limit: Int = 20
+    ): Response<UserListResponse>
+
+    @POST("user/{id}/follow")
+    suspend fun toggleFollow(
+        @Path("id") targetId: String
+    ): Response<ApiOkResponse<FollowToggleResponse>>
+
+    @GET("user/{id}/followers")
+    suspend fun getFollowers(
+        @Path("id") userId: String,
+        @Query("page") page: Int = 1,
+        @Query("limit") limit: Int = 20
+    ): Response<UserListResponse>
+
+    @GET("user/{id}/following")
+    suspend fun getFollowing(
+        @Path("id") userId: String,
+        @Query("page") page: Int = 1,
+        @Query("limit") limit: Int = 20
+    ): Response<UserListResponse>
 
     @POST("notifications/fcm-token")
     suspend fun registerFcmToken(@Body request: FcmTokenRequest): Response<FcmTokenResponse>

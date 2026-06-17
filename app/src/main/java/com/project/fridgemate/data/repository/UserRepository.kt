@@ -8,8 +8,10 @@ import com.project.fridgemate.data.local.entity.UserEntity
 import com.project.fridgemate.data.remote.ApiClient
 import com.project.fridgemate.data.remote.api.UserApi
 import com.project.fridgemate.data.remote.dto.AddressDto
+import com.project.fridgemate.data.remote.dto.FollowToggleResponse
 import com.project.fridgemate.data.remote.dto.UpdateProfileRequest
 import com.project.fridgemate.data.remote.dto.UserDto
+import com.project.fridgemate.data.remote.dto.UserListItemDto
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.MultipartBody
 import okhttp3.RequestBody.Companion.toRequestBody
@@ -42,6 +44,76 @@ class UserRepository(context: Context) {
         } else null
     }
 
+    suspend fun searchUsers(q: String, page: Int = 1, limit: Int = 20): FridgeResult<List<UserListItemDto>> {
+        return try {
+            val response = api.searchUsers(q, page, limit)
+            if (response.isSuccessful) {
+                FridgeResult.Success(response.body()?.items ?: emptyList())
+            } else {
+                FridgeResult.Error(parseError(response.errorBody()?.string()))
+            }
+        } catch (e: Exception) {
+            FridgeResult.Error(networkErrorMessage(e))
+        }
+    }
+
+    suspend fun toggleFollow(targetUserId: String): FridgeResult<FollowToggleResponse> {
+        return try {
+            val response = api.toggleFollow(targetUserId)
+            if (response.isSuccessful) {
+                FridgeResult.Success(response.body()!!.data)
+            } else {
+                FridgeResult.Error(parseError(response.errorBody()?.string()))
+            }
+        } catch (e: Exception) {
+            FridgeResult.Error(networkErrorMessage(e))
+        }
+    }
+
+    suspend fun getFollowers(userId: String, page: Int = 1, limit: Int = 20): FridgeResult<List<UserListItemDto>> {
+        return try {
+            val response = api.getFollowers(userId, page, limit)
+            if (response.isSuccessful) {
+                FridgeResult.Success(response.body()?.items ?: emptyList())
+            } else {
+                FridgeResult.Error(parseError(response.errorBody()?.string()))
+            }
+        } catch (e: Exception) {
+            FridgeResult.Error(networkErrorMessage(e))
+        }
+    }
+
+    suspend fun getFollowing(userId: String, page: Int = 1, limit: Int = 20): FridgeResult<List<UserListItemDto>> {
+        return try {
+            val response = api.getFollowing(userId, page, limit)
+            if (response.isSuccessful) {
+                FridgeResult.Success(response.body()?.items ?: emptyList())
+            } else {
+                FridgeResult.Error(parseError(response.errorBody()?.string()))
+            }
+        } catch (e: Exception) {
+            FridgeResult.Error(networkErrorMessage(e))
+        }
+    }
+
+    private fun parseError(errorBody: String?): String {
+        if (errorBody.isNullOrBlank()) return "Something went wrong. Please try again."
+        return try {
+            val json = org.json.JSONObject(errorBody)
+            json.optString("message", "Something went wrong. Please try again.")
+        } catch (_: Exception) {
+            errorBody
+        }
+    }
+
+    private fun networkErrorMessage(e: Exception): String {
+        return if (e is java.net.ConnectException || e is java.net.UnknownHostException) {
+            "Unable to connect to server. Please check your connection."
+        } else {
+            e.localizedMessage ?: "An unexpected error occurred."
+        }
+    }
+
     suspend fun uploadProfileImage(imageBytes: ByteArray, mimeType: String): String? {
         val extension = when (mimeType) {
             "image/png" -> "png"
@@ -62,10 +134,11 @@ class UserRepository(context: Context) {
 
     private fun UserDto.toEntity() = UserEntity(
         id = id,
-        email = email,
+        email = email ?: "",
         displayName = displayName,
         userName = userName,
         profileImage = profileImage,
+        bio = bio,
         role = role,
         allergiesJson = gson.toJson(allergies),
         dietPreference = dietPreference,
@@ -82,10 +155,11 @@ class UserRepository(context: Context) {
         } catch (_: Exception) { null }
         return UserDto(
             id = id,
-            email = email,
+            email = email.ifEmpty { null },
             displayName = displayName,
             userName = userName,
             profileImage = profileImage,
+            bio = bio,
             role = role,
             allergies = allergiesList,
             dietPreference = dietPreference,

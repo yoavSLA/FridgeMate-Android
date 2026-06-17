@@ -142,7 +142,7 @@ class ProfileViewModel(application: Application) : AndroidViewModel(application)
         }
     }
 
-    fun saveProfile(name: String, allergies: List<String>) {
+    fun saveProfile(name: String, allergies: List<String>, bio: String?) {
         val userId = ApiClient.getTokenManager().userId ?: return
         viewModelScope.launch {
             _loading.value = true
@@ -150,6 +150,7 @@ class ProfileViewModel(application: Application) : AndroidViewModel(application)
                 val request = UpdateProfileRequest(
                     displayName = name,
                     profileImage = _profileImageUrl.value,
+                    bio = bio,
                     allergies = allergies,
                     dietPreference = _selectedPreference.value
                 )

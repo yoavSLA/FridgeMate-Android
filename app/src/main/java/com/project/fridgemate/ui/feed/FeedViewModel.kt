@@ -6,9 +6,7 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
-import com.project.fridgemate.data.remote.dto.CommentDto
 import com.project.fridgemate.data.remote.dto.CreatePostRequest
-import com.project.fridgemate.data.remote.dto.PostDto
 import com.project.fridgemate.data.remote.dto.PostLocationRequest
 import com.project.fridgemate.data.remote.dto.UpdatePostRequest
 import com.project.fridgemate.data.repository.FridgeResult
@@ -24,6 +22,7 @@ data class LinkedRecipe(
 
 data class Post(
     val id: String,
+    val authorId: String = "",
     val userName: String,
     val userLocation: String,
     val postTitle: String,
@@ -78,11 +77,23 @@ class FeedViewModel(application: Application) : AndroidViewModel(application) {
     private val _isLoadingMore = MutableLiveData(false)
     val isLoadingMore: LiveData<Boolean> = _isLoadingMore
 
+    /** Active feed scope: null/empty = all posts, "following" = only people I follow. */
+    var scope: String? = null
+        private set
+
     companion object {
         private const val PAGE_SIZE = 10
     }
     init {
         loadPosts()
+    }
+
+    /** Switch the feed between "all" and "following" and reload from the top. */
+    fun setScope(newScope: String?) {
+        val normalized = newScope?.takeIf { it.isNotEmpty() }
+        if (normalized == scope) return
+        scope = normalized
+        loadPosts(refresh = true)
     }
 
     fun resetUpdateState() {
@@ -105,7 +116,7 @@ class FeedViewModel(application: Application) : AndroidViewModel(application) {
             }
             _error.value = null
 
-            when (val result = repository.getPosts(page = currentPage, limit = PAGE_SIZE)) {
+            when (val result = repository.getPosts(page = currentPage, limit = PAGE_SIZE, scope = scope)) {
                 is FridgeResult.Success -> {
                     val currentPostsMap = _posts.value?.associateBy { it.id } ?: emptyMap()
                     val newPosts = result.data.items.map { dto ->
@@ -142,7 +153,7 @@ class FeedViewModel(application: Application) : AndroidViewModel(application) {
             _isLoadingMore.value = true
             currentPage++
 
-            when (val result = repository.getPosts(page = currentPage, limit = PAGE_SIZE)) {
+            when (val result = repository.getPosts(page = currentPage, limit = PAGE_SIZE, scope = scope)) {
                 is FridgeResult.Success -> {
                     val currentPostsMap = _posts.value?.associateBy { it.id } ?: emptyMap()
                     val newPosts = result.data.items.map { dto ->
@@ -457,53 +468,4 @@ class FeedViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
-    private fun PostDto.toPost(): Post {
-        val loc = location
-        val authorAddr = authorUserId.address
-        
-        // Priority: Post's specific location, then Author's registered location
-        val lat = loc?.coordinates?.getOrNull(1) ?: authorAddr?.lat ?: 0.0
-        val lng = loc?.coordinates?.getOrNull(0) ?: authorAddr?.lng ?: 0.0
-
-        val placeName = loc?.placeName
-        val city = authorAddr?.city
-
-        val recipe = recipeId?.let {
-            LinkedRecipe(
-                id = it.id,
-                title = it.title ?: "",
-                cookingTime = it.cookingTime ?: "",
-                difficulty = it.difficulty ?: "",
-                imageUrl = it.imageUrl ?: ""
-            )
-        }
-
-        return Post(
-            id = id,
-            userName = authorUserId.displayName,
-            userLocation = placeName ?: city ?: "",
-            postTitle = title ?: "",
-            description = text,
-            likesCount = likesCount,
-            commentsCount = commentsCount,
-            imageUrl = mediaUrls.firstOrNull() ?: "",
-            authorImageUrl = authorUserId.profileImage ?: "",
-            isLiked = isLiked,
-            isOwner = isOwner,
-            latitude = lat,
-            longitude = lng,
-            linkedRecipe = recipe
-        )
-    }
-
-    private fun CommentDto.toComment(): Comment {
-        return Comment(
-            id = id,
-            postId = postId,
-            userName = authorUserId.displayName,
-            text = text,
-            authorImageUrl = authorUserId.profileImage ?: "",
-            isOwner = isOwner
-        )
-    }
 }

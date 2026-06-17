@@ -28,7 +28,8 @@ class PostAdapter(
     private val onEditComment: (postId: String, commentId: String, newText: String) -> Unit,
     private val onExpandComments: (String) -> Unit,
     private val onRecipeClick: (LinkedRecipe) -> Unit = {},
-    private val onLocationClick: (Post) -> Unit = {}
+    private val onLocationClick: (Post) -> Unit = {},
+    private val onAuthorClick: (Post) -> Unit = {}
 ) : ListAdapter<Post, PostAdapter.PostViewHolder>(DIFF_CALLBACK) {
 
     companion object {
@@ -64,6 +65,14 @@ class PostAdapter(
 
             tvUserName.text = post.userName
             tvUserLocation.text = post.userLocation
+            if (post.authorId.isNotEmpty()) {
+                val authorClickListener = View.OnClickListener { onAuthorClick(post) }
+                ivUserPhoto.setOnClickListener(authorClickListener)
+                tvUserName.setOnClickListener(authorClickListener)
+            } else {
+                ivUserPhoto.setOnClickListener(null)
+                tvUserName.setOnClickListener(null)
+            }
             val hasCoords = post.latitude != 0.0 || post.longitude != 0.0
             if (hasCoords && post.userLocation.isNotBlank()) {
                 tvUserLocation.setOnClickListener { onLocationClick(post) }

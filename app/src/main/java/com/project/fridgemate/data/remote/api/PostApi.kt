@@ -10,13 +10,21 @@ interface PostApi {
     @GET("posts")
     suspend fun getPosts(
         @Query("page") page: Int = 1,
-        @Query("limit") limit: Int = 20
+        @Query("limit") limit: Int = 20,
+        @Query("scope") scope: String? = null
     ): Response<PostListResponse>
 
     @GET("posts/me")
     suspend fun getMyPosts(
         @Query("page") page: Int = 1,
         @Query("limit") limit: Int = 50
+    ): Response<PostListResponse>
+
+    @GET("posts/by-user/{userId}")
+    suspend fun getPostsByUser(
+        @Path("userId") userId: String,
+        @Query("page") page: Int = 1,
+        @Query("limit") limit: Int = 20
     ): Response<PostListResponse>
 
     @POST("posts")

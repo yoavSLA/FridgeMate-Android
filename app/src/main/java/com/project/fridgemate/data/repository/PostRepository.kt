@@ -16,29 +16,62 @@ class PostRepository(context: Context) {
     private val postApi: PostApi = ApiClient.createApi(PostApi::class.java)
     private val postDao = AppDatabase.getInstance(context).postDao()
 
-    suspend fun getPosts(page: Int = 1, limit: Int = 20): FridgeResult<PostListResponse> {
+    suspend fun getPosts(
+        page: Int = 1,
+        limit: Int = 20,
+        scope: String? = null
+    ): FridgeResult<PostListResponse> {
         return try {
-            Log.d("PostRepository", "Loading page=$page limit=$limit")
-            val response = postApi.getPosts(page, limit)
+            Log.d("PostRepository", "Loading page=$page limit=$limit scope=$scope")
+            val response = postApi.getPosts(page, limit, scope)
             if (response.isSuccessful) {
                 val data = response.body()!!
-                cachePosts(data.items)
+                // Only cache the unfiltered global feed; "following" scope is a transient view.
+                if (scope.isNullOrEmpty() || scope == "all") {
+                    cachePosts(data.items)
+                }
                 FridgeResult.Success(data)
+            } else {
+                // For scoped queries don't fall back to a cache that doesn't match the scope
+                if (!scope.isNullOrEmpty() && scope != "all") {
+                    FridgeResult.Error(parseError(response.errorBody()?.string()))
+                } else {
+                    val cached = loadCachedPosts()
+                    if (cached.isNotEmpty()) {
+                        FridgeResult.Success(PostListResponse(cached, cached.size, 1, cached.size))
+                    } else {
+                        FridgeResult.Error(parseError(response.errorBody()?.string()))
+                    }
+                }
+            }
+        } catch (e: Exception) {
+            if (!scope.isNullOrEmpty() && scope != "all") {
+                FridgeResult.Error(networkErrorMessage(e))
             } else {
                 val cached = loadCachedPosts()
                 if (cached.isNotEmpty()) {
                     FridgeResult.Success(PostListResponse(cached, cached.size, 1, cached.size))
                 } else {
-                    FridgeResult.Error(parseError(response.errorBody()?.string()))
+                    FridgeResult.Error(networkErrorMessage(e))
                 }
             }
-        } catch (e: Exception) {
-            val cached = loadCachedPosts()
-            if (cached.isNotEmpty()) {
-                FridgeResult.Success(PostListResponse(cached, cached.size, 1, cached.size))
+        }
+    }
+
+    suspend fun getPostsByUser(
+        userId: String,
+        page: Int = 1,
+        limit: Int = 20
+    ): FridgeResult<PostListResponse> {
+        return try {
+            val response = postApi.getPostsByUser(userId, page, limit)
+            if (response.isSuccessful) {
+                FridgeResult.Success(response.body()!!)
             } else {
-                FridgeResult.Error(networkErrorMessage(e))
+                FridgeResult.Error(parseError(response.errorBody()?.string()))
             }
+        } catch (e: Exception) {
+            FridgeResult.Error(networkErrorMessage(e))
         }
     }
 

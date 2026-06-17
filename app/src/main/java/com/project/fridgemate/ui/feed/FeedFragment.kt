@@ -49,14 +49,28 @@ class FeedFragment : Fragment() {
             requireParentFragment().findNavController().navigate(action)
         }
 
-        binding.btnMyPosts.setOnClickListener {
-            val action = DashboardFragmentDirections.actionDashboardFragmentToMyPostsFragment()
+        binding.btnFindPeople.setOnClickListener {
+            val action = DashboardFragmentDirections.actionDashboardFragmentToUserListFragment(
+                userId = "",
+                type = "search"
+            )
             requireParentFragment().findNavController().navigate(action)
         }
 
+        setupScopeToggle()
         setupPosts()
         observeLoading()
         observeErrors()
+    }
+
+    private fun setupScopeToggle() {
+        val initial = if (viewModel.scope == "following") binding.scopeFollowing.id else binding.scopeAll.id
+        binding.scopeToggle.check(initial)
+        binding.scopeToggle.addOnButtonCheckedListener { _, checkedId, isChecked ->
+            if (!isChecked) return@addOnButtonCheckedListener
+            val newScope = if (checkedId == binding.scopeFollowing.id) "following" else null
+            viewModel.setScope(newScope)
+        }
     }
 
     private var postAdapter: PostAdapter? = null
@@ -93,6 +107,12 @@ class FeedFragment : Fragment() {
             onLocationClick = {
                 val action = DashboardFragmentDirections.actionDashboardFragmentToMapViewFragment()
                 requireParentFragment().findNavController().navigate(action)
+            },
+            onAuthorClick = { post ->
+                if (post.authorId.isNotEmpty()) {
+                    val action = DashboardFragmentDirections.actionDashboardFragmentToUserProfileFragment(post.authorId)
+                    requireParentFragment().findNavController().navigate(action)
+                }
             }
         )
         binding.rvPosts.adapter = postAdapter
