@@ -52,6 +52,8 @@ class UserRepository(context: Context) {
             } else {
                 FridgeResult.Error(parseError(response.errorBody()?.string()))
             }
+        } catch (e: kotlinx.coroutines.CancellationException) {
+            throw e
         } catch (e: Exception) {
             FridgeResult.Error(networkErrorMessage(e))
         }
@@ -65,6 +67,8 @@ class UserRepository(context: Context) {
             } else {
                 FridgeResult.Error(parseError(response.errorBody()?.string()))
             }
+        } catch (e: kotlinx.coroutines.CancellationException) {
+            throw e
         } catch (e: Exception) {
             FridgeResult.Error(networkErrorMessage(e))
         }
@@ -78,6 +82,8 @@ class UserRepository(context: Context) {
             } else {
                 FridgeResult.Error(parseError(response.errorBody()?.string()))
             }
+        } catch (e: kotlinx.coroutines.CancellationException) {
+            throw e
         } catch (e: Exception) {
             FridgeResult.Error(networkErrorMessage(e))
         }
@@ -91,6 +97,8 @@ class UserRepository(context: Context) {
             } else {
                 FridgeResult.Error(parseError(response.errorBody()?.string()))
             }
+        } catch (e: kotlinx.coroutines.CancellationException) {
+            throw e
         } catch (e: Exception) {
             FridgeResult.Error(networkErrorMessage(e))
         }
