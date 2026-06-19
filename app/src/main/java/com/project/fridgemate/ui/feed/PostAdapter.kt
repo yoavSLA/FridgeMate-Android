@@ -17,6 +17,7 @@ import com.project.fridgemate.R
 import com.project.fridgemate.databinding.DialogConfirmDeleteBinding
 import com.project.fridgemate.databinding.DialogPostOptionsBinding
 import com.project.fridgemate.databinding.ItemPostBinding
+import com.project.fridgemate.utils.TimeAgo
 import com.squareup.picasso.Picasso
 
 class PostAdapter(
@@ -29,7 +30,8 @@ class PostAdapter(
     private val onExpandComments: (String) -> Unit,
     private val onRecipeClick: (LinkedRecipe) -> Unit = {},
     private val onLocationClick: (Post) -> Unit = {},
-    private val onAuthorClick: (Post) -> Unit = {}
+    private val onAuthorClick: (Post) -> Unit = {},
+    private val onFollowClick: (Post) -> Unit = {}
 ) : ListAdapter<Post, PostAdapter.PostViewHolder>(DIFF_CALLBACK) {
 
     companion object {
@@ -64,7 +66,11 @@ class PostAdapter(
         with(holder.binding) {
 
             tvUserName.text = post.userName
+            val timeAgo = TimeAgo.format(post.createdAt)
+            tvPostTime.text = if (timeAgo.isEmpty()) "" else "· $timeAgo"
+            tvPostTime.visibility = if (timeAgo.isEmpty()) View.GONE else View.VISIBLE
             tvUserLocation.text = post.userLocation
+            tvUserLocation.visibility = if (post.userLocation.isBlank()) View.GONE else View.VISIBLE
             if (post.authorId.isNotEmpty()) {
                 val authorClickListener = View.OnClickListener { onAuthorClick(post) }
                 ivUserPhoto.setOnClickListener(authorClickListener)
@@ -76,11 +82,8 @@ class PostAdapter(
             val hasCoords = post.latitude != 0.0 || post.longitude != 0.0
             if (hasCoords && post.userLocation.isNotBlank()) {
                 tvUserLocation.setOnClickListener { onLocationClick(post) }
-                tvUserLocation.alpha = 1f
-                tvUserLocation.paintFlags = tvUserLocation.paintFlags or android.graphics.Paint.UNDERLINE_TEXT_FLAG
             } else {
                 tvUserLocation.setOnClickListener(null)
-                tvUserLocation.paintFlags = tvUserLocation.paintFlags and android.graphics.Paint.UNDERLINE_TEXT_FLAG.inv()
             }
             if (post.authorImageUrl.isNotEmpty()) {
                 val url = if (post.authorImageUrl.startsWith("/"))
@@ -179,8 +182,11 @@ class PostAdapter(
                 btnMoreOptions.setOnClickListener {
                     showOptionsMenu(it, post)
                 }
+                btnFollow.visibility = View.GONE
+                btnFollow.setOnClickListener(null)
             } else {
                 btnMoreOptions.visibility = View.GONE
+                bindFollowButton(btnFollow, post)
             }
         }
     }
@@ -250,6 +256,26 @@ class PostAdapter(
         }
 
         dialog.show()
+    }
+
+    private fun bindFollowButton(btn: com.google.android.material.button.MaterialButton, post: Post) {
+        if (post.authorId.isEmpty()) {
+            btn.visibility = View.GONE
+            btn.setOnClickListener(null)
+            return
+        }
+        btn.visibility = View.VISIBLE
+        val context = btn.context
+        if (post.isFollowingAuthor) {
+            btn.setText(R.string.following_action)
+            btn.setTextColor(context.getColor(R.color.dark_teal))
+            btn.backgroundTintList = ColorStateList.valueOf(context.getColor(R.color.light_teal))
+        } else {
+            btn.setText(R.string.follow_action)
+            btn.setTextColor(context.getColor(R.color.white))
+            btn.backgroundTintList = ColorStateList.valueOf(context.getColor(R.color.teal_primary))
+        }
+        btn.setOnClickListener { onFollowClick(post) }
     }
 
     private fun updateLikeButton(btn: ImageButton, isLiked: Boolean, animate: Boolean) {

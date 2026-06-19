@@ -113,7 +113,8 @@ class FeedFragment : Fragment() {
                     val action = DashboardFragmentDirections.actionDashboardFragmentToUserProfileFragment(post.authorId)
                     requireParentFragment().findNavController().navigate(action)
                 }
-            }
+            },
+            onFollowClick = { post -> viewModel.toggleAuthorFollow(post) }
         )
         binding.rvPosts.adapter = postAdapter
         binding.rvPosts.addOnScrollListener(object : RecyclerView.OnScrollListener() {

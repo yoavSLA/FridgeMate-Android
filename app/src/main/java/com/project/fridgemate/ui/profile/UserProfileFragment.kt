@@ -117,7 +117,8 @@ class UserProfileFragment : Fragment() {
                         UserProfileFragmentDirections.actionUserProfileFragmentSelf(post.authorId)
                     )
                 }
-            }
+            },
+            onFollowClick = { post -> viewModel.toggleAuthorFollow(post) }
         )
         binding.rvPosts.layoutManager = LinearLayoutManager(requireContext())
         binding.rvPosts.adapter = postAdapter

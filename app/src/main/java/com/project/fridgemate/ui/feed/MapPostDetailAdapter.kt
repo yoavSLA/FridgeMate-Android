@@ -13,6 +13,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.project.fridgemate.BuildConfig
 import com.project.fridgemate.R
 import com.project.fridgemate.databinding.ItemMapPostDetailBinding
+import com.project.fridgemate.utils.TimeAgo
 import com.squareup.picasso.Picasso
 
 class MapPostDetailAdapter(
@@ -51,7 +52,11 @@ class MapPostDetailAdapter(
         val post = getItem(position)
         with(holder.binding) {
             tvUserName.text = post.userName
+            val timeAgo = TimeAgo.format(post.createdAt)
+            tvPostTime.text = if (timeAgo.isEmpty()) "" else "· $timeAgo"
+            tvPostTime.visibility = if (timeAgo.isEmpty()) View.GONE else View.VISIBLE
             tvLocation.text = post.userLocation
+            tvLocation.visibility = if (post.userLocation.isBlank()) View.GONE else View.VISIBLE
             tvPostTitle.text = post.postTitle
             tvDescription.text = post.description
             tvLikesCount.text = post.likesCount.toString()
