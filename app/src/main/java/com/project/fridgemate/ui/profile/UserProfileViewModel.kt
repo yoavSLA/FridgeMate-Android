@@ -110,11 +110,12 @@ class UserProfileViewModel(application: Application) : AndroidViewModel(applicat
         if (_followBusy.value == true) return
 
         val wasFollowing = current.isFollowing
-        // Optimistic update
+        // Optimistic update — header + every post card from this author
         _user.value = current.copy(
             isFollowing = !wasFollowing,
             followersCount = current.followersCount + if (wasFollowing) -1 else 1
         )
+        applyFollowingToPosts(current.id, !wasFollowing)
         _followBusy.value = true
         viewModelScope.launch {
             when (val result = userRepository.toggleFollow(current.id)) {
@@ -123,15 +124,31 @@ class UserProfileViewModel(application: Application) : AndroidViewModel(applicat
                         isFollowing = result.data.following,
                         followersCount = result.data.followersCount
                     )
+                    applyFollowingToPosts(current.id, result.data.following)
                 }
                 is FridgeResult.Error -> {
-                    // Revert
                     _user.value = current
+                    applyFollowingToPosts(current.id, wasFollowing)
                     _error.value = result.message
                 }
                 else -> {}
             }
             _followBusy.value = false
+        }
+    }
+
+    /**
+     * Toggle follow triggered from a post's inline Follow button. On the
+     * profile screen all posts share the same author, so this just delegates
+     * to [toggleFollow] which keeps the header and post cards in sync.
+     */
+    fun toggleAuthorFollow(@Suppress("UNUSED_PARAMETER") post: Post) {
+        toggleFollow()
+    }
+
+    private fun applyFollowingToPosts(authorId: String, following: Boolean) {
+        _posts.value = _posts.value?.map {
+            if (it.authorId == authorId) it.copy(isFollowingAuthor = following) else it
         }
     }
 

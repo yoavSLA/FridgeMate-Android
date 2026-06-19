@@ -11,6 +11,7 @@ import com.project.fridgemate.data.remote.dto.PostLocationRequest
 import com.project.fridgemate.data.remote.dto.UpdatePostRequest
 import com.project.fridgemate.data.repository.FridgeResult
 import com.project.fridgemate.data.repository.PostRepository
+import com.project.fridgemate.data.repository.UserRepository
 import kotlinx.coroutines.launch
 data class LinkedRecipe(
     val id: String,
@@ -37,7 +38,9 @@ data class Post(
     val longitude: Double = 0.0,
     val isOwner: Boolean = false,
     val linkedRecipe: LinkedRecipe? = null,
-    val isExpanded: Boolean = false
+    val isExpanded: Boolean = false,
+    val createdAt: String = "",
+    val isFollowingAuthor: Boolean = false
 )
 
 data class Comment(
@@ -46,12 +49,15 @@ data class Comment(
     val userName: String,
     val text: String,
     val authorImageUrl: String = "",
-    val isOwner: Boolean = false
+    val isOwner: Boolean = false,
+    val createdAt: String = ""
 )
 
 class FeedViewModel(application: Application) : AndroidViewModel(application) {
 
     private val repository = PostRepository(application.applicationContext)
+    private val userRepository = UserRepository(application.applicationContext)
+    private val followInFlight = mutableSetOf<String>()
 
     private val _posts = MutableLiveData<List<Post>>(emptyList())
     val posts: LiveData<List<Post>> = _posts
@@ -242,6 +248,48 @@ class FeedViewModel(application: Application) : AndroidViewModel(application) {
                     Log.e("FeedViewModel", "toggleLike error: ${result.message}")
                 }
                 else -> {}
+            }
+        }
+    }
+
+    /**
+     * Toggle follow on the post's author. Updates every post in the feed
+     * authored by that user so the button stays consistent across cards.
+     */
+    fun toggleAuthorFollow(post: Post) {
+        val authorId = post.authorId
+        if (authorId.isEmpty() || post.isOwner) return
+        if (!followInFlight.add(authorId)) return
+
+        val previous = post.isFollowingAuthor
+        val optimistic: (Post) -> Post = {
+            if (it.authorId == authorId) it.copy(isFollowingAuthor = !previous) else it
+        }
+        _posts.value = _posts.value?.map(optimistic)
+        _myPosts.value = _myPosts.value?.map(optimistic)
+
+        viewModelScope.launch {
+            try {
+                when (val result = userRepository.toggleFollow(authorId)) {
+                    is FridgeResult.Success -> {
+                        val confirm: (Post) -> Post = {
+                            if (it.authorId == authorId) it.copy(isFollowingAuthor = result.data.following) else it
+                        }
+                        _posts.value = _posts.value?.map(confirm)
+                        _myPosts.value = _myPosts.value?.map(confirm)
+                    }
+                    is FridgeResult.Error -> {
+                        val revert: (Post) -> Post = {
+                            if (it.authorId == authorId) it.copy(isFollowingAuthor = previous) else it
+                        }
+                        _posts.value = _posts.value?.map(revert)
+                        _myPosts.value = _myPosts.value?.map(revert)
+                        _error.value = result.message
+                    }
+                    else -> {}
+                }
+            } finally {
+                followInFlight.remove(authorId)
             }
         }
     }

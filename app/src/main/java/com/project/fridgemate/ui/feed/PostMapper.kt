@@ -41,7 +41,9 @@ fun PostDto.toPost(): Post {
         isOwner = isOwner,
         latitude = lat,
         longitude = lng,
-        linkedRecipe = recipe
+        linkedRecipe = recipe,
+        createdAt = createdAt,
+        isFollowingAuthor = isFollowingAuthor
     )
 }
 
@@ -52,6 +54,7 @@ fun CommentDto.toComment(): Comment {
         userName = authorUserId.displayName,
         text = text,
         authorImageUrl = authorUserId.profileImage ?: "",
-        isOwner = isOwner
+        isOwner = isOwner,
+        createdAt = createdAt
     )
 }

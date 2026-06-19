@@ -10,6 +10,7 @@ import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.project.fridgemate.databinding.DialogCommentOptionsBinding
 import com.project.fridgemate.databinding.DialogConfirmDeleteBinding
 import com.project.fridgemate.databinding.ItemCommentBinding
+import com.project.fridgemate.utils.TimeAgo
 import com.squareup.picasso.Picasso
 
 class CommentAdapter(
@@ -42,6 +43,9 @@ class CommentAdapter(
         with(holder.binding) {
             tvCommentUserName.text = comment.userName
             tvCommentText.text = comment.text
+            val timeAgo = TimeAgo.format(comment.createdAt)
+            tvCommentTime.text = timeAgo
+            tvCommentTime.visibility = if (timeAgo.isEmpty()) View.GONE else View.VISIBLE
             
             if (editingCommentId == comment.id) {
                 tvCommentText.visibility = View.GONE
