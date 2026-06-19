@@ -15,6 +15,7 @@ data class Notification(
 enum class NotificationType {
     POST_LIKE,
     POST_COMMENT,
+    FOLLOW,
     CHAT_MESSAGE,
     FRIDGE_INVITE,
     EXPIRING_ITEM,
@@ -32,6 +33,7 @@ fun NotificationDto.toNotification(): Notification {
     val notifType = when (type) {
         "POST_LIKE" -> NotificationType.POST_LIKE
         "POST_COMMENT" -> NotificationType.POST_COMMENT
+        "FOLLOW" -> NotificationType.FOLLOW
         "CHAT_MESSAGE" -> NotificationType.CHAT_MESSAGE
         "FRIDGE_INVITE" -> NotificationType.FRIDGE_INVITE
         "EXPIRING_ITEM" -> NotificationType.EXPIRING_ITEM
@@ -41,6 +43,7 @@ fun NotificationDto.toNotification(): Notification {
 
     val relatedId = when (type) {
         "POST_LIKE", "POST_COMMENT" -> metadata?.get("postId") as? String
+        "FOLLOW" -> metadata?.get("followerId") as? String
         else -> null
     }
 

@@ -11,6 +11,7 @@ import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.project.fridgemate.data.model.NotificationType
 import com.project.fridgemate.databinding.FragmentNotificationsBinding
+import com.project.fridgemate.ui.notifications.NotificationsFragmentDirections
 
 class NotificationsFragment : Fragment() {
 
@@ -38,6 +39,13 @@ class NotificationsFragment : Fragment() {
                     notification.relatedId?.let { postId ->
                         viewModel.requestNavToPost(postId)
                         findNavController().navigateUp()
+                    }
+                }
+                NotificationType.FOLLOW -> {
+                    notification.relatedId?.let { followerId ->
+                        val action = NotificationsFragmentDirections
+                            .actionNotificationsFragmentToUserProfileFragment(followerId)
+                        findNavController().navigate(action)
                     }
                 }
                 else -> {}
