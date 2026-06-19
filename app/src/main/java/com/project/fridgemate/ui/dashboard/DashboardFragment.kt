@@ -116,6 +116,14 @@ class DashboardFragment : Fragment() {
         outState.putInt("selected_tab_id", currentTabId)
     }
 
+    override fun onResume() {
+        super.onResume()
+        // Resync chat badge after coming back from any sub-destination
+        // (e.g. FridgeChatFragment, Settings). Cheap GET; safety net for
+        // any unread bump events missed while the socket was disconnected.
+        fridgeViewModel.refreshUnreadCount()
+    }
+
     private fun loadGreeting() {
         profileViewModel.loadProfile()
         profileViewModel.user.observe(viewLifecycleOwner) { user ->

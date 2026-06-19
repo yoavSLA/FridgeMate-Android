@@ -12,6 +12,7 @@ import com.project.fridgemate.data.repository.FridgeRepository
 import com.project.fridgemate.data.repository.FridgeResult
 import com.project.fridgemate.data.repository.InventoryItemRepository
 import com.project.fridgemate.data.repository.RecipeRepository
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import java.net.ConnectException
 import java.net.SocketTimeoutException
@@ -28,6 +29,9 @@ class RecipesViewModel(application: Application) : AndroidViewModel(application)
 
     private val _isLoading = MutableLiveData(false)
     val isLoading: LiveData<Boolean> = _isLoading
+
+
+    private var recommendedJob: Job? = null
 
     private val _error = MutableLiveData<String?>(null)
     val error: LiveData<String?> = _error
@@ -48,6 +52,7 @@ class RecipesViewModel(application: Application) : AndroidViewModel(application)
     }
 
     fun loadRecommendedIfNeeded() {
+        if (recommendedJob?.isActive == true) return
         viewModelScope.launch {
             if (repository.isCacheExpired()) {
                 loadRecommended()
@@ -58,8 +63,9 @@ class RecipesViewModel(application: Application) : AndroidViewModel(application)
     }
 
     fun loadRecommended() {
+        if (recommendedJob?.isActive == true) return
         _error.value = null
-        viewModelScope.launch {
+        recommendedJob = viewModelScope.launch {
             val cached = inventoryRepository.getCachedItems()
             if (cached.isNotEmpty()) {
                 _isLoading.value = true

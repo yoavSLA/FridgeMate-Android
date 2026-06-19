@@ -7,12 +7,15 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
 import com.project.fridgemate.data.remote.ApiClient
 import com.project.fridgemate.data.remote.dto.InventoryItemDto
+import com.project.fridgemate.data.remote.socket.SocketManager
 import com.project.fridgemate.data.repository.ChatResult
 import com.project.fridgemate.data.repository.FridgeChatRepository
 import com.project.fridgemate.data.repository.FridgeRepository
 import com.project.fridgemate.data.repository.FridgeResult
 import com.project.fridgemate.data.repository.InventoryItemRepository
+import io.socket.emitter.Emitter
 import kotlinx.coroutines.launch
+import org.json.JSONObject
 
 class FridgeViewModel(application: Application) : AndroidViewModel(application) {
 
@@ -43,6 +46,29 @@ class FridgeViewModel(application: Application) : AndroidViewModel(application) 
 
     private val _lastScannedAt = MutableLiveData<String?>(null)
     val lastScannedAt: LiveData<String?> = _lastScannedAt
+    private var chatOpen: Boolean = false
+
+    private val unreadBumpListener = Emitter.Listener { args ->
+        val payload = args.firstOrNull() as? JSONObject ?: return@Listener
+        val incomingFridgeId = payload.optString("fridgeId")
+        if (incomingFridgeId.isBlank()) return@Listener
+        if (incomingFridgeId != _activeFridgeId.value) return@Listener
+        if (chatOpen) return@Listener
+        _unreadCount.postValue((_unreadCount.value ?: 0) + 1)
+    }
+
+    init {
+        SocketManager.get().on("fridgeChatUnread", unreadBumpListener)
+    }
+
+    fun setChatOpen(open: Boolean) {
+        chatOpen = open
+        if (open) {
+            _unreadCount.value = 0
+        } else {
+            refreshUnreadCount()
+        }
+    }
 
     fun refreshUnreadCount() {
         val fridgeId = _activeFridgeId.value ?: return
@@ -52,6 +78,11 @@ class FridgeViewModel(application: Application) : AndroidViewModel(application) 
                 is ChatResult.Error -> { /* keep previous value */ }
             }
         }
+    }
+
+    override fun onCleared() {
+        SocketManager.get().off("fridgeChatUnread", unreadBumpListener)
+        super.onCleared()
     }
 
     fun loadItems() {

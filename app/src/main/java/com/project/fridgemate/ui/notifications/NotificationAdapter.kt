@@ -48,6 +48,7 @@ class NotificationAdapter(
             val iconRes = when (notification.type) {
                 NotificationType.POST_LIKE -> R.drawable.ic_heart_filled
                 NotificationType.POST_COMMENT -> R.drawable.ic_comments
+                NotificationType.FOLLOW -> R.drawable.ic_person
                 NotificationType.CHAT_MESSAGE -> R.drawable.ic_send
                 NotificationType.FRIDGE_INVITE -> R.drawable.ic_group
                 NotificationType.EXPIRING_ITEM -> R.drawable.ic_warning
