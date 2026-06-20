@@ -28,7 +28,9 @@ android {
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
-        buildConfigField("String", "BASE_URL", "\"http://10.0.2.2:3001/\"")
+        buildConfigField("String", "BASE_URL", "\"https://193.106.55.211/api/\"")
+        // buildConfigField("String", "BASE_URL", "\"https://node51.cs.colman.ac.il/api/\"")
+        // buildConfigField("String", "BASE_URL", "\"http://10.0.2.2:3001/\"")
         buildConfigField("String", "GOOGLE_WEB_CLIENT_ID", "\"$googleWebClientId\"")
     }
 
