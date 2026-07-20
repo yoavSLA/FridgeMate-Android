@@ -9,7 +9,10 @@
         android:id="@+id/rv_fridge"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:padding="16dp"
+        android:clipToPadding="false"
+        android:paddingHorizontal="16dp"
+        android:paddingTop="16dp"
+        android:paddingBottom="96dp"
         android:visibility="gone"
         tools:listitem="@layout/item_product" />
 

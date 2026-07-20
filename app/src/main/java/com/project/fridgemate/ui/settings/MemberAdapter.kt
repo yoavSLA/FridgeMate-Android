@@ -11,7 +11,9 @@ import com.squareup.picasso.Picasso
 
 class MemberAdapter(
     private val members: List<FridgeMemberDetailDto>,
-    private val currentUserId: String? = null
+    private val currentUserId: String? = null,
+    private val selectedUserId: String? = null,
+    private val onMemberClick: ((FridgeMemberDetailDto) -> Unit)? = null
 ) : RecyclerView.Adapter<MemberAdapter.MemberViewHolder>() {
 
     inner class MemberViewHolder(val binding: ItemMemberBinding) :
@@ -28,8 +30,13 @@ class MemberAdapter(
         val member = members[position]
         val isCurrentUser = member.userId == currentUserId
         with(holder.binding) {
-            tvMemberName.text = if (isCurrentUser) "${member.displayName} (You)"
-            else member.displayName
+            val suffix = when {
+                member.userId == selectedUserId -> " (Current owner)"
+                isCurrentUser -> " (You)"
+                else -> ""
+            }
+            tvMemberName.text = "${member.displayName}$suffix"
+            root.setOnClickListener { onMemberClick?.invoke(member) }
             val profileImage = member.profileImage
             if (!profileImage.isNullOrEmpty()) {
                 val url = if (profileImage.startsWith("/"))

@@ -10,29 +10,48 @@
         android:layout_height="wrap_content"
         android:padding="16dp">
 
-        <TextView
-            android:id="@+id/tv_product_name"
+        <androidx.constraintlayout.widget.Barrier
+            android:id="@+id/barrier_owner_start"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:textColor="@color/black"
-            android:textSize="15sp"
-            android:textStyle="bold"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            tools:text="Chicken Breast" />
+            app:barrierDirection="start"
+            app:constraint_referenced_ids="owner_container" />
 
-        <ImageView
-            android:id="@+id/iv_low_stock_warning"
-            android:layout_width="14dp"
-            android:layout_height="14dp"
-            android:layout_marginStart="8dp"
-            android:src="@drawable/ic_warning"
-            android:visibility="gone"
-            app:layout_constraintBottom_toBottomOf="@id/tv_product_name"
-            app:layout_constraintStart_toEndOf="@id/tv_product_name"
-            app:layout_constraintTop_toTopOf="@id/tv_product_name"
-            app:tint="@color/error_red"
-            tools:visibility="visible" />
+        <LinearLayout
+            android:id="@+id/name_row"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            app:layout_constraintEnd_toStartOf="@id/barrier_owner_start"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent">
+
+            <ImageView
+                android:id="@+id/iv_low_stock_warning"
+                android:layout_width="20dp"
+                android:layout_height="20dp"
+                android:layout_marginEnd="6dp"
+                android:background="@drawable/bg_warning_badge"
+                android:padding="3dp"
+                android:src="@drawable/ic_warning"
+                android:visibility="gone"
+                app:tint="@color/warning_yellow_text"
+                tools:visibility="visible" />
+
+            <TextView
+                android:id="@+id/tv_product_name"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:ellipsize="end"
+                android:maxLines="1"
+                android:maxWidth="160dp"
+                android:textColor="@color/black"
+                android:textSize="15sp"
+                android:textStyle="bold"
+                tools:text="Chicken Breast" />
+
+        </LinearLayout>
 
         <TextView
             android:id="@+id/tv_product_quantity"
@@ -42,8 +61,57 @@
             android:textColor="@color/gray_text"
             android:textSize="13sp"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/tv_product_name"
+            app:layout_constraintTop_toBottomOf="@id/name_row"
             tools:text="500g" />
+
+        <LinearLayout
+            android:id="@+id/owner_container"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:clickable="true"
+            android:focusable="true"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:paddingHorizontal="6dp"
+            android:paddingVertical="4dp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent">
+
+            <ImageView
+                android:id="@+id/iv_owner_icon"
+                android:layout_width="14dp"
+                android:layout_height="14dp"
+                android:src="@drawable/ic_person"
+                app:tint="@color/gray_text" />
+
+            <TextView
+                android:id="@+id/tv_owner_name"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="4dp"
+                android:ellipsize="end"
+                android:maxLines="1"
+                android:maxWidth="80dp"
+                android:textColor="@color/dark_teal"
+                android:textSize="12sp"
+                android:textStyle="bold"
+                android:visibility="gone"
+                tools:text="Sarah"
+                tools:visibility="visible" />
+
+            <ImageView
+                android:id="@+id/iv_owner_remove"
+                android:layout_width="14dp"
+                android:layout_height="14dp"
+                android:layout_marginStart="6dp"
+                android:src="@drawable/ic_close"
+                android:visibility="gone"
+                app:tint="@color/dark_teal"
+                tools:visibility="visible" />
+
+        </LinearLayout>
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 
