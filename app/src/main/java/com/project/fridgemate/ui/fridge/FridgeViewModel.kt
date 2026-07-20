@@ -6,6 +6,7 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
 import com.project.fridgemate.data.remote.ApiClient
+import com.project.fridgemate.data.remote.dto.FridgeMemberDetailDto
 import com.project.fridgemate.data.remote.dto.InventoryItemDto
 import com.project.fridgemate.data.remote.socket.SocketManager
 import com.project.fridgemate.data.repository.ChatResult
@@ -14,6 +15,9 @@ import com.project.fridgemate.data.repository.FridgeRepository
 import com.project.fridgemate.data.repository.FridgeResult
 import com.project.fridgemate.data.repository.InventoryItemRepository
 import io.socket.emitter.Emitter
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import org.json.JSONObject
 
@@ -57,8 +61,17 @@ class FridgeViewModel(application: Application) : AndroidViewModel(application) 
         _unreadCount.postValue((_unreadCount.value ?: 0) + 1)
     }
 
+    private val _members = MutableLiveData<Map<String, FridgeMemberDetailDto>>(emptyMap())
+    val members: LiveData<Map<String, FridgeMemberDetailDto>> = _members
+
+    private val _ownerAssignMessage = MutableLiveData<String?>(null)
+    val ownerAssignMessage: LiveData<String?> = _ownerAssignMessage
+
+    private var ownerChangeSocketJob: Job? = null
+
     init {
         SocketManager.get().on("fridgeChatUnread", unreadBumpListener)
+        startOwnerChangeListener()
     }
 
     fun setChatOpen(open: Boolean) {
@@ -67,6 +80,47 @@ class FridgeViewModel(application: Application) : AndroidViewModel(application) 
             _unreadCount.value = 0
         } else {
             refreshUnreadCount()
+        }
+    }
+
+    fun assignOwner(itemId: String, newOwnerId: String?) {
+        val fridgeId = _activeFridgeId.value ?: return
+        val newOwnerName = newOwnerId?.let { _members.value?.get(it)?.displayName }
+        viewModelScope.launch {
+            val success = itemRepository.assignOwner(fridgeId, itemId, newOwnerId)
+            _ownerAssignMessage.value = when {
+                !success -> "Couldn't assign owner. Please try again."
+                newOwnerName != null -> "Assigned to $newOwnerName"
+                else -> "Owner removed"
+            }
+            if (success) loadItems()
+        }
+    }
+
+    fun consumeOwnerAssignMessage() {
+        _ownerAssignMessage.value = null
+    }
+
+    private fun loadMembers() {
+        viewModelScope.launch {
+            when (val result = fridgeRepository.getMembers()) {
+                is FridgeResult.Success -> _members.value = result.data.associateBy { it.userId }
+                else -> { /* keep previous value */ }
+            }
+        }
+    }
+
+    private fun startOwnerChangeListener() {
+        ownerChangeSocketJob?.cancel()
+        ownerChangeSocketJob = viewModelScope.launch {
+            while (isActive) {
+                itemRepository.observeOwnerChanges().collect { event ->
+                    if (event.fridgeId == _activeFridgeId.value) loadItems()
+                }
+                // Flow closed because the socket disconnected (e.g. token refresh caused
+                // SocketManager to replace the socket) — wait briefly then resubscribe.
+                if (isActive) delay(2000)
+            }
         }
     }
 
@@ -82,6 +136,7 @@ class FridgeViewModel(application: Application) : AndroidViewModel(application) 
 
     override fun onCleared() {
         SocketManager.get().off("fridgeChatUnread", unreadBumpListener)
+        ownerChangeSocketJob?.cancel()
         super.onCleared()
     }
 
@@ -120,6 +175,7 @@ class FridgeViewModel(application: Application) : AndroidViewModel(application) 
                     _state.value = if (items.isEmpty()) State.Empty
                                    else State.Items(buildFridgeItemList(items))
                     refreshUnreadCount()
+                    loadMembers()
                 }
             }
         }
@@ -135,7 +191,7 @@ class FridgeViewModel(application: Application) : AndroidViewModel(application) 
             result.add(FridgeItem.RunningLow(lowItems.map { Pair(it.name, it.quantity) }))
         }
         result.add(FridgeItem.CategoryHeader("Items"))
-        items.forEach { result.add(FridgeItem.Product(it.name, it.quantity, it.isRunningLow)) }
+        items.forEach { result.add(FridgeItem.Product(it.id, it.name, it.quantity, it.isRunningLow, it.ownerId)) }
         return result
     }
 }

@@ -4,5 +4,11 @@ sealed class FridgeItem {
     data class LastScanned(val timestamp: String) : FridgeItem()
     data class RunningLow(val ingredients: List<Pair<String, String>>) : FridgeItem()
     data class CategoryHeader(val name: String) : FridgeItem()
-    data class Product(val name: String, val quantity: String, val isLowStock: Boolean) : FridgeItem()
+    data class Product(
+        val id: String,
+        val name: String,
+        val quantity: String,
+        val isLowStock: Boolean,
+        val ownerId: String?
+    ) : FridgeItem()
 }
