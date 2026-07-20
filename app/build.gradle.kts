@@ -28,17 +28,24 @@ android {
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
-        buildConfigField("String", "BASE_URL", "\"http://10.0.2.2:3001/\"")
         buildConfigField("String", "GOOGLE_WEB_CLIENT_ID", "\"$googleWebClientId\"")
     }
 
+    val devBaseUrl: String = localProperties.getProperty("DEV_BASE_URL", "http://10.0.2.2:3001/")
+    val prodBaseUrl: String = "https://fridgemate.cs.colman.ac.il/api/"
+
     buildTypes {
+        debug {
+            buildConfigField("String", "BASE_URL", "\"$devBaseUrl\"")
+        }
         release {
+            buildConfigField("String", "BASE_URL", "\"$prodBaseUrl\"")
             isMinifyEnabled = false
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
+            signingConfig = signingConfigs.getByName("debug")
         }
     }
     compileOptions {
@@ -52,6 +59,10 @@ android {
         viewBinding = true
         dataBinding = true
         buildConfig = true
+    }
+
+    lint {
+        disable += "NullSafeMutableLiveData"
     }
 }
 
