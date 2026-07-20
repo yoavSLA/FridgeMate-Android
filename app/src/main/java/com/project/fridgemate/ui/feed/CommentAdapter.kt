@@ -10,11 +10,13 @@ import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.project.fridgemate.databinding.DialogCommentOptionsBinding
 import com.project.fridgemate.databinding.DialogConfirmDeleteBinding
 import com.project.fridgemate.databinding.ItemCommentBinding
+import com.project.fridgemate.utils.TimeAgo
 import com.squareup.picasso.Picasso
 
 class CommentAdapter(
     private val onDeleteComment: (Comment) -> Unit = {},
-    private val onEditComment: (Comment, String) -> Unit = { _, _ -> }
+    private val onEditComment: (Comment, String) -> Unit = { _, _ -> },
+    private val showOptions: Boolean = true
 ) : RecyclerView.Adapter<CommentAdapter.CommentViewHolder>() {
 
     private var comments: List<Comment> = emptyList()
@@ -41,6 +43,9 @@ class CommentAdapter(
         with(holder.binding) {
             tvCommentUserName.text = comment.userName
             tvCommentText.text = comment.text
+            val timeAgo = TimeAgo.format(comment.createdAt)
+            tvCommentTime.text = timeAgo
+            tvCommentTime.visibility = if (timeAgo.isEmpty()) View.GONE else View.VISIBLE
             
             if (editingCommentId == comment.id) {
                 tvCommentText.visibility = View.GONE
@@ -65,7 +70,7 @@ class CommentAdapter(
             } else {
                 tvCommentText.visibility = View.VISIBLE
                 layoutEditComment.visibility = View.GONE
-                if (comment.isOwner) {
+                if (showOptions && comment.isOwner) {
                     btnCommentOptions.visibility = View.VISIBLE
                     btnCommentOptions.setOnClickListener {
                         showCommentOptions(it, comment)

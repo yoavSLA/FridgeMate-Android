@@ -18,6 +18,7 @@ import androidx.lifecycle.lifecycleScope
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.project.fridgemate.R
 import com.project.fridgemate.data.local.AppDatabase
+import com.project.fridgemate.data.remote.dto.ScanChangesDto
 import com.project.fridgemate.data.local.entity.RecipeEntity
 import kotlinx.coroutines.launch
 import androidx.fragment.app.viewModels
@@ -93,6 +94,15 @@ class SettingsFragment : Fragment() {
             binding.tvInviteCode.text = code
         }
 
+        viewModel.lastScannedAt.observe(viewLifecycleOwner) { timestamp ->
+            if (timestamp != null) {
+                binding.lastScannedLayout.visibility = View.VISIBLE
+                binding.tvLastScannedAt.text = timestamp
+            } else {
+                binding.lastScannedLayout.visibility = View.GONE
+            }
+        }
+
         viewModel.members.observe(viewLifecycleOwner) { members ->
             binding.tvMembersCount.text = "${members.size} members"
             binding.rvMembers.layoutManager = LinearLayoutManager(requireContext())
@@ -133,6 +143,24 @@ class SettingsFragment : Fragment() {
                 binding.rvScanResults.adapter = DetectedItemAdapter(items)
             } else {
                 binding.scanResultsLayout.visibility = View.GONE
+            }
+        }
+
+        viewModel.scanSummary.observe(viewLifecycleOwner) { summary: ScanChangesDto? ->
+            if (summary != null && (summary.added.isNotEmpty() || summary.updated.isNotEmpty() || summary.removed.isNotEmpty())) {
+                binding.tvScanSummaryTitle.visibility = View.VISIBLE
+                binding.rvScanSummary.visibility = View.VISIBLE
+                
+                val summaryItems = mutableListOf<ScanSummaryItem>()
+                summary.added.forEach { item -> summaryItems.add(ScanSummaryItem.Added(item.name, item.quantity)) }
+                summary.updated.forEach { item -> summaryItems.add(ScanSummaryItem.Updated(item.name, item.oldQuantity, item.newQuantity)) }
+                summary.removed.forEach { item -> summaryItems.add(ScanSummaryItem.Removed(item.name, item.quantity)) }
+                
+                binding.rvScanSummary.layoutManager = LinearLayoutManager(requireContext())
+                binding.rvScanSummary.adapter = ScanSummaryAdapter(summaryItems)
+            } else {
+                binding.tvScanSummaryTitle.visibility = View.GONE
+                binding.rvScanSummary.visibility = View.GONE
             }
         }
     }

@@ -12,6 +12,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.project.fridgemate.ui.dashboard.DashboardFragmentDirections
 import com.project.fridgemate.R
 import com.project.fridgemate.databinding.FragmentFeedBinding
+import com.project.fridgemate.ui.notifications.NotificationViewModel
 import androidx.recyclerview.widget.RecyclerView
 class FeedFragment : Fragment() {
 
@@ -19,6 +20,7 @@ class FeedFragment : Fragment() {
     private val binding get() = _binding!!
     private var isScrolling = false
     private val viewModel: FeedViewModel by activityViewModels()
+    private val notifViewModel: NotificationViewModel by activityViewModels()
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -47,14 +49,28 @@ class FeedFragment : Fragment() {
             requireParentFragment().findNavController().navigate(action)
         }
 
-        binding.btnMyPosts.setOnClickListener {
-            val action = DashboardFragmentDirections.actionDashboardFragmentToMyPostsFragment()
+        binding.btnFindPeople.setOnClickListener {
+            val action = DashboardFragmentDirections.actionDashboardFragmentToUserListFragment(
+                userId = "",
+                type = "search"
+            )
             requireParentFragment().findNavController().navigate(action)
         }
 
+        setupScopeToggle()
         setupPosts()
         observeLoading()
         observeErrors()
+    }
+
+    private fun setupScopeToggle() {
+        val initial = if (viewModel.scope == "following") binding.scopeFollowing.id else binding.scopeAll.id
+        binding.scopeToggle.check(initial)
+        binding.scopeToggle.addOnButtonCheckedListener { _, checkedId, isChecked ->
+            if (!isChecked) return@addOnButtonCheckedListener
+            val newScope = if (checkedId == binding.scopeFollowing.id) "following" else null
+            viewModel.setScope(newScope)
+        }
     }
 
     private var postAdapter: PostAdapter? = null
@@ -91,7 +107,14 @@ class FeedFragment : Fragment() {
             onLocationClick = {
                 val action = DashboardFragmentDirections.actionDashboardFragmentToMapViewFragment()
                 requireParentFragment().findNavController().navigate(action)
-            }
+            },
+            onAuthorClick = { post ->
+                if (post.authorId.isNotEmpty()) {
+                    val action = DashboardFragmentDirections.actionDashboardFragmentToUserProfileFragment(post.authorId)
+                    requireParentFragment().findNavController().navigate(action)
+                }
+            },
+            onFollowClick = { post -> viewModel.toggleAuthorFollow(post) }
         )
         binding.rvPosts.adapter = postAdapter
         binding.rvPosts.addOnScrollListener(object : RecyclerView.OnScrollListener() {
@@ -111,6 +134,23 @@ class FeedFragment : Fragment() {
         viewModel.posts.observe(viewLifecycleOwner) { posts ->
             postAdapter?.submitList(posts)
             updateEmptyState(posts)
+            notifViewModel.pendingPostId.value?.let { postId ->
+                val idx = posts.indexOfFirst { it.id == postId }
+                if (idx >= 0) {
+                    binding.rvPosts.post { binding.rvPosts.scrollToPosition(idx) }
+                    notifViewModel.consumePendingPostId()
+                }
+            }
+        }
+
+        notifViewModel.pendingPostId.observe(viewLifecycleOwner) { postId ->
+            if (postId == null) return@observe
+            val posts = viewModel.posts.value ?: return@observe
+            val idx = posts.indexOfFirst { it.id == postId }
+            if (idx >= 0) {
+                binding.rvPosts.post { binding.rvPosts.scrollToPosition(idx) }
+                notifViewModel.consumePendingPostId()
+            }
         }
     }
 

@@ -4,16 +4,21 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.inputmethod.InputMethodManager
 import android.widget.Toast
+import androidx.activity.OnBackPressedCallback
+import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
 import androidx.core.widget.addTextChangedListener
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.project.fridgemate.databinding.FragmentFridgeChatBinding
+import com.project.fridgemate.ui.fridge.FridgeViewModel
 
 class FridgeChatFragment : Fragment() {
 
@@ -22,6 +27,7 @@ class FridgeChatFragment : Fragment() {
 
     private val args: FridgeChatFragmentArgs by navArgs()
     private val viewModel: FridgeChatViewModel by viewModels()
+    private val sharedFridgeViewModel: FridgeViewModel by activityViewModels()
 
     private lateinit var adapter: MessageAdapter
     private lateinit var layoutManager: LinearLayoutManager
@@ -68,8 +74,59 @@ class FridgeChatFragment : Fragment() {
             binding.etMessage.setText("")
         }
 
+        setupEmojiPicker()
         observeViewModel()
         viewModel.start(args.fridgeId)
+
+        requireActivity().onBackPressedDispatcher.addCallback(viewLifecycleOwner, object : OnBackPressedCallback(true) {
+            override fun handleOnBackPressed() {
+                if (binding.emojiPicker.isVisible) {
+                    binding.emojiPicker.isVisible = false
+                } else {
+                    isEnabled = false
+                    requireActivity().onBackPressedDispatcher.onBackPressed()
+                }
+            }
+        })
+    }
+
+    private fun setupEmojiPicker() {
+        binding.btnEmoji.setOnClickListener {
+            if (binding.emojiPicker.isVisible) {
+                showKeyboard()
+            } else {
+                hideKeyboard()
+                binding.emojiPicker.isVisible = true
+            }
+        }
+
+        binding.etMessage.setOnClickListener {
+            binding.emojiPicker.isVisible = false
+        }
+
+        binding.emojiPicker.setOnEmojiPickedListener { emojiViewItem ->
+            val emoji = emojiViewItem.emoji
+            val currentText = binding.etMessage.text.toString()
+            val selectionStart = binding.etMessage.selectionStart
+            val selectionEnd = binding.etMessage.selectionEnd
+            val newText = StringBuilder(currentText)
+                .replace(selectionStart, selectionEnd, emoji)
+                .toString()
+            binding.etMessage.setText(newText)
+            binding.etMessage.setSelection(selectionStart + emoji.length)
+        }
+    }
+
+    private fun showKeyboard() {
+        binding.etMessage.requestFocus()
+        val imm = ContextCompat.getSystemService(requireContext(), InputMethodManager::class.java)
+        imm?.showSoftInput(binding.etMessage, InputMethodManager.SHOW_IMPLICIT)
+        binding.emojiPicker.isVisible = false
+    }
+
+    private fun hideKeyboard() {
+        val imm = ContextCompat.getSystemService(requireContext(), InputMethodManager::class.java)
+        imm?.hideSoftInputFromWindow(binding.etMessage.windowToken, 0)
     }
 
     private fun observeViewModel() {
@@ -120,6 +177,16 @@ class FridgeChatFragment : Fragment() {
         val last = layoutManager.findLastVisibleItemPosition()
         val total = adapter.itemCount
         return total == 0 || last >= total - 2
+    }
+
+    override fun onStart() {
+        super.onStart()
+        sharedFridgeViewModel.setChatOpen(true)
+    }
+
+    override fun onStop() {
+        super.onStop()
+        sharedFridgeViewModel.setChatOpen(false)
     }
 
     override fun onPause() {

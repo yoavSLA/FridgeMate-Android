@@ -26,6 +26,7 @@ data class PostDto(
     val commentsCount: Int,
     val isLiked: Boolean,
     val isOwner: Boolean,
+    val isFollowingAuthor: Boolean = false,
     val createdAt: String,
     val updatedAt: String
 )

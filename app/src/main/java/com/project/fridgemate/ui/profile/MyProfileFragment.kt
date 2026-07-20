@@ -168,7 +168,8 @@ class MyProfileFragment : Fragment() {
                 return@setOnClickListener
             }
             val allergies = allergyAdapter.getSelectedAllergies()
-            profileViewModel.saveProfile(fullName, allergies)
+            val bio = binding.etBio.text.toString().trim()
+            profileViewModel.saveProfile(fullName, allergies, bio)
         }
     }
 
@@ -176,6 +177,11 @@ class MyProfileFragment : Fragment() {
         profileViewModel.user.observe(viewLifecycleOwner) { user ->
             user ?: return@observe
             binding.etFullName.setText(user.displayName)
+            binding.tvEmail.text = user.email ?: ""
+            // Only pre-fill bio when empty to not stomp the user's typing on refresh
+            if (binding.etBio.text.isNullOrEmpty()) {
+                binding.etBio.setText(user.bio ?: "")
+            }
             allergyAdapter.setSelectedAllergies(user.allergies)
         }
 

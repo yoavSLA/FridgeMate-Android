@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="?attr/selectableItemBackground"
+    android:clickable="true"
+    android:focusable="true"
+    android:padding="16dp">
+
+    <!-- Icon -->
+    <ImageView
+        android:id="@+id/ivNotificationIcon"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:background="@drawable/circle_background"
+        android:padding="8dp"
+        android:src="@drawable/ic_notifications"
+        android:tint="@color/white"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <!-- Unread indicator -->
+    <View
+        android:id="@+id/viewUnreadIndicator"
+        android:layout_width="8dp"
+        android:layout_height="8dp"
+        android:layout_marginStart="4dp"
+        android:background="@drawable/circle_background"
+        android:backgroundTint="@color/error_red"
+        android:visibility="gone"
+        app:layout_constraintEnd_toEndOf="@id/ivNotificationIcon"
+        app:layout_constraintTop_toTopOf="@id/ivNotificationIcon" />
+
+    <!-- Title -->
+    <TextView
+        android:id="@+id/tvNotificationTitle"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="12dp"
+        android:ellipsize="end"
+        android:maxLines="1"
+        android:textColor="@color/black"
+        android:textSize="16sp"
+        android:textStyle="bold"
+        app:layout_constraintEnd_toStartOf="@id/tvNotificationTime"
+        app:layout_constraintStart_toEndOf="@id/ivNotificationIcon"
+        app:layout_constraintTop_toTopOf="@id/ivNotificationIcon"
+        tools:text="New Like" />
+
+    <!-- Message -->
+    <TextView
+        android:id="@+id/tvNotificationMessage"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:ellipsize="end"
+        android:maxLines="2"
+        android:textColor="@color/gray_dark"
+        android:textSize="14sp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="@id/tvNotificationTitle"
+        app:layout_constraintTop_toBottomOf="@id/tvNotificationTitle"
+        tools:text="John Doe liked your post about healthy recipes" />
+
+    <!-- Time -->
+    <TextView
+        android:id="@+id/tvNotificationTime"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:textColor="@color/gray_medium"
+        android:textSize="12sp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="@id/tvNotificationTitle"
+        tools:text="2m" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

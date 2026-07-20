@@ -17,7 +17,7 @@
 
         <TextView
             android:id="@+id/tv_greeting"
-            android:layout_width="wrap_content"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:text=""
             android:textColor="@color/black"
@@ -25,7 +25,53 @@
             android:textStyle="bold"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toStartOf="@id/btn_chat"
             app:layout_constraintTop_toTopOf="parent" />
+
+        <!-- Fridge chat button -->
+        <ImageView
+            android:id="@+id/btn_chat"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_marginEnd="12dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:clickable="true"
+            android:contentDescription="@string/open_chat"
+            android:focusable="true"
+            android:padding="8dp"
+            android:src="@drawable/ic_comments"
+            android:tint="@color/gray_dark"
+            android:visibility="gone"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toStartOf="@id/iv_notifications"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <!-- Notifications Icon -->
+        <ImageView
+            android:id="@+id/iv_notifications"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_marginEnd="12dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:clickable="true"
+            android:focusable="true"
+            android:padding="8dp"
+            android:src="@drawable/ic_notifications"
+            android:tint="@color/gray_dark"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toStartOf="@id/iv_profile"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <!-- Unread dot on bell -->
+        <View
+            android:id="@+id/notification_dot"
+            android:layout_width="10dp"
+            android:layout_height="10dp"
+            android:background="@drawable/circle_background"
+            android:backgroundTint="@color/error_red"
+            android:visibility="gone"
+            app:layout_constraintEnd_toEndOf="@id/iv_notifications"
+            app:layout_constraintTop_toTopOf="@id/iv_notifications" />
 
         <com.google.android.material.imageview.ShapeableImageView
             android:id="@+id/iv_profile"
@@ -158,6 +204,64 @@
         android:layout_height="1dp"
         android:background="@color/divider_color"
         app:layout_constraintTop_toBottomOf="@id/tab_layout" />
+
+    <!-- In-app notification banner -->
+    <com.google.android.material.card.MaterialCardView
+        android:id="@+id/notification_banner"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_margin="12dp"
+        android:visibility="gone"
+        android:elevation="12dp"
+        app:cardCornerRadius="12dp"
+        app:cardElevation="8dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/tab_divider">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@color/teal_primary"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:padding="12dp">
+
+            <ImageView
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:src="@drawable/ic_notifications"
+                android:tint="@color/white" />
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="12dp"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <TextView
+                    android:id="@+id/banner_title"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textColor="@color/white"
+                    android:textSize="13sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/banner_message"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:ellipsize="end"
+                    android:maxLines="1"
+                    android:textColor="@color/white"
+                    android:textSize="12sp" />
+
+            </LinearLayout>
+
+        </LinearLayout>
+
+    </com.google.android.material.card.MaterialCardView>
 
     <!-- Content Area -->
     <androidx.fragment.app.FragmentContainerView

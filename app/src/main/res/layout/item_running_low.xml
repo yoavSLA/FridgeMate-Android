@@ -4,9 +4,9 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_marginBottom="16dp"
-    app:cardBackgroundColor="@color/warning_yellow_bg"
-    app:cardCornerRadius="12dp"
+    android:layout_marginBottom="20dp"
+    app:cardBackgroundColor="#FFF8E1"
+    app:cardCornerRadius="16dp"
     app:cardElevation="0dp"
     app:strokeColor="#FFECB3"
     app:strokeWidth="1dp">
@@ -18,33 +18,35 @@
 
         <ImageView
             android:id="@+id/iv_warning"
-            android:layout_width="24dp"
-            android:layout_height="24dp"
+            android:layout_width="20dp"
+            android:layout_height="20dp"
             android:src="@drawable/ic_warning"
-            app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
+            app:layout_constraintTop_toTopOf="parent"
+            app:tint="@color/warning_yellow_text" />
 
         <TextView
             android:id="@+id/tv_warning_title"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginStart="12dp"
+            android:layout_marginStart="10dp"
             android:text="@string/running_low_title"
             android:textColor="@color/warning_yellow_text"
-            android:textSize="16sp"
+            android:textSize="15sp"
             android:textStyle="bold"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toEndOf="@id/iv_warning"
-            app:layout_constraintTop_toTopOf="parent" />
+            app:layout_constraintTop_toTopOf="@id/iv_warning"
+            app:layout_constraintBottom_toBottomOf="@id/iv_warning" />
 
         <TextView
             android:id="@+id/tv_low_stock_list"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginTop="4dp"
+            android:layout_marginTop="8dp"
+            android:lineSpacingExtra="2dp"
             android:textColor="@color/warning_yellow_text"
-            android:textSize="14sp"
+            android:textSize="13sp"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="@id/tv_warning_title"
             app:layout_constraintTop_toBottomOf="@id/tv_warning_title"

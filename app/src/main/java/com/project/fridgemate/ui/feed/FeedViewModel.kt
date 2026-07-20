@@ -6,13 +6,12 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
-import com.project.fridgemate.data.remote.dto.CommentDto
 import com.project.fridgemate.data.remote.dto.CreatePostRequest
-import com.project.fridgemate.data.remote.dto.PostDto
 import com.project.fridgemate.data.remote.dto.PostLocationRequest
 import com.project.fridgemate.data.remote.dto.UpdatePostRequest
 import com.project.fridgemate.data.repository.FridgeResult
 import com.project.fridgemate.data.repository.PostRepository
+import com.project.fridgemate.data.repository.UserRepository
 import kotlinx.coroutines.launch
 data class LinkedRecipe(
     val id: String,
@@ -24,6 +23,7 @@ data class LinkedRecipe(
 
 data class Post(
     val id: String,
+    val authorId: String = "",
     val userName: String,
     val userLocation: String,
     val postTitle: String,
@@ -38,7 +38,9 @@ data class Post(
     val longitude: Double = 0.0,
     val isOwner: Boolean = false,
     val linkedRecipe: LinkedRecipe? = null,
-    val isExpanded: Boolean = false
+    val isExpanded: Boolean = false,
+    val createdAt: String = "",
+    val isFollowingAuthor: Boolean = false
 )
 
 data class Comment(
@@ -47,12 +49,15 @@ data class Comment(
     val userName: String,
     val text: String,
     val authorImageUrl: String = "",
-    val isOwner: Boolean = false
+    val isOwner: Boolean = false,
+    val createdAt: String = ""
 )
 
 class FeedViewModel(application: Application) : AndroidViewModel(application) {
 
     private val repository = PostRepository(application.applicationContext)
+    private val userRepository = UserRepository(application.applicationContext)
+    private val followInFlight = mutableSetOf<String>()
 
     private val _posts = MutableLiveData<List<Post>>(emptyList())
     val posts: LiveData<List<Post>> = _posts
@@ -78,11 +83,23 @@ class FeedViewModel(application: Application) : AndroidViewModel(application) {
     private val _isLoadingMore = MutableLiveData(false)
     val isLoadingMore: LiveData<Boolean> = _isLoadingMore
 
+    /** Active feed scope: null/empty = all posts, "following" = only people I follow. */
+    var scope: String? = null
+        private set
+
     companion object {
         private const val PAGE_SIZE = 10
     }
     init {
         loadPosts()
+    }
+
+    /** Switch the feed between "all" and "following" and reload from the top. */
+    fun setScope(newScope: String?) {
+        val normalized = newScope?.takeIf { it.isNotEmpty() }
+        if (normalized == scope) return
+        scope = normalized
+        loadPosts(refresh = true)
     }
 
     fun resetUpdateState() {
@@ -105,7 +122,7 @@ class FeedViewModel(application: Application) : AndroidViewModel(application) {
             }
             _error.value = null
 
-            when (val result = repository.getPosts(page = currentPage, limit = PAGE_SIZE)) {
+            when (val result = repository.getPosts(page = currentPage, limit = PAGE_SIZE, scope = scope)) {
                 is FridgeResult.Success -> {
                     val currentPostsMap = _posts.value?.associateBy { it.id } ?: emptyMap()
                     val newPosts = result.data.items.map { dto ->
@@ -142,7 +159,7 @@ class FeedViewModel(application: Application) : AndroidViewModel(application) {
             _isLoadingMore.value = true
             currentPage++
 
-            when (val result = repository.getPosts(page = currentPage, limit = PAGE_SIZE)) {
+            when (val result = repository.getPosts(page = currentPage, limit = PAGE_SIZE, scope = scope)) {
                 is FridgeResult.Success -> {
                     val currentPostsMap = _posts.value?.associateBy { it.id } ?: emptyMap()
                     val newPosts = result.data.items.map { dto ->
@@ -235,6 +252,48 @@ class FeedViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
+    /**
+     * Toggle follow on the post's author. Updates every post in the feed
+     * authored by that user so the button stays consistent across cards.
+     */
+    fun toggleAuthorFollow(post: Post) {
+        val authorId = post.authorId
+        if (authorId.isEmpty() || post.isOwner) return
+        if (!followInFlight.add(authorId)) return
+
+        val previous = post.isFollowingAuthor
+        val optimistic: (Post) -> Post = {
+            if (it.authorId == authorId) it.copy(isFollowingAuthor = !previous) else it
+        }
+        _posts.value = _posts.value?.map(optimistic)
+        _myPosts.value = _myPosts.value?.map(optimistic)
+
+        viewModelScope.launch {
+            try {
+                when (val result = userRepository.toggleFollow(authorId)) {
+                    is FridgeResult.Success -> {
+                        val confirm: (Post) -> Post = {
+                            if (it.authorId == authorId) it.copy(isFollowingAuthor = result.data.following) else it
+                        }
+                        _posts.value = _posts.value?.map(confirm)
+                        _myPosts.value = _myPosts.value?.map(confirm)
+                    }
+                    is FridgeResult.Error -> {
+                        val revert: (Post) -> Post = {
+                            if (it.authorId == authorId) it.copy(isFollowingAuthor = previous) else it
+                        }
+                        _posts.value = _posts.value?.map(revert)
+                        _myPosts.value = _myPosts.value?.map(revert)
+                        _error.value = result.message
+                    }
+                    else -> {}
+                }
+            } finally {
+                followInFlight.remove(authorId)
+            }
+        }
+    }
+
     fun addPost(
         title: String,
         description: String,
@@ -258,7 +317,7 @@ class FeedViewModel(application: Application) : AndroidViewModel(application) {
             )
             when (val result = repository.createPost(request)) {
                 is FridgeResult.Success -> {
-                    loadPosts()
+                    loadPosts(refresh = true)
                     loadMyPosts()
                 }
                 is FridgeResult.Error -> {
@@ -312,6 +371,7 @@ class FeedViewModel(application: Application) : AndroidViewModel(application) {
                     _posts.value = _posts.value?.map(update)
                     _myPosts.value = _myPosts.value?.map(update)
                     _updateSuccess.value = true
+                    loadPosts(refresh = true)
                 }
                 is FridgeResult.Error -> {
                     _error.value = result.message
@@ -456,53 +516,4 @@ class FeedViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
-    private fun PostDto.toPost(): Post {
-        val loc = location
-        val authorAddr = authorUserId.address
-        
-        // Priority: Post's specific location, then Author's registered location
-        val lat = loc?.coordinates?.getOrNull(1) ?: authorAddr?.lat ?: 0.0
-        val lng = loc?.coordinates?.getOrNull(0) ?: authorAddr?.lng ?: 0.0
-
-        val placeName = loc?.placeName
-        val city = authorAddr?.city
-
-        val recipe = recipeId?.let {
-            LinkedRecipe(
-                id = it.id,
-                title = it.title ?: "",
-                cookingTime = it.cookingTime ?: "",
-                difficulty = it.difficulty ?: "",
-                imageUrl = it.imageUrl ?: ""
-            )
-        }
-
-        return Post(
-            id = id,
-            userName = authorUserId.displayName,
-            userLocation = placeName ?: city ?: "",
-            postTitle = title ?: "",
-            description = text,
-            likesCount = likesCount,
-            commentsCount = commentsCount,
-            imageUrl = mediaUrls.firstOrNull() ?: "",
-            authorImageUrl = authorUserId.profileImage ?: "",
-            isLiked = isLiked,
-            isOwner = isOwner,
-            latitude = lat,
-            longitude = lng,
-            linkedRecipe = recipe
-        )
-    }
-
-    private fun CommentDto.toComment(): Comment {
-        return Comment(
-            id = id,
-            postId = postId,
-            userName = authorUserId.displayName,
-            text = text,
-            authorImageUrl = authorUserId.profileImage ?: "",
-            isOwner = isOwner
-        )
-    }
 }

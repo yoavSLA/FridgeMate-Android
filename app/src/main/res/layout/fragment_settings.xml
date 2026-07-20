@@ -363,7 +363,6 @@
                                 android:nestedScrollingEnabled="false"
                                 tools:itemCount="3"
                                 tools:listitem="@layout/item_member" />
-
                         </LinearLayout>
                     </com.google.android.material.card.MaterialCardView>
 
@@ -422,6 +421,44 @@
                         android:text="@string/fridge_scanner_info"
                         android:textColor="@color/gray_text"
                         android:textSize="13sp" />
+
+                    <LinearLayout
+                        android:id="@+id/lastScannedLayout"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="12dp"
+                        android:background="@drawable/bg_invite_code"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal"
+                        android:padding="8dp"
+                        android:visibility="gone"
+                        tools:visibility="visible">
+
+                        <ImageView
+                            android:layout_width="16dp"
+                            android:layout_height="16dp"
+                            android:layout_marginStart="4dp"
+                            android:src="@drawable/ic_time"
+                            app:tint="@color/dark_teal" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="8dp"
+                            android:text="Last Scanned:"
+                            android:textColor="@color/dark_teal"
+                            android:textSize="12sp"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:id="@+id/tvLastScannedAt"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="4dp"
+                            android:textColor="@color/black"
+                            android:textSize="12sp"
+                            tools:text="14/06/2024 15:30:45" />
+                    </LinearLayout>
 
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/btnUploadFridgePhoto"
@@ -495,6 +532,27 @@
                             android:layout_height="wrap_content"
                             android:layout_marginTop="12dp"
                             android:nestedScrollingEnabled="false" />
+
+                        <TextView
+                            android:id="@+id/tvScanSummaryTitle"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="16dp"
+                            android:text="Scan Summary"
+                            android:textColor="@color/black"
+                            android:textSize="15sp"
+                            android:textStyle="bold"
+                            android:visibility="gone"
+                            tools:visibility="visible" />
+
+                        <androidx.recyclerview.widget.RecyclerView
+                            android:id="@+id/rvScanSummary"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="8dp"
+                            android:nestedScrollingEnabled="false"
+                            android:visibility="gone"
+                            tools:visibility="visible" />
                     </LinearLayout>
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>

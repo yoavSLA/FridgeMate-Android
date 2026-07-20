@@ -104,6 +104,7 @@
     <string name="chat_title">Fridge Chat</string>
     <string name="chat_input_hint">Type a message…</string>
     <string name="chat_send">Send</string>
+    <string name="chat_emoji">Emoji</string>
     <string name="chat_empty_title">No messages yet</string>
     <string name="chat_empty_desc">Send the first message or share a recipe with your fridge mates.</string>
     <string name="chat_date_today">Today</string>
@@ -162,6 +163,26 @@
     <string name="be_first_to_post">Be the first one to share a post</string>
     <string name="my_posts">My Posts</string>
     <string name="map_view">Map View</string>
+    <string name="find_people">Find People</string>
+    <string name="scope_all">All</string>
+    <string name="scope_following">Following</string>
+
+    <!-- Profile & Follow -->
+    <string name="profile_title">Profile</string>
+    <string name="posts_label">Posts</string>
+    <string name="followers_label">Followers</string>
+    <string name="following_label">Following</string>
+    <string name="follow_action">Follow</string>
+    <string name="following_action">Following</string>
+    <string name="edit_profile">Edit Profile</string>
+    <string name="no_posts_user">No posts yet</string>
+    <string name="no_followers_yet">No followers yet</string>
+    <string name="no_following_yet">Not following anyone yet</string>
+    <string name="no_users_found">No users found</string>
+    <string name="discover_people">Discover People</string>
+    <string name="search_users_hint">Search by name or username</string>
+    <string name="bio_label">Bio</string>
+    <string name="bio_hint">Tell others about your cooking style…</string>
     <string name="share_something">Share something with the community!</string>
     <string name="havent_posted_yet">You haven\'t posted yet.</string>
     <string name="new_post">New Post</string>
@@ -231,6 +252,8 @@
     <string name="cd_back">Back</string>
     <string name="cd_location">Location</string>
 
+    <!-- Notification Types -->
+    <string name="notification_msg">When you get notifications, they will show up here</string>
     <!-- Journal Screen -->
     <string name="add_journal_entry">Add Journal Entry</string>
     <string name="journal_title_hint">Title</string>

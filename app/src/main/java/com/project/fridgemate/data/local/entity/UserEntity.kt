@@ -10,6 +10,7 @@ data class UserEntity(
     val displayName: String,
     val userName: String?,
     val profileImage: String?,
+    val bio: String? = null,
     val role: String,
     val allergiesJson: String = "[]",
     val dietPreference: String,
