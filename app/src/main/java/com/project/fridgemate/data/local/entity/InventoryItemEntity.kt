@@ -7,7 +7,7 @@ import androidx.room.PrimaryKey
 data class InventoryItemEntity(
     @PrimaryKey val id: String,
     val fridgeId: String,
-    val ownerId: String,
+    val ownerId: String?,
     val name: String,
     val quantity: String,
     val ownership: String,

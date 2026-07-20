@@ -6,12 +6,17 @@ import android.view.ViewGroup
 import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.RecyclerView
 import com.project.fridgemate.R
+import com.project.fridgemate.data.remote.dto.FridgeMemberDetailDto
 import com.project.fridgemate.databinding.ItemCategoryHeaderBinding
 import com.project.fridgemate.databinding.ItemProductBinding
 import com.project.fridgemate.databinding.ItemRunningLowBinding
 
-class FridgeAdapter(private val items: List<FridgeItem>) :
-    RecyclerView.Adapter<RecyclerView.ViewHolder>() {
+class FridgeAdapter(
+    private val items: List<FridgeItem>,
+    private val members: Map<String, FridgeMemberDetailDto> = emptyMap(),
+    private val onOwnerIconClick: (View, FridgeItem.Product) -> Unit = { _, _ -> },
+    private val onOwnerRemoveClick: (FridgeItem.Product) -> Unit = {}
+) : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
 
     companion object {
         private const val TYPE_LAST_SCANNED = -1
@@ -60,7 +65,9 @@ class FridgeAdapter(private val items: List<FridgeItem>) :
             is FridgeItem.Product -> {
                 val isFirstInGroup = position == 0 || items[position - 1] !is FridgeItem.Product
                 val isLastInGroup = position == items.size - 1 || items[position + 1] !is FridgeItem.Product
-                (holder as ProductViewHolder).bind(item, isFirstInGroup, isLastInGroup)
+                (holder as ProductViewHolder).bind(
+                    item, isFirstInGroup, isLastInGroup, members[item.ownerId], onOwnerIconClick, onOwnerRemoveClick
+                )
             }
         }
     }
@@ -91,13 +98,37 @@ class FridgeAdapter(private val items: List<FridgeItem>) :
 
     class ProductViewHolder(private val binding: ItemProductBinding) :
         RecyclerView.ViewHolder(binding.root) {
-        fun bind(item: FridgeItem.Product, isFirstInGroup: Boolean, isLastInGroup: Boolean) {
+        fun bind(
+            item: FridgeItem.Product,
+            isFirstInGroup: Boolean,
+            isLastInGroup: Boolean,
+            owner: FridgeMemberDetailDto?,
+            onOwnerIconClick: (View, FridgeItem.Product) -> Unit,
+            onOwnerRemoveClick: (FridgeItem.Product) -> Unit
+        ) {
+            val context = binding.root.context
             binding.tvProductName.text = item.name
             binding.tvProductQuantity.text = item.quantity
             binding.ivLowStockWarning.visibility = if (item.isLowStock) View.VISIBLE else View.GONE
             binding.divider.visibility = if (isLastInGroup) View.GONE else View.VISIBLE
-            
-            val context = binding.root.context
+
+            val isAssigned = item.ownerId != null
+            if (isAssigned) {
+                binding.ownerContainer.setBackgroundResource(R.drawable.bg_owner_pill)
+                binding.tvOwnerName.text = owner?.displayName
+                    ?: context.getString(R.string.unassigned_owner)
+                binding.tvOwnerName.visibility = View.VISIBLE
+                binding.ivOwnerRemove.visibility = View.VISIBLE
+                binding.ivOwnerIcon.setColorFilter(ContextCompat.getColor(context, R.color.dark_teal))
+            } else {
+                binding.ownerContainer.background = null
+                binding.tvOwnerName.visibility = View.GONE
+                binding.ivOwnerRemove.visibility = View.GONE
+                binding.ivOwnerIcon.setColorFilter(ContextCompat.getColor(context, R.color.gray_text))
+            }
+            binding.ownerContainer.setOnClickListener { onOwnerIconClick(binding.ownerContainer, item) }
+            binding.ivOwnerRemove.setOnClickListener { onOwnerRemoveClick(item) }
+
             if (isFirstInGroup && isLastInGroup) {
                 // Single item in group - rounded top and bottom
                 binding.root.setBackgroundResource(R.drawable.bg_product_item_all)

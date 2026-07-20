@@ -45,9 +45,15 @@ data class PaginatedResponse<T>(
 data class InventoryItemDto(
     @SerializedName("_id") val id: String,
     val fridgeId: String,
-    val ownerId: String,
+    val ownerId: String?,
     val name: String,
     val quantity: String,
     val ownership: String,
     val isRunningLow: Boolean
+)
+
+data class ItemOwnerChangedDto(
+    val fridgeId: String,
+    val itemId: String,
+    val ownerId: String?
 )
