@@ -28,12 +28,15 @@ class InventoryItemRepository(context: Context) {
         return dao.getAll().map { it.toDto() }
     }
 
-    suspend fun getItems(fridgeId: String): List<InventoryItemDto> {
+    // mineOrUnowned = true excludes other members' items (used for recipe generation).
+    // That filtered result is never cached, so it can't clobber the full-fridge cache
+    // that the normal fridge screen relies on.
+    suspend fun getItems(fridgeId: String, mineOrUnowned: Boolean = false): List<InventoryItemDto> {
         return try {
-            val response = api.getItems(fridgeId)
+            val response = api.getItems(fridgeId, mineOrUnowned)
             if (response.isSuccessful) {
                 val items = response.body()?.items ?: emptyList()
-                cacheItems(items)
+                if (!mineOrUnowned) cacheItems(items)
                 items
             } else emptyList()
         } catch (e: Exception) {
