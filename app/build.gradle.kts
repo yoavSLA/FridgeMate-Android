@@ -2,9 +2,8 @@ import java.util.Properties
 
 plugins {
     alias(libs.plugins.android.application)
-    alias(libs.plugins.kotlin.android)
     alias(libs.plugins.navigation.safeargs)
-    id("com.google.devtools.ksp") version "1.9.10-1.0.13"
+    alias(libs.plugins.ksp)
 }
 
 val localProperties = Properties().apply {
@@ -17,12 +16,12 @@ val googleWebClientId: String = localProperties.getProperty("GOOGLE_WEB_CLIENT_I
 
 android {
     namespace = "com.project.fridgemate"
-    compileSdk = 34
+    compileSdk = 35
 
     defaultConfig {
         applicationId = "com.project.fridgemate"
         minSdk = 24
-        targetSdk = 34
+        targetSdk = 35
         versionCode = 1
         versionName = "1.0"
 
@@ -42,12 +41,10 @@ android {
         }
     }
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_17
-        targetCompatibility = JavaVersion.VERSION_17
+        sourceCompatibility = JavaVersion.VERSION_21
+        targetCompatibility = JavaVersion.VERSION_21
     }
-    kotlinOptions {
-        jvmTarget = "17"
-    }
+
     buildFeatures {
         viewBinding = true
         dataBinding = true
