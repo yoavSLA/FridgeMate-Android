@@ -3,15 +3,35 @@ package com.project.fridgemate.data.remote
 import android.content.Context
 import com.project.fridgemate.BuildConfig
 import com.project.fridgemate.data.remote.api.AuthApi
+import io.socket.client.IO
+import okhttp3.Dns
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
+import java.net.InetAddress
 import java.util.concurrent.TimeUnit
 
 object ApiClient {
 
     private const val TIMEOUT_SECONDS = 30L
+
+    // Temporary DNS overrides until public A-records exist. TLS still validates
+    // against the requested hostname, so cert coverage of *.cs.colman.ac.il works.
+    // Remove entries here once the academy adds the public DNS.
+    private val hostOverrides = mapOf(
+        "fridgemate.cs.colman.ac.il" to "193.106.55.84"
+    )
+
+    val dns: Dns = Dns { hostname ->
+        hostOverrides[hostname]?.let { ip -> listOf(InetAddress.getByName(ip)) }
+            ?: Dns.SYSTEM.lookup(hostname)
+    }
+
+    // Bare OkHttp used as default for socket.io (needs same Dns; no interceptors).
+    private val socketHttpClient: OkHttpClient = OkHttpClient.Builder()
+        .dns(dns)
+        .build()
 
     private lateinit var tokenManager: TokenManager
     private lateinit var publicRetrofit: Retrofit
@@ -19,6 +39,10 @@ object ApiClient {
 
     fun init(context: Context) {
         tokenManager = TokenManager(context.applicationContext)
+
+        // Make socket.io honour the same DNS overrides as Retrofit.
+        IO.setDefaultOkHttpCallFactory(socketHttpClient)
+        IO.setDefaultOkHttpWebSocketFactory(socketHttpClient)
 
         val loggingInterceptor = HttpLoggingInterceptor().apply {
             level = if (BuildConfig.DEBUG)
@@ -28,12 +52,14 @@ object ApiClient {
         }
 
         val publicClient = OkHttpClient.Builder()
+            .dns(dns)
             .addInterceptor(loggingInterceptor)
             .connectTimeout(TIMEOUT_SECONDS, TimeUnit.SECONDS)
             .readTimeout(TIMEOUT_SECONDS, TimeUnit.SECONDS)
             .build()
 
         val authenticatedClient = OkHttpClient.Builder()
+            .dns(dns)
             .addInterceptor(AuthInterceptor(tokenManager))
             .addInterceptor(loggingInterceptor)
             .authenticator(TokenAuthenticator(tokenManager))
