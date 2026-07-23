@@ -132,6 +132,8 @@ class LoginFragment : Fragment() {
             return
         }
 
+        viewModel.clearGoogleError()
+
         val request = GetCredentialRequest.Builder()
             .addCredentialOption(GetSignInWithGoogleOption.Builder(serverClientId).build())
             .build()
@@ -141,14 +143,7 @@ class LoginFragment : Fragment() {
                 val response = credentialManager.getCredential(requireContext(), request)
                 handleGoogleCredential(response)
             } catch (e: GetCredentialCancellationException) {
-                Log.w(TAG, "Google sign-in cancelled: type=${e.type} msg=${e.message}", e)
-                val base = getString(R.string.google_sign_in_cancelled)
-                val message = if (BuildConfig.DEBUG && !e.message.isNullOrBlank()) {
-                    "$base (${e.message})"
-                } else {
-                    base
-                }
-                viewModel.reportGoogleError(message)
+                Log.d(TAG, "Google sign-in cancelled by user: ${e.message}")
             } catch (e: GetCredentialException) {
                 Log.e(TAG, "Google sign-in failed: type=${e.type} msg=${e.message}", e)
                 val base = getString(R.string.google_sign_in_failed)
