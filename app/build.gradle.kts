@@ -12,7 +12,10 @@ val localProperties = Properties().apply {
         file.inputStream().use { load(it) }
     }
 }
-val googleWebClientId: String = localProperties.getProperty("GOOGLE_WEB_CLIENT_ID", "")
+val googleWebClientId: String = localProperties.getProperty(
+    "GOOGLE_WEB_CLIENT_ID",
+    "971250453844-337gon07tac5ik3b14vt16nfacevin1m.apps.googleusercontent.com"
+)
 
 android {
     namespace = "com.project.fridgemate"
