@@ -5,6 +5,7 @@ import com.project.fridgemate.BuildConfig
 import com.project.fridgemate.data.remote.ApiClient
 import io.socket.client.IO
 import io.socket.client.Socket
+import java.net.URI
 
 object SocketManager {
 
@@ -30,7 +31,7 @@ object SocketManager {
             it.off()
         }
 
-        val baseUrl = BuildConfig.BASE_URL.trimEnd('/')
+        val baseUrl = URI(BuildConfig.BASE_URL).resolve("/").toString().trimEnd('/')
         val opts = IO.Options.builder()
             .setAuth(mapOf("token" to (currentToken ?: "")))
             .setReconnection(true)
