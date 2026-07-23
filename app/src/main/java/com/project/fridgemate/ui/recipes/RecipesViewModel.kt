@@ -95,7 +95,7 @@ class RecipesViewModel(application: Application) : AndroidViewModel(application)
         return when (val fridgeResult = fridgeRepository.getMyFridge()) {
             is FridgeResult.Success -> {
                 _noFridge.postValue(false)
-                val items = inventoryRepository.getItems(fridgeResult.data.id)
+                val items = inventoryRepository.getItems(fridgeResult.data.id, mineOrUnowned = true)
                 items.map { "${it.name} (${it.quantity})" }
             }
             is FridgeResult.NoFridge -> {
