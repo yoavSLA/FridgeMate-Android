@@ -16,6 +16,7 @@ object PicassoCache {
         val cache = Cache(cacheDir, DISK_CACHE_SIZE)
 
         val okHttpClient = OkHttpClient.Builder()
+            .dns(ApiClient.dns)
             .cache(cache)
             .build()
 
