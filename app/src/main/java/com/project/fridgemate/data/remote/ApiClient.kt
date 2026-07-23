@@ -23,9 +23,11 @@ object ApiClient {
         "fridgemate.cs.colman.ac.il" to "193.106.55.84"
     )
 
-    val dns: Dns = Dns { hostname ->
-        hostOverrides[hostname]?.let { ip -> listOf(InetAddress.getByName(ip)) }
-            ?: Dns.SYSTEM.lookup(hostname)
+    val dns: Dns = object : Dns {
+        override fun lookup(hostname: String): List<InetAddress> {
+            return hostOverrides[hostname]?.let { ip -> listOf(InetAddress.getByName(ip)) }
+                ?: Dns.SYSTEM.lookup(hostname)
+        }
     }
 
     // Bare OkHttp used as default for socket.io (needs same Dns; no interceptors).
