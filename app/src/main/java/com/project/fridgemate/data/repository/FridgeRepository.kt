@@ -18,11 +18,26 @@ sealed class FridgeResult<out T> {
     data object NoFridge : FridgeResult<Nothing>()
 }
 
+sealed class LastKnownFridge {
+    data object Unknown : LastKnownFridge()
+    data object None : LastKnownFridge()
+    data class Present(val fridge: FridgeDto) : LastKnownFridge()
+}
+
 class FridgeRepository(context: Context) {
 
     private val fridgeApi: FridgeApi = ApiClient.createApi(FridgeApi::class.java)
     private val fridgeDao = AppDatabase.getInstance(context).fridgeDao()
     private val gson = Gson()
+
+    companion object {
+        @Volatile
+        private var lastKnown: LastKnownFridge = LastKnownFridge.Unknown
+
+        fun invalidate() {
+            lastKnown = LastKnownFridge.Unknown
+        }
+    }
 
     suspend fun getMyFridge(): FridgeResult<FridgeDto> {
         return try {
@@ -30,16 +45,29 @@ class FridgeRepository(context: Context) {
             if (response.isSuccessful) {
                 val data = response.body()!!.data
                 cacheFridge(data)
+                lastKnown = LastKnownFridge.Present(data)
                 FridgeResult.Success(data)
             } else if (response.code() == 404) {
                 try { fridgeDao.clear() } catch (_: Exception) { }
+                lastKnown = LastKnownFridge.None
                 FridgeResult.NoFridge
             } else {
-                loadCachedFridge() ?: FridgeResult.Error(parseError(response.errorBody()?.string()))
+                loadCachedFridge()?.also { lastKnown = LastKnownFridge.Present(it.data) }
+                    ?: FridgeResult.Error(parseError(response.errorBody()?.string()))
             }
         } catch (e: Exception) {
-            loadCachedFridge() ?: FridgeResult.Error(networkErrorMessage(e))
+            loadCachedFridge()?.also { lastKnown = LastKnownFridge.Present(it.data) }
+                ?: FridgeResult.Error(networkErrorMessage(e))
         }
+    }
+
+    suspend fun peekLastKnownFridge(): LastKnownFridge {
+        val snapshot = lastKnown
+        if (snapshot != LastKnownFridge.Unknown) return snapshot
+        val cached = loadCachedFridge() ?: return LastKnownFridge.Unknown
+        val state = LastKnownFridge.Present(cached.data)
+        lastKnown = state
+        return state
     }
 
     suspend fun getMembers(): FridgeResult<List<FridgeMemberDetailDto>> {
@@ -61,6 +89,7 @@ class FridgeRepository(context: Context) {
         return try {
             val response = fridgeApi.createFridge(CreateFridgeRequest(name.trim()))
             if (response.isSuccessful) {
+                lastKnown = LastKnownFridge.Unknown
                 FridgeResult.Success(Unit)
             } else {
                 FridgeResult.Error(parseError(response.errorBody()?.string()))
@@ -74,6 +103,7 @@ class FridgeRepository(context: Context) {
         return try {
             val response = fridgeApi.joinFridge(JoinFridgeRequest(inviteCode.trim().uppercase()))
             if (response.isSuccessful) {
+                lastKnown = LastKnownFridge.Unknown
                 FridgeResult.Success(Unit)
             } else {
                 FridgeResult.Error(parseError(response.errorBody()?.string()))
@@ -88,6 +118,7 @@ class FridgeRepository(context: Context) {
             val response = fridgeApi.leaveFridge()
             if (response.isSuccessful) {
                 try { fridgeDao.clear() } catch (_: Exception) { }
+                lastKnown = LastKnownFridge.None
                 FridgeResult.Success(Unit)
             } else {
                 FridgeResult.Error(parseError(response.errorBody()?.string()))

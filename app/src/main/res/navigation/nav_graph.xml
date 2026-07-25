@@ -163,6 +163,9 @@
         <action
             android:id="@+id/action_recipeDetailFragment_to_addPostFragment"
             app:destination="@id/addPostFragment" />
+        <action
+            android:id="@+id/action_recipeDetailFragment_to_fridgeChatFragment"
+            app:destination="@id/fridgeChatFragment" />
     </fragment>
     <fragment
         android:id="@+id/addPostFragment"

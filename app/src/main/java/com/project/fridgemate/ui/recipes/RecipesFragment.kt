@@ -28,8 +28,8 @@ class RecipesFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
 
         setupViewPager()
-        observeDataState()
         viewModel.loadRecommendedIfNeeded()
+        observeDataState()
     }
 
     private fun setupViewPager() {
@@ -53,14 +53,22 @@ class RecipesFragment : Fragment() {
 
     private fun observeDataState() {
         viewModel.noFridge.observe(viewLifecycleOwner) { noFridge ->
-            if (noFridge) {
-                binding.emptyState.visibility = View.VISIBLE
-                binding.tabLayout.visibility = View.GONE
-                binding.viewPager.visibility = View.GONE
-            } else {
-                binding.emptyState.visibility = View.GONE
-                binding.tabLayout.visibility = View.VISIBLE
-                binding.viewPager.visibility = View.VISIBLE
+            when (noFridge) {
+                null -> {
+                    binding.emptyState.visibility = View.GONE
+                    binding.tabLayout.visibility = View.GONE
+                    binding.viewPager.visibility = View.GONE
+                }
+                true -> {
+                    binding.emptyState.visibility = View.VISIBLE
+                    binding.tabLayout.visibility = View.GONE
+                    binding.viewPager.visibility = View.GONE
+                }
+                false -> {
+                    binding.emptyState.visibility = View.GONE
+                    binding.tabLayout.visibility = View.VISIBLE
+                    binding.viewPager.visibility = View.VISIBLE
+                }
             }
         }
     }

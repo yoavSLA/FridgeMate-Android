@@ -119,6 +119,7 @@
     <string name="share_to_chat_action">Share</string>
     <string name="share_to_chat_cancel">Cancel</string>
     <string name="share_to_chat_success">Recipe shared</string>
+    <string name="share_to_chat_success_action">Open chat</string>
     <string name="share_to_chat_no_fridge">Join a fridge to share recipes</string>
     <string name="open_chat">Open chat</string>
 
