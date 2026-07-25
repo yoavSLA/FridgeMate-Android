@@ -14,6 +14,7 @@
         android:layout_marginHorizontal="16dp"
         android:layout_marginTop="16dp"
         android:background="@drawable/bg_tab_layout"
+        android:visibility="gone"
         app:tabGravity="fill"
         app:tabMode="fixed"
         app:tabIndicatorHeight="0dp"
@@ -21,15 +22,18 @@
         app:tabTextColor="@color/accent_green_dark"
         app:tabRippleColor="@android:color/transparent"
         app:tabBackground="@drawable/bg_tab_selector"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toTopOf="parent"
+        tools:visibility="visible" />
 
     <androidx.viewpager2.widget.ViewPager2
         android:id="@+id/viewPager"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_marginTop="12dp"
+        android:visibility="gone"
         app:layout_constraintTop_toBottomOf="@id/tabLayout"
-        app:layout_constraintBottom_toBottomOf="parent" />
+        app:layout_constraintBottom_toBottomOf="parent"
+        tools:visibility="visible" />
 
     <LinearLayout
         android:id="@+id/empty_state"

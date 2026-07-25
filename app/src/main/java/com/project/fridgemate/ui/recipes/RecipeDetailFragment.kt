@@ -14,6 +14,7 @@ import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import androidx.lifecycle.lifecycleScope
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import com.google.android.material.snackbar.Snackbar
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import com.project.fridgemate.BuildConfig
@@ -23,6 +24,7 @@ import com.project.fridgemate.data.remote.dto.RecipeIngredientDto
 import com.project.fridgemate.data.repository.FridgeChatRepository
 import com.project.fridgemate.data.repository.FridgeRepository
 import com.project.fridgemate.data.repository.FridgeResult
+import com.project.fridgemate.data.repository.LastKnownFridge
 import com.project.fridgemate.data.repository.RecipeSharePayload
 import com.project.fridgemate.databinding.FragmentRecipeDetailBinding
 import com.project.fridgemate.databinding.ItemDetailIngredientBinding
@@ -149,20 +151,42 @@ class RecipeDetailFragment : Fragment() {
     private fun setupShareToChat(recipe: RecipeEntity) {
         val serverId = recipe.serverId ?: return
         viewLifecycleOwner.lifecycleScope.launch {
-            when (val result = fridgeRepo.getMyFridge()) {
-                is FridgeResult.Success -> {
-                    activeFridgeId = result.data.id
-                    activeFridgeName = result.data.name
-                    if (_binding == null) return@launch
-                    binding.btnShareChat.visibility = View.VISIBLE
-                    binding.btnShareChat.setOnClickListener {
-                        showShareToChatDialog(serverId, recipe)
-                    }
+            when (val cached = fridgeRepo.peekLastKnownFridge()) {
+                is LastKnownFridge.Present -> {
+                    applyShareToChatFridge(cached.fridge.id, cached.fridge.name, serverId, recipe)
                 }
-                else -> {
+                is LastKnownFridge.None -> {
                     if (_binding != null) binding.btnShareChat.visibility = View.GONE
                 }
+                is LastKnownFridge.Unknown -> Unit
             }
+
+            when (val result = fridgeRepo.getMyFridge()) {
+                is FridgeResult.Success -> {
+                    applyShareToChatFridge(result.data.id, result.data.name, serverId, recipe)
+                }
+                is FridgeResult.NoFridge -> {
+                    if (_binding != null) binding.btnShareChat.visibility = View.GONE
+                    activeFridgeId = null
+                    activeFridgeName = null
+                }
+                is FridgeResult.Error -> Unit
+            }
+        }
+    }
+
+    private fun applyShareToChatFridge(
+        fridgeId: String,
+        fridgeName: String,
+        serverId: String,
+        recipe: RecipeEntity,
+    ) {
+        activeFridgeId = fridgeId
+        activeFridgeName = fridgeName
+        if (_binding == null) return
+        binding.btnShareChat.visibility = View.VISIBLE
+        binding.btnShareChat.setOnClickListener {
+            showShareToChatDialog(serverId, recipe)
         }
     }
 
@@ -186,7 +210,22 @@ class RecipeDetailFragment : Fragment() {
                         difficulty = recipe.difficulty.ifBlank { null },
                     ),
                 )
-                Toast.makeText(requireContext(), R.string.share_to_chat_success, Toast.LENGTH_SHORT).show()
+                showSharedSnackbar(fridgeId)
+            }
+            .show()
+    }
+
+    private fun showSharedSnackbar(fridgeId: String) {
+        if (_binding == null) return
+        val fridgeName = activeFridgeName.orEmpty()
+        val accent = ContextCompat.getColor(requireContext(), R.color.accent_green)
+        Snackbar.make(binding.root, R.string.share_to_chat_success, Snackbar.LENGTH_LONG)
+            .setAnchorView(binding.btnShareChat)
+            .setActionTextColor(accent)
+            .setAction(R.string.share_to_chat_success_action) {
+                val action = RecipeDetailFragmentDirections
+                    .actionRecipeDetailFragmentToFridgeChatFragment(fridgeId, fridgeName)
+                findNavController().navigate(action)
             }
             .show()
     }

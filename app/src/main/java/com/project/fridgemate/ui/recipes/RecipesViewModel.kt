@@ -11,6 +11,7 @@ import com.project.fridgemate.data.local.entity.RecipeEntity
 import com.project.fridgemate.data.repository.FridgeRepository
 import com.project.fridgemate.data.repository.FridgeResult
 import com.project.fridgemate.data.repository.InventoryItemRepository
+import com.project.fridgemate.data.repository.LastKnownFridge
 import com.project.fridgemate.data.repository.RecipeRepository
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
@@ -36,8 +37,8 @@ class RecipesViewModel(application: Application) : AndroidViewModel(application)
     private val _error = MutableLiveData<String?>(null)
     val error: LiveData<String?> = _error
 
-    private val _noFridge = MutableLiveData(false)
-    val noFridge: LiveData<Boolean> = _noFridge
+    private val _noFridge = MutableLiveData<Boolean?>(null)
+    val noFridge: LiveData<Boolean?> = _noFridge
 
     private val _fridgeEmpty = MutableLiveData(false)
     val fridgeEmpty: LiveData<Boolean> = _fridgeEmpty
@@ -49,11 +50,24 @@ class RecipesViewModel(application: Application) : AndroidViewModel(application)
         favorites = repository.getFavorites()
 
         viewModelScope.launch { repository.fetchFavorites() }
+
+        viewModelScope.launch {
+            when (fridgeRepository.peekLastKnownFridge()) {
+                is LastKnownFridge.Present -> _noFridge.value = false
+                is LastKnownFridge.None -> _noFridge.value = true
+                is LastKnownFridge.Unknown -> Unit
+            }
+        }
     }
 
     fun loadRecommendedIfNeeded() {
         if (recommendedJob?.isActive == true) return
         viewModelScope.launch {
+            if (fridgeRepository.peekLastKnownFridge() is LastKnownFridge.None) {
+                _noFridge.value = true
+                repository.clearRecommendedCache()
+                return@launch
+            }
             if (repository.isCacheExpired()) {
                 loadRecommended()
             } else {
@@ -66,6 +80,13 @@ class RecipesViewModel(application: Application) : AndroidViewModel(application)
         if (recommendedJob?.isActive == true) return
         _error.value = null
         recommendedJob = viewModelScope.launch {
+            if (fridgeRepository.peekLastKnownFridge() is LastKnownFridge.None) {
+                _noFridge.value = true
+                _isLoading.value = false
+                repository.clearRecommendedCache()
+                return@launch
+            }
+
             val cached = inventoryRepository.getCachedItems()
             if (cached.isNotEmpty()) {
                 _isLoading.value = true

@@ -12,6 +12,7 @@ import com.project.fridgemate.data.remote.dto.AddressDto
 import com.project.fridgemate.data.remote.dto.UpdateProfileRequest
 import com.project.fridgemate.data.remote.dto.UserDto
 import com.project.fridgemate.data.repository.AuthRepository
+import com.project.fridgemate.data.repository.FridgeRepository
 import com.project.fridgemate.data.repository.UserRepository
 import com.project.fridgemate.R
 import kotlinx.coroutines.Dispatchers
@@ -196,6 +197,7 @@ class ProfileViewModel(application: Application) : AndroidViewModel(application)
             withContext(Dispatchers.IO) {
                 AppDatabase.getInstance(getApplication<Application>()).clearAllTables()
             }
+            FridgeRepository.invalidate()
             _loggedOut.value = true
         }
     }
