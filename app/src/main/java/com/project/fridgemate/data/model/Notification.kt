@@ -9,7 +9,8 @@ data class Notification(
     val message: String,
     val timestamp: Long,
     val isRead: Boolean = false,
-    val relatedId: String? = null
+    val relatedId: String? = null,
+    val relatedLabel: String? = null
 )
 
 enum class NotificationType {
@@ -44,6 +45,12 @@ fun NotificationDto.toNotification(): Notification {
     val relatedId = when (type) {
         "POST_LIKE", "POST_COMMENT" -> metadata?.get("postId") as? String
         "FOLLOW" -> metadata?.get("followerId") as? String
+        "CHAT_MESSAGE", "FRIDGE_INVITE" -> metadata?.get("fridgeId") as? String
+        else -> null
+    }
+
+    val relatedLabel = when (type) {
+        "CHAT_MESSAGE", "FRIDGE_INVITE" -> metadata?.get("fridgeName") as? String
         else -> null
     }
 
@@ -54,6 +61,7 @@ fun NotificationDto.toNotification(): Notification {
         message = message,
         timestamp = ts,
         isRead = isRead,
-        relatedId = relatedId
+        relatedId = relatedId,
+        relatedLabel = relatedLabel
     )
 }
