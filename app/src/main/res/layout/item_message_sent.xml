@@ -12,7 +12,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="end"
-        app:cardBackgroundColor="@color/chat_bubble_sent"
+        app:cardBackgroundColor="@color/accent_green"
         app:cardElevation="0dp"
         app:shapeAppearanceOverlay="@style/ChatBubble.Sent"
         app:strokeWidth="0dp">

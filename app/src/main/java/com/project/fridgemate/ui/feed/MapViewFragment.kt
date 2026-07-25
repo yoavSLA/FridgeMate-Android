@@ -159,7 +159,7 @@ class MapViewFragment : Fragment() {
         
         val markerDrawable = if (circleDrawable != null && pinDrawable != null) {
             val tintedPin = DrawableCompat.wrap(pinDrawable).mutate()
-            DrawableCompat.setTint(tintedPin, ContextCompat.getColor(requireContext(), R.color.teal_primary))
+            DrawableCompat.setTint(tintedPin, ContextCompat.getColor(requireContext(), R.color.accent_green))
             val layers = arrayOf(circleDrawable, tintedPin)
             val layerDrawable = LayerDrawable(layers)
             val padding = 24

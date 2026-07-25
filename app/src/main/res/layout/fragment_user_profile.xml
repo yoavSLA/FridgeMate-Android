@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/light_teal">
+    android:background="@color/accent_green_light">
 
     <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
         android:id="@+id/swipeRefresh"
@@ -88,7 +88,7 @@
                         app:layout_constraintStart_toStartOf="parent"
                         app:layout_constraintTop_toTopOf="parent"
                         app:shapeAppearanceOverlay="@style/CircleImage"
-                        app:strokeColor="@color/light_teal"
+                        app:strokeColor="@color/accent_green_light"
                         app:strokeWidth="3dp" />
 
                     <TextView
@@ -125,8 +125,8 @@
                         android:layout_marginTop="6dp"
                         android:drawablePadding="6dp"
                         android:drawableStart="@drawable/ic_map_pin"
-                        android:drawableTint="@color/dark_teal"
-                        android:textColor="@color/dark_teal"
+                        android:drawableTint="@color/accent_green_dark"
+                        android:textColor="@color/accent_green_dark"
                         android:textSize="13sp"
                         android:visibility="gone"
                         tools:text="Tel Aviv, IL"
@@ -248,7 +248,7 @@
                         android:textStyle="bold"
                         android:textColor="@color/white"
                         app:cornerRadius="12dp"
-                        android:backgroundTint="@color/teal_primary"
+                        android:backgroundTint="@color/accent_green"
                         android:text="@string/edit_profile"
                         app:layout_constraintStart_toStartOf="parent"
                         app:layout_constraintEnd_toEndOf="parent"
@@ -304,6 +304,6 @@
         android:layout_width="48dp"
         android:layout_height="48dp"
         android:layout_gravity="center"
-        android:indeterminateTint="@color/teal_primary"
+        android:indeterminateTint="@color/accent_green"
         android:visibility="gone" />
 </FrameLayout>

@@ -57,7 +57,7 @@ class UserProfileFragment : Fragment() {
             if (isMe) R.string.my_profile_title else R.string.profile_title
         )
 
-        binding.swipeRefresh.setColorSchemeResources(R.color.teal_primary)
+        binding.swipeRefresh.setColorSchemeResources(R.color.accent_green)
         binding.swipeRefresh.setOnRefreshListener {
             val uid = resolvedUserId
             if (uid != null) viewModel.refresh(uid, showIndicator = true)
@@ -221,7 +221,7 @@ class UserProfileFragment : Fragment() {
         if (isMe) {
             binding.btnPrimary.setText(R.string.edit_profile)
             binding.btnPrimary.setBackgroundColor(
-                requireContext().getColor(R.color.teal_primary)
+                requireContext().getColor(R.color.accent_green)
             )
         } else {
             binding.btnPrimary.setText(
@@ -229,7 +229,7 @@ class UserProfileFragment : Fragment() {
             )
             binding.btnPrimary.setBackgroundColor(
                 requireContext().getColor(
-                    if (isFollowing) R.color.gray_text else R.color.teal_primary
+                    if (isFollowing) R.color.gray_text else R.color.accent_green
                 )
             )
         }

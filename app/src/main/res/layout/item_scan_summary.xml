@@ -21,7 +21,7 @@
             android:layout_width="16dp"
             android:layout_height="16dp"
             tools:src="@drawable/ic_add"
-            tools:tint="@color/app_title_green" />
+            tools:tint="@color/accent_green" />
 
         <TextView
             android:id="@+id/tvChangeText"

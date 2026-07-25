@@ -9,7 +9,7 @@
 <ScrollView
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/light_teal"
+    android:background="@color/accent_green_light"
     android:fillViewport="true">
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
@@ -79,7 +79,7 @@
                     app:layout_constraintTop_toTopOf="parent"
                     app:layout_constraintVertical_bias="0.505"
                     app:shapeAppearanceOverlay="@style/CircleImage"
-                    app:strokeColor="@color/light_teal"
+                    app:strokeColor="@color/accent_green_light"
                     app:strokeWidth="4dp" />
                 <com.google.android.material.floatingactionbutton.FloatingActionButton
                     android:id="@+id/btnChangePhoto"
@@ -87,7 +87,7 @@
                     android:layout_height="40dp"
                     app:srcCompat="@drawable/ic_camera"
                     app:tint="@android:color/white"
-                    app:backgroundTint="@color/dark_teal"
+                    app:backgroundTint="@color/accent_green_dark"
                     app:fabCustomSize="40dp"
                     app:fabSize="mini"
                     app:maxImageSize="35dp"
@@ -134,7 +134,7 @@
                     android:layout_height="wrap_content"
                     android:text="@string/full_name"
                     android:textSize="14sp"
-                    android:textColor="@color/dark_teal"
+                    android:textColor="@color/accent_green_dark"
                     android:layout_marginTop="16dp"
                     android:layout_marginStart="14dp"
                     app:layout_constraintStart_toStartOf="parent"
@@ -150,7 +150,7 @@
                     app:boxCornerRadiusTopEnd="12dp"
                     app:boxCornerRadiusBottomStart="12dp"
                     app:boxCornerRadiusBottomEnd="12dp"
-                    app:boxStrokeColor="@color/light_teal"
+                    app:boxStrokeColor="@color/accent_green_light"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintTop_toBottomOf="@id/full_name_label">
@@ -168,7 +168,7 @@
                     android:layout_height="wrap_content"
                     android:text="@string/email"
                     android:textSize="14sp"
-                    android:textColor="@color/dark_teal"
+                    android:textColor="@color/accent_green_dark"
                     android:layout_marginTop="16dp"
                     android:layout_marginStart="14dp"
                     app:layout_constraintStart_toStartOf="parent"
@@ -197,7 +197,7 @@
                     android:layout_height="wrap_content"
                     android:text="@string/bio_label"
                     android:textSize="14sp"
-                    android:textColor="@color/dark_teal"
+                    android:textColor="@color/accent_green_dark"
                     android:layout_marginTop="8dp"
                     android:layout_marginStart="14dp"
                     app:layout_constraintStart_toStartOf="parent"
@@ -216,7 +216,7 @@
                     app:boxCornerRadiusTopEnd="12dp"
                     app:boxCornerRadiusBottomStart="12dp"
                     app:boxCornerRadiusBottomEnd="12dp"
-                    app:boxStrokeColor="@color/light_teal"
+                    app:boxStrokeColor="@color/accent_green_light"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintTop_toBottomOf="@id/bio_label">
@@ -239,7 +239,7 @@
                     android:layout_height="wrap_content"
                     android:text="@string/location"
                     android:textSize="14sp"
-                    android:textColor="@color/dark_teal"
+                    android:textColor="@color/accent_green_dark"
                     android:layout_marginTop="16dp"
                     android:layout_marginStart="14dp"
                     app:layout_constraintStart_toStartOf="parent"
@@ -262,7 +262,7 @@
                         android:layout_width="20dp"
                         android:layout_height="20dp"
                         android:src="@drawable/ic_map_pin"
-                        app:tint="@color/dark_teal"
+                        app:tint="@color/accent_green_dark"
                         android:contentDescription="@string/cd_location" />
                     <TextView
                         android:id="@+id/tvLocation"
@@ -360,7 +360,7 @@
         android:layout_width="48dp"
         android:layout_height="48dp"
         android:layout_gravity="center"
-        android:indeterminateTint="@color/teal_primary" />
+        android:indeterminateTint="@color/accent_green" />
 
 </FrameLayout>
 

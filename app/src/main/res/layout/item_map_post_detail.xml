@@ -111,10 +111,10 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="12dp"
                 android:visibility="gone"
-                app:cardBackgroundColor="@color/light_teal"
+                app:cardBackgroundColor="@color/accent_green_light"
                 app:cardCornerRadius="12dp"
                 app:cardElevation="0dp"
-                app:strokeColor="@color/light_teal"
+                app:strokeColor="@color/accent_green_light"
                 app:strokeWidth="1dp"
                 tools:visibility="visible">
 
@@ -128,7 +128,7 @@
                         android:layout_width="56dp"
                         android:layout_height="56dp"
                         android:scaleType="centerCrop"
-                        android:src="@color/teal_primary"
+                        android:src="@color/accent_green"
                         app:layout_constraintBottom_toBottomOf="parent"
                         app:layout_constraintStart_toStartOf="parent"
                         app:layout_constraintTop_toTopOf="parent"
@@ -141,7 +141,7 @@
                         android:layout_marginStart="12dp"
                         android:ellipsize="end"
                         android:maxLines="1"
-                        android:textColor="@color/dark_teal"
+                        android:textColor="@color/accent_green_dark"
                         android:textSize="14sp"
                         android:textStyle="bold"
                         app:layout_constraintEnd_toStartOf="@+id/ivChevron"
@@ -202,7 +202,7 @@
                         app:layout_constraintBottom_toBottomOf="parent"
                         app:layout_constraintEnd_toEndOf="parent"
                         app:layout_constraintTop_toTopOf="parent"
-                        app:tint="@color/teal_primary" />
+                        app:tint="@color/accent_green" />
                 </androidx.constraintlayout.widget.ConstraintLayout>
             </com.google.android.material.card.MaterialCardView>
 
@@ -245,7 +245,7 @@
                     android:layout_marginStart="16dp"
                     android:background="@android:color/transparent"
                     android:src="@drawable/ic_comments"
-                    app:tint="@color/teal_primary" />
+                    app:tint="@color/accent_green" />
 
                 <TextView
                     android:id="@+id/tvCommentsCount"

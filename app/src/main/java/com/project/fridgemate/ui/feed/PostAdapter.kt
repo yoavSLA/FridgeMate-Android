@@ -106,8 +106,8 @@ class PostAdapter(
                 else post.imageUrl
                 Picasso.get()
                     .load(url)
-                    .placeholder(R.color.light_teal)
-                    .error(R.color.light_teal)
+                    .placeholder(R.color.accent_green_light)
+                    .error(R.color.accent_green_light)
                     .into(ivPostImage)
             } else {
                 ivPostImage.visibility = View.GONE
@@ -136,11 +136,11 @@ class PostAdapter(
                     else recipe.imageUrl
                     Picasso.get()
                         .load(url)
-                        .placeholder(R.color.light_teal)
-                        .error(R.color.light_teal)
+                        .placeholder(R.color.accent_green_light)
+                        .error(R.color.accent_green_light)
                         .into(ivRecipeThumb)
                 } else {
-                    ivRecipeThumb.setImageResource(R.color.teal_primary)
+                    ivRecipeThumb.setImageResource(R.color.accent_green)
                 }
                 cardLinkedRecipe.setOnClickListener { onRecipeClick(recipe) }
             } else {
@@ -268,12 +268,12 @@ class PostAdapter(
         val context = btn.context
         if (post.isFollowingAuthor) {
             btn.setText(R.string.following_action)
-            btn.setTextColor(context.getColor(R.color.dark_teal))
-            btn.backgroundTintList = ColorStateList.valueOf(context.getColor(R.color.light_teal))
+            btn.setTextColor(context.getColor(R.color.accent_green_dark))
+            btn.backgroundTintList = ColorStateList.valueOf(context.getColor(R.color.accent_green_light))
         } else {
             btn.setText(R.string.follow_action)
             btn.setTextColor(context.getColor(R.color.white))
-            btn.backgroundTintList = ColorStateList.valueOf(context.getColor(R.color.teal_primary))
+            btn.backgroundTintList = ColorStateList.valueOf(context.getColor(R.color.accent_green))
         }
         btn.setOnClickListener { onFollowClick(post) }
     }

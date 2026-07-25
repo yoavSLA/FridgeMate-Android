@@ -119,7 +119,7 @@ class FridgeAdapter(
                     ?: context.getString(R.string.unassigned_owner)
                 binding.tvOwnerName.visibility = View.VISIBLE
                 binding.ivOwnerRemove.visibility = View.VISIBLE
-                binding.ivOwnerIcon.setColorFilter(ContextCompat.getColor(context, R.color.dark_teal))
+                binding.ivOwnerIcon.setColorFilter(ContextCompat.getColor(context, R.color.accent_green_dark))
             } else {
                 binding.ownerContainer.background = null
                 binding.tvOwnerName.visibility = View.GONE

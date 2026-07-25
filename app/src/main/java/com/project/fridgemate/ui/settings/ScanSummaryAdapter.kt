@@ -35,9 +35,9 @@ class ScanSummaryAdapter(
         when (item) {
             is ScanSummaryItem.Added -> {
                 holder.binding.ivTypeIcon.setImageResource(R.drawable.ic_add)
-                holder.binding.ivTypeIcon.setColorFilter(ContextCompat.getColor(context, R.color.app_title_green))
+                holder.binding.ivTypeIcon.setColorFilter(ContextCompat.getColor(context, R.color.accent_green))
                 holder.binding.tvChangeText.text = "${item.name} (${item.quantity})"
-                holder.binding.root.setCardBackgroundColor(ContextCompat.getColor(context, R.color.light_teal))
+                holder.binding.root.setCardBackgroundColor(ContextCompat.getColor(context, R.color.accent_green_light))
             }
             is ScanSummaryItem.Updated -> {
                 holder.binding.ivTypeIcon.setImageResource(R.drawable.ic_edit)

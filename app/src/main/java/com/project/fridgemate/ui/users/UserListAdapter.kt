@@ -72,7 +72,7 @@ class UserListAdapter(
                 )
                 btnFollow.setBackgroundColor(
                     root.context.getColor(
-                        if (user.isFollowing) R.color.gray_text else R.color.teal_primary
+                        if (user.isFollowing) R.color.gray_text else R.color.accent_green
                     )
                 )
                 btnFollow.setOnClickListener { onFollowClick(user) }

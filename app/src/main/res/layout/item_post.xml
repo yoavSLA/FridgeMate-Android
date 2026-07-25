@@ -89,7 +89,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginEnd="8dp"
-            android:backgroundTint="@color/teal_primary"
+            android:backgroundTint="@color/accent_green"
             android:insetTop="0dp"
             android:insetBottom="0dp"
             android:minWidth="0dp"
@@ -128,7 +128,7 @@
             android:layout_height="220dp"
             android:layout_marginTop="12dp"
             android:scaleType="centerCrop"
-            android:src="@color/light_teal"
+            android:src="@color/accent_green_light"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/ivUserPhoto" />
@@ -169,13 +169,13 @@
             android:layout_marginHorizontal="12dp"
             android:layout_marginTop="8dp"
             android:visibility="gone"
-            app:cardBackgroundColor="@color/light_teal"
+            app:cardBackgroundColor="@color/accent_green_light"
             app:cardCornerRadius="12dp"
             app:cardElevation="0dp"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/tvDescription"
-            app:strokeColor="@color/light_teal"
+            app:strokeColor="@color/accent_green_light"
             app:strokeWidth="1dp">
 
             <androidx.constraintlayout.widget.ConstraintLayout
@@ -188,7 +188,7 @@
                     android:layout_width="56dp"
                     android:layout_height="56dp"
                     android:scaleType="centerCrop"
-                    android:src="@color/teal_primary"
+                    android:src="@color/accent_green"
                     app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toTopOf="parent"
@@ -201,7 +201,7 @@
                     android:layout_marginStart="12dp"
                     android:ellipsize="end"
                     android:maxLines="1"
-                    android:textColor="@color/dark_teal"
+                    android:textColor="@color/accent_green_dark"
                     android:textSize="14sp"
                     android:textStyle="bold"
                     app:layout_constraintEnd_toStartOf="@+id/ivChevron"
@@ -262,7 +262,7 @@
                     app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintTop_toTopOf="parent"
-                    app:tint="@color/teal_primary" />
+                    app:tint="@color/accent_green" />
             </androidx.constraintlayout.widget.ConstraintLayout>
         </com.google.android.material.card.MaterialCardView>
 
@@ -401,7 +401,7 @@
                     android:background="@android:color/transparent"
                     android:scaleType="centerInside"
                     android:src="@drawable/ic_send"
-                    app:tint="@color/teal_primary" />
+                    app:tint="@color/accent_green" />
             </LinearLayout>
         </LinearLayout>
 
