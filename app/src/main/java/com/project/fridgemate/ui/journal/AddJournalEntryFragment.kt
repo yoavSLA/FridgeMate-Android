@@ -213,7 +213,8 @@ class AddJournalEntryFragment : Fragment() {
                     mood = mood,
                     calories = calories,
                     macros = macros,
-                    imageUrl = finalImageUrl
+                    imageUrl = finalImageUrl,
+                    recipeId = existing.recipeId
                 ) ?: return@launch
                 viewModel.updateEntry(updated)
             } else {

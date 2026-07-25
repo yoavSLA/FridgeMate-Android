@@ -26,7 +26,10 @@ data class JournalDayGroup(
     val totalFat: Int
 )
 
-class JournalAdapter(private val onItemClick: (JournalEntry) -> Unit) : ListAdapter<JournalDayGroup, JournalAdapter.JournalViewHolder>(DiffCallback) {
+class JournalAdapter(
+    private val onItemClick: (JournalEntry) -> Unit,
+    private val onRecipeImageClick: (String) -> Unit = {}
+) : ListAdapter<JournalDayGroup, JournalAdapter.JournalViewHolder>(DiffCallback) {
 
     inner class JournalViewHolder(private val binding: ItemJournalDayGroupBinding) : RecyclerView.ViewHolder(binding.root) {
         
@@ -79,6 +82,14 @@ class JournalAdapter(private val onItemClick: (JournalEntry) -> Unit) : ListAdap
                         .fit()
                         .centerCrop()
                         .into(rowBinding.ivEntryImage)
+                    
+                    if (entry.recipeId != null) {
+                        rowBinding.ivEntryImage.setOnClickListener {
+                            onRecipeImageClick(entry.recipeId)
+                        }
+                    } else {
+                        rowBinding.ivEntryImage.setOnClickListener(null)
+                    }
                 } else {
                     rowBinding.ivEntryImage.visibility = View.GONE
                 }

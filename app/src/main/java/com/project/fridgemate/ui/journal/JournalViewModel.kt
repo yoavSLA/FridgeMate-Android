@@ -74,7 +74,7 @@ class JournalViewModel(application: Application) : AndroidViewModel(application)
                 meals = listOf(
                     JournalMealDto(
                         mealType = if (entry.mealType.isNotEmpty()) entry.mealType.uppercase(Locale.US) else "SNACK",
-                        recipeId = null,
+                        recipeId = entry.recipeId,
                         customRecipeTitle = null,
                         calories = entry.calories.toIntOrNull(),
                         notes = entry.macros
@@ -112,7 +112,7 @@ class JournalViewModel(application: Application) : AndroidViewModel(application)
                 meals = listOf(
                     JournalMealDto(
                         mealType = if (updatedEntry.mealType.isNotEmpty()) updatedEntry.mealType.uppercase(Locale.US) else "SNACK",
-                        recipeId = null,
+                        recipeId = updatedEntry.recipeId,
                         customRecipeTitle = null,
                         calories = updatedEntry.calories.toIntOrNull(),
                         notes = updatedEntry.macros
@@ -200,9 +200,10 @@ class JournalViewModel(application: Application) : AndroidViewModel(application)
             content = recipe.description.ifBlank { "Recipe added from collections." },
             dateMillis = timestamp,
             mealType = mealType,
-            calories = recipe.calories.replace(Regex("[^\\d]"), ""),
+            calories = recipe.calories.replace(Regex("\\D"), ""),
             macros = nutritionInfo,
-            imageUrl = recipe.imageUrl
+            imageUrl = recipe.imageUrl,
+            recipeId = recipe.serverId
         )
         addEntry(entry)
     }
@@ -224,7 +225,8 @@ class JournalViewModel(application: Application) : AndroidViewModel(application)
             calories = meal?.calories?.toString() ?: "",
             macros = meal?.notes ?: "",
             imageUrl = imageUrl,
-            dateMillis = time
+            dateMillis = time,
+            recipeId = meal?.recipeId
         )
     }
 }

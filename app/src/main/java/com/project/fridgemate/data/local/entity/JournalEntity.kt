@@ -14,5 +14,6 @@ data class JournalEntity(
     val macros: String,
     val mood: String,
     val imageUrl: String,
+    val recipeId: String? = null,
     val cachedAt: Long = System.currentTimeMillis()
 )

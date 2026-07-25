@@ -46,14 +46,24 @@ class JournalFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        adapter = JournalAdapter { entry ->
-            try {
-                val action = DashboardFragmentDirections.actionDashboardFragmentToAddJournalEntryFragment(entry.id)
-                requireParentFragment().findNavController().navigate(action)
-            } catch (e: Exception) {
-                Toast.makeText(requireContext(), "Navigation error: ${e.message}", Toast.LENGTH_SHORT).show()
+        adapter = JournalAdapter(
+            onItemClick = { entry ->
+                try {
+                    val action = DashboardFragmentDirections.actionDashboardFragmentToAddJournalEntryFragment(entry.id)
+                    requireParentFragment().findNavController().navigate(action)
+                } catch (e: Exception) {
+                    Toast.makeText(requireContext(), "Navigation error: ${e.message}", Toast.LENGTH_SHORT).show()
+                }
+            },
+            onRecipeImageClick = { serverRecipeId ->
+                try {
+                    val action = DashboardFragmentDirections.actionDashboardFragmentToRecipeDetailFragment(0L, serverRecipeId)
+                    requireParentFragment().findNavController().navigate(action)
+                } catch (e: Exception) {
+                    Toast.makeText(requireContext(), "Navigation error: ${e.message}", Toast.LENGTH_SHORT).show()
+                }
             }
-        }
+        )
         binding.rvJournal.adapter = adapter
 
         adapter.registerAdapterDataObserver(object : RecyclerView.AdapterDataObserver() {
