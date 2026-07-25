@@ -185,7 +185,7 @@ class DashboardFragment : Fragment() {
         resetTab(binding.tabRecipes, binding.ivTabRecipes, binding.tvTabRecipes)
         resetTab(binding.tabJournal, binding.ivTabJournal, binding.tvTabJournal)
 
-        val accentColor = ContextCompat.getColor(requireContext(), R.color.teal_primary)
+        val accentColor = ContextCompat.getColor(requireContext(), R.color.accent_green)
         when (tabId) {
             R.id.tab_my_fridge -> {
                 binding.ivTabFridge.setColorFilter(accentColor)

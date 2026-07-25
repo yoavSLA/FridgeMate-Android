@@ -71,7 +71,7 @@
             android:layout_width="48dp"
             android:layout_height="48dp"
             android:layout_gravity="center"
-            android:indeterminateTint="@color/teal_primary" />
+            android:indeterminateTint="@color/accent_green" />
 
     </FrameLayout>
 

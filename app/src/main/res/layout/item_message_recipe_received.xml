@@ -42,7 +42,7 @@
                 android:paddingHorizontal="14dp"
                 android:paddingTop="8dp"
                 android:paddingBottom="6dp"
-                android:textColor="@color/chat_sender_name"
+                android:textColor="@color/accent_green_dark"
                 android:textSize="12sp"
                 android:textStyle="bold" />
 
@@ -50,7 +50,7 @@
                 android:id="@+id/iv_recipe_image"
                 android:layout_width="match_parent"
                 android:layout_height="140dp"
-                android:background="@color/light_teal"
+                android:background="@color/accent_green_light"
                 android:contentDescription="@string/share_recipe_image_desc"
                 android:scaleType="centerCrop" />
 

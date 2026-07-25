@@ -1,8 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="teal_primary">#54A096</color>
-    <color name="light_teal">#E8F3F1</color>
-    <color name="dark_teal">#2D5D57</color>
+    <color name="accent_green_light">#E0F7F1</color>
+    <color name="accent_green_dark">#006B5D</color>
     <color name="gray_text">#8E8E8E</color>
     <color name="input_background">#F7F8F9</color>
     <color name="white">#FFFFFF</color>
@@ -12,20 +11,18 @@
 
     <color name="warning_yellow_bg">#FFF8E1</color>
     <color name="warning_yellow_text">#856404</color>
-    <color name="category_header_bg">#00BC90</color>
     <color name="divider_color">#EEEEEE</color>
 
-    <color name="app_title_green">#00BC8B</color>
     <color name="accent_green">#00BC90</color>
+    <color name="accent_green_gradient_start">#00BC7D</color>
+    <color name="accent_green_gradient_end">#00BBA7</color>
 
     <!-- Chat -->
     <color name="chat_background">#ECF4F1</color>
     <color name="chat_bubble_received">#FFFFFF</color>
-    <color name="chat_bubble_sent">#00BC90</color>
     <color name="chat_text_sent">#FFFFFF</color>
     <color name="chat_time_sent">#CCFFFFFF</color>
     <color name="chat_time_received">#8E8E8E</color>
-    <color name="chat_sender_name">#2D5D57</color>
 
     <!-- Popup colors -->
     <color name="popup_stroke">#E0E0E0</color>
@@ -42,7 +39,6 @@
     <color name="macro_fat">#5B9BD5</color>
 
     <!-- Gradient colors -->
-    <color name="title_gradient_start">#00BC7D</color>
     <color name="title_gradient_end">#00B8DB</color>
 
     <!-- Notification colors -->

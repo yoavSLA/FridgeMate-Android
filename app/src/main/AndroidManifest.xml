@@ -43,7 +43,7 @@
         android:resource="@drawable/ic_notifications" />
     <meta-data
         android:name="com.google.firebase.messaging.default_notification_color"
-        android:resource="@color/teal_primary" />
+        android:resource="@color/accent_green" />
 
         <activity
             android:name=".MainActivity"

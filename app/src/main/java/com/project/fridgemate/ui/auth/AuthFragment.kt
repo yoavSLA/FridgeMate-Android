@@ -55,7 +55,7 @@ class AuthFragment : Fragment() {
         binding.appName.post {
             val paint = binding.appName.paint
             val width = paint.measureText(binding.appName.text.toString())
-            val startColor = ContextCompat.getColor(requireContext(), R.color.title_gradient_start)
+            val startColor = ContextCompat.getColor(requireContext(), R.color.accent_green_gradient_start)
             val endColor = ContextCompat.getColor(requireContext(), R.color.title_gradient_end)
 
             val textShader: Shader = LinearGradient(

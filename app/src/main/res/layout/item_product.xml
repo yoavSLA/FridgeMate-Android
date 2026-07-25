@@ -94,7 +94,7 @@
                 android:ellipsize="end"
                 android:maxLines="1"
                 android:maxWidth="80dp"
-                android:textColor="@color/dark_teal"
+                android:textColor="@color/accent_green_dark"
                 android:textSize="12sp"
                 android:textStyle="bold"
                 android:visibility="gone"
@@ -108,7 +108,7 @@
                 android:layout_marginStart="6dp"
                 android:src="@drawable/ic_close"
                 android:visibility="gone"
-                app:tint="@color/dark_teal"
+                app:tint="@color/accent_green_dark"
                 tools:visibility="visible" />
 
         </LinearLayout>

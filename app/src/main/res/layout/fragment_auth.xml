@@ -3,7 +3,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/light_teal">
+    android:background="@color/accent_green_light">
 
     <ScrollView
         android:layout_width="match_parent"
@@ -19,7 +19,7 @@
                 android:id="@+id/logo_icon"
                 android:layout_width="140dp"
                 android:layout_height="140dp"
-                android:layout_marginTop="40dp"
+                android:layout_marginTop="80dp"
                 android:src="@drawable/fridgematelogo"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"

@@ -12,7 +12,7 @@
         android:layout_height="8dp"
         android:src="@drawable/dot_active"
         android:contentDescription="@null"
-        app:tint="@color/teal_primary" />
+        app:tint="@color/accent_green" />
 
     <TextView
         android:id="@+id/tvIngredientText"

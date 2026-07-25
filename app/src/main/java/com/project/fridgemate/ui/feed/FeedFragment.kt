@@ -34,7 +34,7 @@ class FeedFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        binding.swipeRefresh.setColorSchemeResources(R.color.teal_primary)
+        binding.swipeRefresh.setColorSchemeResources(R.color.accent_green)
         binding.swipeRefresh.setOnRefreshListener {
             viewModel.loadPosts(refresh = true)
         }

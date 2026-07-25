@@ -86,8 +86,8 @@ class MapPostDetailAdapter(
                 }
                 Picasso.get()
                     .load(fullUrl)
-                    .placeholder(R.color.light_teal)
-                    .error(R.color.light_teal)
+                    .placeholder(R.color.accent_green_light)
+                    .error(R.color.accent_green_light)
                     .into(ivPostImage)
             } else {
                 ivPostImage.visibility = View.GONE
@@ -115,10 +115,10 @@ class MapPostDetailAdapter(
                     }
                     Picasso.get()
                         .load(fullRecipeUrl)
-                        .placeholder(R.color.teal_primary)
+                        .placeholder(R.color.accent_green)
                         .into(ivRecipeThumb)
                 } else {
-                    ivRecipeThumb.setImageResource(R.color.teal_primary)
+                    ivRecipeThumb.setImageResource(R.color.accent_green)
                 }
 
                 cardLinkedRecipe.setOnClickListener {

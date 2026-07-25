@@ -67,11 +67,11 @@ class RecipeAdapter(
                     .load(fullUrl)
                     .fit()
                     .centerCrop()
-                    .placeholder(R.color.light_teal)
-                    .error(R.color.light_teal)
+                    .placeholder(R.color.accent_green_light)
+                    .error(R.color.accent_green_light)
                     .into(ivRecipeImage)
             } else {
-                ivRecipeImage.setImageResource(R.color.light_teal)
+                ivRecipeImage.setImageResource(R.color.accent_green_light)
             }
 
             updateFavoriteIcon(btnFavorite, recipe.isFavorite, animate = false)

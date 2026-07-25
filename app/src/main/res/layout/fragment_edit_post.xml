@@ -29,7 +29,7 @@
                 android:layout_gravity="end"
                 android:layout_marginEnd="8dp"
                 android:text="@string/save"
-                android:textColor="@color/teal_primary"
+                android:textColor="@color/accent_green"
                 android:textStyle="bold" />
 
         </com.google.android.material.appbar.MaterialToolbar>
@@ -53,7 +53,7 @@
                 android:layout_height="320dp"
                 app:cardCornerRadius="0dp"
                 app:cardElevation="0dp"
-                app:cardBackgroundColor="@color/light_teal"
+                app:cardBackgroundColor="@color/accent_green_light"
                 app:strokeWidth="0dp">
 
                 <FrameLayout
@@ -78,14 +78,14 @@
                             android:layout_width="64dp"
                             android:layout_height="64dp"
                             android:src="@drawable/ic_camera"
-                            app:tint="@color/teal_primary" />
+                            app:tint="@color/accent_green" />
 
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="12dp"
                             android:text="@string/change_photo"
-                            android:textColor="@color/teal_primary"
+                            android:textColor="@color/accent_green"
                             android:textSize="15sp"
                             android:textStyle="bold" />
                     </LinearLayout>
@@ -115,14 +115,14 @@
                     android:layout_height="wrap_content"
                     android:hint="@string/recipe_name_placeholder"
                     style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
-                    app:boxStrokeColor="@color/teal_primary"
-                    app:hintTextColor="@color/teal_primary"
+                    app:boxStrokeColor="@color/accent_green"
+                    app:hintTextColor="@color/accent_green"
                     app:boxCornerRadiusTopStart="16dp"
                     app:boxCornerRadiusTopEnd="16dp"
                     app:boxCornerRadiusBottomStart="16dp"
                     app:boxCornerRadiusBottomEnd="16dp"
                     app:startIconDrawable="@drawable/ic_edit"
-                    app:startIconTint="@color/teal_primary">
+                    app:startIconTint="@color/accent_green">
 
                     <com.google.android.material.textfield.TextInputEditText
                         android:id="@+id/etRecipeTitle"
@@ -141,8 +141,8 @@
                     android:layout_marginTop="16dp"
                     android:hint="@string/post_description_hint"
                     style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
-                    app:boxStrokeColor="@color/teal_primary"
-                    app:hintTextColor="@color/teal_primary"
+                    app:boxStrokeColor="@color/accent_green"
+                    app:hintTextColor="@color/accent_green"
                     app:boxCornerRadiusTopStart="16dp"
                     app:boxCornerRadiusTopEnd="16dp"
                     app:boxCornerRadiusBottomStart="16dp"
@@ -171,7 +171,7 @@
                     android:visibility="gone"
                     app:cardCornerRadius="20dp"
                     app:cardElevation="2dp"
-                    app:cardBackgroundColor="@color/light_teal"
+                    app:cardBackgroundColor="@color/accent_green_light"
                     app:strokeWidth="0dp">
 
                     <LinearLayout
@@ -193,7 +193,7 @@
                                 android:layout_height="24dp"
                                 android:layout_gravity="center"
                                 android:src="@drawable/ic_recipes"
-                                app:tint="@color/teal_primary" />
+                                app:tint="@color/accent_green" />
                         </FrameLayout>
 
                         <LinearLayout
@@ -209,7 +209,7 @@
                                 android:layout_height="wrap_content"
                                 android:textSize="15sp"
                                 android:textStyle="bold"
-                                android:textColor="@color/dark_teal"
+                                android:textColor="@color/accent_green_dark"
                                 tools:text="Spicy Pasta" />
 
                             <TextView
@@ -217,7 +217,7 @@
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:textSize="13sp"
-                                android:textColor="@color/teal_primary"
+                                android:textColor="@color/accent_green"
                                 tools:text="25 min · Easy" />
 
                         </LinearLayout>
@@ -227,7 +227,7 @@
                             android:layout_height="wrap_content"
                             android:text="@string/linked_recipe"
                             android:textSize="12sp"
-                            android:textColor="@color/teal_primary"
+                            android:textColor="@color/accent_green"
                             android:textStyle="bold"
                             android:alpha="0.8" />
 

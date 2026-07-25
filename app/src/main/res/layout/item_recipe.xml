@@ -24,7 +24,7 @@
             android:layout_width="0dp"
             android:layout_height="200dp"
             android:scaleType="centerCrop"
-            android:src="@color/light_teal"
+            android:src="@color/accent_green_light"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
@@ -82,7 +82,7 @@
                 android:layout_width="14dp"
                 android:layout_height="14dp"
                 android:src="@drawable/ic_time"
-                app:tint="@color/teal_primary" />
+                app:tint="@color/accent_green" />
 
             <TextView
                 android:id="@+id/tvRecipeTime"
@@ -103,7 +103,7 @@
                 android:layout_width="14dp"
                 android:layout_height="14dp"
                 android:src="@drawable/ic_chef_hat"
-                app:tint="@color/teal_primary" />
+                app:tint="@color/accent_green" />
 
             <TextView
                 android:id="@+id/tvRecipeDifficulty"
@@ -150,7 +150,7 @@
                     android:id="@+id/tvCalories"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:textColor="@color/teal_primary"
+                    android:textColor="@color/accent_green"
                     android:textSize="16sp"
                     android:textStyle="bold"
                     tools:text="350" />

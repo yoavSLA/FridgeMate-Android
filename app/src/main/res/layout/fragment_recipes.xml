@@ -5,7 +5,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/light_teal">
+    android:background="@color/accent_green_light">
 
     <com.google.android.material.tabs.TabLayout
         android:id="@+id/tabLayout"
@@ -18,7 +18,7 @@
         app:tabMode="fixed"
         app:tabIndicatorHeight="0dp"
         app:tabSelectedTextColor="@color/white"
-        app:tabTextColor="@color/dark_teal"
+        app:tabTextColor="@color/accent_green_dark"
         app:tabRippleColor="@android:color/transparent"
         app:tabBackground="@drawable/bg_tab_selector"
         app:layout_constraintTop_toTopOf="parent" />

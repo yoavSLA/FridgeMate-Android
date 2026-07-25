@@ -21,7 +21,7 @@
         android:layout_marginBottom="16dp"
         android:text="@string/generate_new_recipes"
         android:textAllCaps="false"
-        android:backgroundTint="@color/teal_primary"
+        android:backgroundTint="@color/accent_green"
         android:drawablePadding="8dp"
         android:paddingHorizontal="24dp"
         android:visibility="gone" />
@@ -52,7 +52,7 @@
             android:text="@string/chef_cooking"
             android:textSize="16sp"
             android:textStyle="bold"
-            android:textColor="@color/dark_teal" />
+            android:textColor="@color/accent_green_dark" />
 
         <TextView
             android:id="@+id/tvLoadingTip"

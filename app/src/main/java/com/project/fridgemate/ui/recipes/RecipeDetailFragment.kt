@@ -104,7 +104,7 @@ class RecipeDetailFragment : Fragment() {
                 recipe.imageUrl
             }
             Picasso.get().load(fullUrl).fit().centerCrop()
-                .placeholder(R.color.light_teal)
+                .placeholder(R.color.accent_green_light)
                 .into(binding.ivRecipeHero)
         }
 
