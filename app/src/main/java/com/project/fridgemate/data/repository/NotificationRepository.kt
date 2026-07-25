@@ -56,9 +56,13 @@ class NotificationRepository {
             }.getOrNull()?.let { trySend(it) }
         }
 
-        // Close the flow when the socket is disconnected so the ViewModel can reconnect
-        // to a fresh socket (e.g. after a token refresh recreates the socket).
-        val onDisconnect = Emitter.Listener { close() }
+        // A plain network blip auto-reconnects this same Socket instance and its listeners
+        // survive, so only close (and let the ViewModel resubscribe) when SocketManager has
+        // actually swapped in a new socket (e.g. after a token refresh) — otherwise we'd drop
+        // listeners for ~2s on every reconnect and could miss a notification in that window.
+        val onDisconnect = Emitter.Listener {
+            if (SocketManager.connect() !== socket) close()
+        }
 
         socket.on("new_notification", onNotification)
         socket.on(Socket.EVENT_DISCONNECT, onDisconnect)

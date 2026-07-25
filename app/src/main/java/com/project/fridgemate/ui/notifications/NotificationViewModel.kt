@@ -5,6 +5,7 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.project.fridgemate.data.model.Notification
+import com.project.fridgemate.data.model.NotificationType
 import com.project.fridgemate.data.repository.NotificationRepository
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -75,15 +76,35 @@ class NotificationViewModel : ViewModel() {
         _pendingPostId.value = null
     }
 
+    /**
+     * Single source of truth for what tapping a notification does, used by both the
+     * notification list and the real-time Dashboard banner. Returns true if it navigated
+     * somewhere, so callers can decide whether to also dismiss their own UI.
+     */
+    fun handleNotificationClick(notification: Notification): Boolean {
+        return when (notification.type) {
+            NotificationType.POST_LIKE, NotificationType.POST_COMMENT -> {
+                val postId = notification.relatedId
+                if (postId != null) {
+                    requestNavToPost(postId)
+                    true
+                } else {
+                    false
+                }
+            }
+            else -> false
+        }
+    }
+
     private fun startSocketListener() {
         socketJob?.cancel()
         socketJob = viewModelScope.launch {
             while (isActive) {
                 repo.observeNewNotifications().collect { notification ->
-                    _unreadCount.postValue((_unreadCount.value ?: 0) + 1)
-                    _incomingNotification.postValue(notification)
+                    _unreadCount.value = (_unreadCount.value ?: 0) + 1
+                    _incomingNotification.value = notification
                     val current = _notifications.value.orEmpty()
-                    _notifications.postValue(listOf(notification) + current)
+                    _notifications.value = listOf(notification) + current
                 }
                 // Flow closed because the socket disconnected (e.g. token refresh
                 // caused SocketManager to replace the socket). Wait briefly so the
