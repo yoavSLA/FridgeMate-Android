@@ -19,7 +19,7 @@
                 android:id="@+id/logo_icon"
                 android:layout_width="140dp"
                 android:layout_height="140dp"
-                android:layout_marginTop="40dp"
+                android:layout_marginTop="80dp"
                 android:src="@drawable/fridgematelogo"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
