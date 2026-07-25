@@ -45,6 +45,11 @@ class NotificationRepository {
         if (!response.isSuccessful) throw Exception("Failed to mark all as read")
     }
 
+    suspend fun markAsRead(id: String): Result<Unit> = runCatching {
+        val response = api.markAsRead(id)
+        if (!response.isSuccessful) throw Exception("Failed to mark notification as read")
+    }
+
     // Reuses the existing SocketManager — no new connection created
     fun observeNewNotifications(): Flow<Notification> = callbackFlow {
         val socket = SocketManager.connect()
@@ -69,6 +74,51 @@ class NotificationRepository {
 
         awaitClose {
             socket.off("new_notification", onNotification)
+            socket.off(Socket.EVENT_DISCONNECT, onDisconnect)
+        }
+    }
+
+    fun observeUpdatedNotifications(): Flow<Notification> = callbackFlow {
+        val socket = SocketManager.connect()
+
+        val onUpdated = Emitter.Listener { args ->
+            val json = args.firstOrNull() as? JSONObject ?: return@Listener
+            runCatching {
+                gson.fromJson(json.toString(), NotificationDto::class.java).toNotification()
+            }.getOrNull()?.let { trySend(it) }
+        }
+
+        val onDisconnect = Emitter.Listener {
+            if (SocketManager.connect() !== socket) close()
+        }
+
+        socket.on("notification_updated", onUpdated)
+        socket.on(Socket.EVENT_DISCONNECT, onDisconnect)
+
+        awaitClose {
+            socket.off("notification_updated", onUpdated)
+            socket.off(Socket.EVENT_DISCONNECT, onDisconnect)
+        }
+    }
+
+    fun observeRemovedNotifications(): Flow<String> = callbackFlow {
+        val socket = SocketManager.connect()
+
+        val onRemoved = Emitter.Listener { args ->
+            val json = args.firstOrNull() as? JSONObject ?: return@Listener
+            val id = json.optString("id").takeIf { it.isNotBlank() } ?: return@Listener
+            trySend(id)
+        }
+
+        val onDisconnect = Emitter.Listener {
+            if (SocketManager.connect() !== socket) close()
+        }
+
+        socket.on("notification_removed", onRemoved)
+        socket.on(Socket.EVENT_DISCONNECT, onDisconnect)
+
+        awaitClose {
+            socket.off("notification_removed", onRemoved)
             socket.off(Socket.EVENT_DISCONNECT, onDisconnect)
         }
     }

@@ -6,7 +6,6 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
-import com.project.fridgemate.data.model.NotificationType
 import com.project.fridgemate.data.remote.dto.CommentDto
 import com.project.fridgemate.data.remote.dto.CreatePostRequest
 import com.project.fridgemate.data.remote.dto.PostLocationRequest
@@ -14,6 +13,9 @@ import com.project.fridgemate.data.remote.dto.UpdatePostRequest
 import com.project.fridgemate.data.repository.FridgeResult
 import com.project.fridgemate.data.repository.PostRepository
 import com.project.fridgemate.data.repository.UserRepository
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 data class LinkedRecipe(
     val id: String,
@@ -92,8 +94,37 @@ class FeedViewModel(application: Application) : AndroidViewModel(application) {
     companion object {
         private const val PAGE_SIZE = 10
     }
+
+    private var postStatJob: Job? = null
+
     init {
         loadPosts()
+        startPostStatListener()
+    }
+
+    private fun startPostStatListener() {
+        postStatJob?.cancel()
+        postStatJob = viewModelScope.launch {
+            while (isActive) {
+                repository.observePostStatChanges().collect { change ->
+                    val apply: (Post) -> Post = { post ->
+                        if (post.id != change.postId) post
+                        else post.copy(
+                            likesCount = change.likesCount ?: post.likesCount,
+                            commentsCount = change.commentsCount ?: post.commentsCount,
+                        )
+                    }
+                    _posts.value = _posts.value?.map(apply)
+                    _myPosts.value = _myPosts.value?.map(apply)
+                }
+                if (isActive) delay(2000)
+            }
+        }
+    }
+
+    override fun onCleared() {
+        super.onCleared()
+        postStatJob?.cancel()
     }
 
     /** Switch the feed between "all" and "following" and reload from the top. */
@@ -214,24 +245,6 @@ class FeedViewModel(application: Application) : AndroidViewModel(application) {
             }
             _isMyPostsLoading.value = false
         }
-    }
-
-    /**
-     * Applies a remote like/comment count change pushed via a real-time notification
-     * (someone else acted on a post we already have loaded), so the number updates live
-     * instead of only on the next full fetch.
-     */
-    fun applyRemoteCountBump(postId: String, type: NotificationType) {
-        val bump: (Post) -> Post = {
-            if (it.id != postId) it
-            else when (type) {
-                NotificationType.POST_LIKE -> it.copy(likesCount = it.likesCount + 1)
-                NotificationType.POST_COMMENT -> it.copy(commentsCount = it.commentsCount + 1)
-                else -> it
-            }
-        }
-        _posts.value = _posts.value?.map(bump)
-        _myPosts.value = _myPosts.value?.map(bump)
     }
 
     fun toggleLike(post: Post) {

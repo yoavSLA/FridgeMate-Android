@@ -1,20 +1,58 @@
 package com.project.fridgemate.data.repository
 
 import android.content.Context
+import android.util.Log
 import com.project.fridgemate.data.local.AppDatabase
 import com.project.fridgemate.data.local.entity.PostEntity
 import com.project.fridgemate.data.remote.ApiClient
 import com.project.fridgemate.data.remote.api.PostApi
 import com.project.fridgemate.data.remote.dto.*
+import com.project.fridgemate.data.remote.socket.SocketManager
 import com.project.fridgemate.ui.feed.Post
+import io.socket.client.Socket
+import io.socket.emitter.Emitter
+import kotlinx.coroutines.channels.awaitClose
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.callbackFlow
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.MultipartBody
 import okhttp3.RequestBody.Companion.toRequestBody
-import android.util.Log
+import org.json.JSONObject
+
+data class PostStatChange(
+    val postId: String,
+    val likesCount: Int?,
+    val commentsCount: Int?,
+)
+
 class PostRepository(context: Context) {
 
     private val postApi: PostApi = ApiClient.createApi(PostApi::class.java)
     private val postDao = AppDatabase.getInstance(context).postDao()
+
+    fun observePostStatChanges(): Flow<PostStatChange> = callbackFlow {
+        val socket = SocketManager.connect()
+
+        val onStat = Emitter.Listener { args ->
+            val json = args.firstOrNull() as? JSONObject ?: return@Listener
+            val postId = json.optString("postId").takeIf { it.isNotBlank() } ?: return@Listener
+            val likes = if (json.has("likesCount") && !json.isNull("likesCount")) json.optInt("likesCount") else null
+            val comments = if (json.has("commentsCount") && !json.isNull("commentsCount")) json.optInt("commentsCount") else null
+            trySend(PostStatChange(postId, likes, comments))
+        }
+
+        val onDisconnect = Emitter.Listener {
+            if (SocketManager.connect() !== socket) close()
+        }
+
+        socket.on("post_stat_changed", onStat)
+        socket.on(Socket.EVENT_DISCONNECT, onDisconnect)
+
+        awaitClose {
+            socket.off("post_stat_changed", onStat)
+            socket.off(Socket.EVENT_DISCONNECT, onDisconnect)
+        }
+    }
 
     suspend fun getPosts(
         page: Int = 1,
