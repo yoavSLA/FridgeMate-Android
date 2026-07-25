@@ -104,8 +104,9 @@ class FeedFragment : Fragment() {
                     )
                 requireParentFragment().findNavController().navigate(action)
             },
-            onLocationClick = {
-                val action = DashboardFragmentDirections.actionDashboardFragmentToMapViewFragment()
+            onLocationClick = { post ->
+                val action = DashboardFragmentDirections
+                    .actionDashboardFragmentToMapViewFragment(focusPostId = post.id)
                 requireParentFragment().findNavController().navigate(action)
             },
             onAuthorClick = { post ->

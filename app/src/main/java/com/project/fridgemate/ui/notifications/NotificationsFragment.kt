@@ -35,12 +35,6 @@ class NotificationsFragment : Fragment() {
 
         adapter = NotificationAdapter { notification ->
             when (notification.type) {
-                NotificationType.POST_LIKE, NotificationType.POST_COMMENT -> {
-                    notification.relatedId?.let { postId ->
-                        viewModel.requestNavToPost(postId)
-                        findNavController().navigateUp()
-                    }
-                }
                 NotificationType.FOLLOW -> {
                     notification.relatedId?.let { followerId ->
                         val action = NotificationsFragmentDirections
@@ -48,7 +42,11 @@ class NotificationsFragment : Fragment() {
                         findNavController().navigate(action)
                     }
                 }
-                else -> {}
+                else -> {
+                    if (viewModel.handleNotificationClick(notification)) {
+                        findNavController().navigateUp()
+                    }
+                }
             }
         }
         binding.rvNotifications.layoutManager = LinearLayoutManager(requireContext())

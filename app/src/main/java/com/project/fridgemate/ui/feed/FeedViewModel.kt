@@ -6,6 +6,8 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
+import com.project.fridgemate.data.model.NotificationType
+import com.project.fridgemate.data.remote.dto.CommentDto
 import com.project.fridgemate.data.remote.dto.CreatePostRequest
 import com.project.fridgemate.data.remote.dto.PostLocationRequest
 import com.project.fridgemate.data.remote.dto.UpdatePostRequest
@@ -212,6 +214,24 @@ class FeedViewModel(application: Application) : AndroidViewModel(application) {
             }
             _isMyPostsLoading.value = false
         }
+    }
+
+    /**
+     * Applies a remote like/comment count change pushed via a real-time notification
+     * (someone else acted on a post we already have loaded), so the number updates live
+     * instead of only on the next full fetch.
+     */
+    fun applyRemoteCountBump(postId: String, type: NotificationType) {
+        val bump: (Post) -> Post = {
+            if (it.id != postId) it
+            else when (type) {
+                NotificationType.POST_LIKE -> it.copy(likesCount = it.likesCount + 1)
+                NotificationType.POST_COMMENT -> it.copy(commentsCount = it.commentsCount + 1)
+                else -> it
+            }
+        }
+        _posts.value = _posts.value?.map(bump)
+        _myPosts.value = _myPosts.value?.map(bump)
     }
 
     fun toggleLike(post: Post) {

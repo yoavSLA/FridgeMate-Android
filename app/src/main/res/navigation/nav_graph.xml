@@ -199,6 +199,10 @@
         android:name="com.project.fridgemate.ui.feed.MapViewFragment"
         android:label="MapViewFragment"
         tools:layout="@layout/fragment_map_view">
+        <argument
+            android:name="focusPostId"
+            app:argType="string"
+            android:defaultValue="" />
         <action
             android:id="@+id/action_mapViewFragment_to_recipeDetailFragment"
             app:destination="@id/recipeDetailFragment" />

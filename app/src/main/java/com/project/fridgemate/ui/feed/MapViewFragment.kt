@@ -13,6 +13,7 @@ import androidx.core.graphics.drawable.DrawableCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.navigation.fragment.findNavController
+import androidx.navigation.fragment.navArgs
 import com.project.fridgemate.ui.feed.MapViewFragmentDirections
 import com.project.fridgemate.BuildConfig
 import com.project.fridgemate.R
@@ -35,8 +36,10 @@ class MapViewFragment : Fragment() {
     private val binding get() = _binding!!
 
     private val viewModel: FeedViewModel by activityViewModels()
+    private val args: MapViewFragmentArgs by navArgs()
 
     private var tabLayoutMediator: TabLayoutMediator? = null
+    private var hasAppliedInitialFocus = false
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -209,6 +212,15 @@ class MapViewFragment : Fragment() {
                         true
                     }
                     binding.mapView.overlays.add(marker)
+                }
+
+                if (!hasAppliedInitialFocus && args.focusPostId.isNotBlank()) {
+                    validPosts.find { it.id == args.focusPostId }?.let { focusedPost ->
+                        hasAppliedInitialFocus = true
+                        binding.mapView.controller.setZoom(15.0)
+                        binding.mapView.controller.setCenter(GeoPoint(focusedPost.latitude, focusedPost.longitude))
+                        showPostDetails(listOf(focusedPost))
+                    }
                 }
             }
             binding.mapView.invalidate()
