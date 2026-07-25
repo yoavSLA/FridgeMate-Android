@@ -22,6 +22,7 @@ import com.project.fridgemate.ui.dashboard.DashboardFragmentDirections
 import com.project.fridgemate.BuildConfig
 import com.project.fridgemate.MainActivity
 import com.project.fridgemate.R
+import com.project.fridgemate.data.model.Notification
 import com.squareup.picasso.Picasso
 import com.project.fridgemate.data.repository.UserRepository
 import com.project.fridgemate.databinding.FragmentDashboardBinding
@@ -32,6 +33,7 @@ import com.project.fridgemate.ui.notifications.NotificationViewModel
 import com.project.fridgemate.ui.profile.ProfileViewModel
 import com.project.fridgemate.ui.recipes.RecipesFragment
 import com.project.fridgemate.ui.feed.FeedFragment
+import com.project.fridgemate.ui.feed.FeedViewModel
 import com.project.fridgemate.ui.journal.JournalFragment
 import kotlinx.coroutines.launch
 
@@ -43,6 +45,7 @@ class DashboardFragment : Fragment() {
     private val profileViewModel: ProfileViewModel by activityViewModels()
     private val notificationViewModel: NotificationViewModel by activityViewModels()
     private val fridgeViewModel: FridgeViewModel by activityViewModels()
+    private val feedViewModel: FeedViewModel by activityViewModels()
 
     private val bannerHandler = Handler(Looper.getMainLooper())
     private val hideBannerRunnable = Runnable { hideBanner() }
@@ -359,7 +362,10 @@ class DashboardFragment : Fragment() {
 
         notificationViewModel.incomingNotification.observe(viewLifecycleOwner) { notification ->
             notification ?: return@observe
-            showBanner(notification.title, notification.message)
+            notification.relatedId?.let { postId ->
+                feedViewModel.applyRemoteCountBump(postId, notification.type)
+            }
+            showBanner(notification)
             notificationViewModel.consumeIncoming()
         }
 
@@ -374,10 +380,15 @@ class DashboardFragment : Fragment() {
         }
     }
 
-    private fun showBanner(title: String, message: String) {
-        binding.bannerTitle.text = title
-        binding.bannerMessage.text = message
+    private fun showBanner(notification: Notification) {
+        binding.bannerTitle.text = notification.title
+        binding.bannerMessage.text = notification.message
         binding.notificationBanner.visibility = View.VISIBLE
+        binding.notificationBanner.setOnClickListener {
+            if (notificationViewModel.handleNotificationClick(notification)) {
+                hideBanner()
+            }
+        }
         ObjectAnimator.ofFloat(binding.notificationBanner, "alpha", 0f, 1f).setDuration(200).start()
 
         bannerHandler.removeCallbacks(hideBannerRunnable)
