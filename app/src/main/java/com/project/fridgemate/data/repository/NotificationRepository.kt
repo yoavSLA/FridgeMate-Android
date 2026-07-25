@@ -78,6 +78,29 @@ class NotificationRepository {
         }
     }
 
+    fun observeUpdatedNotifications(): Flow<Notification> = callbackFlow {
+        val socket = SocketManager.connect()
+
+        val onUpdated = Emitter.Listener { args ->
+            val json = args.firstOrNull() as? JSONObject ?: return@Listener
+            runCatching {
+                gson.fromJson(json.toString(), NotificationDto::class.java).toNotification()
+            }.getOrNull()?.let { trySend(it) }
+        }
+
+        val onDisconnect = Emitter.Listener {
+            if (SocketManager.connect() !== socket) close()
+        }
+
+        socket.on("notification_updated", onUpdated)
+        socket.on(Socket.EVENT_DISCONNECT, onDisconnect)
+
+        awaitClose {
+            socket.off("notification_updated", onUpdated)
+            socket.off(Socket.EVENT_DISCONNECT, onDisconnect)
+        }
+    }
+
     fun observeRemovedNotifications(): Flow<String> = callbackFlow {
         val socket = SocketManager.connect()
 

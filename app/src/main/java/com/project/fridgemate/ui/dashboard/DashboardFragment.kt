@@ -366,9 +366,6 @@ class DashboardFragment : Fragment() {
 
         notificationViewModel.incomingNotification.observe(viewLifecycleOwner) { notification ->
             notification ?: return@observe
-            notification.relatedId?.let { postId ->
-                feedViewModel.applyRemoteCountBump(postId, notification.type)
-            }
             showBanner(notification)
             notificationViewModel.consumeIncoming()
         }

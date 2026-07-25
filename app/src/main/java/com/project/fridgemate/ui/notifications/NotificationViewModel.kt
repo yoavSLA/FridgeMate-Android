@@ -43,11 +43,13 @@ class NotificationViewModel : ViewModel() {
     val pendingSettingsOpen: LiveData<Unit?> = _pendingSettingsOpen
 
     private var socketJob: Job? = null
+    private var updatedJob: Job? = null
     private var removedJob: Job? = null
 
     init {
         loadUnreadCount()
         startSocketListener()
+        startUpdatedListener()
         startRemovedListener()
     }
 
@@ -185,6 +187,25 @@ class NotificationViewModel : ViewModel() {
         }
     }
 
+    private fun startUpdatedListener() {
+        updatedJob?.cancel()
+        updatedJob = viewModelScope.launch {
+            while (isActive) {
+                repo.observeUpdatedNotifications().collect { notification ->
+                    val current = _notifications.value.orEmpty()
+                    val existing = current.firstOrNull { it.id == notification.id }
+                    val wasUnread = existing?.isRead == false
+                    val filtered = if (existing != null) current.filter { it.id != notification.id } else current
+                    _notifications.value = listOf(notification) + filtered
+                    if (!wasUnread) {
+                        _unreadCount.value = (_unreadCount.value ?: 0) + 1
+                    }
+                }
+                if (isActive) delay(2000)
+            }
+        }
+    }
+
     private fun startRemovedListener() {
         removedJob?.cancel()
         removedJob = viewModelScope.launch {
@@ -205,6 +226,7 @@ class NotificationViewModel : ViewModel() {
     override fun onCleared() {
         super.onCleared()
         socketJob?.cancel()
+        updatedJob?.cancel()
         removedJob?.cancel()
     }
 }
