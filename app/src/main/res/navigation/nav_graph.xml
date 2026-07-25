@@ -57,6 +57,9 @@
         <action
             android:id="@+id/action_dashboardFragment_to_addJournalEntryFragment"
             app:destination="@id/addJournalEntryFragment" />
+        <action
+            android:id="@+id/action_dashboardFragment_to_onboardingFragment"
+            app:destination="@id/onboardingFragment" />
     </fragment>
     <fragment
         android:id="@+id/addJournalEntryFragment"
@@ -240,4 +243,9 @@
             android:id="@+id/action_notificationsFragment_to_userProfileFragment"
             app:destination="@id/userProfileFragment" />
     </fragment>
+    <fragment
+        android:id="@+id/onboardingFragment"
+        android:name="com.project.fridgemate.ui.settings.OnboardingFragment"
+        android:label="Welcome"
+        tools:layout="@layout/fragment_onboarding" />
 </navigation>
