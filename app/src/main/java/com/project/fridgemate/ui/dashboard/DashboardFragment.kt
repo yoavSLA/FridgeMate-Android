@@ -1,14 +1,18 @@
 package com.project.fridgemate.ui.dashboard
 
 import android.animation.ObjectAnimator
+import android.annotation.SuppressLint
 import android.content.Intent
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.view.LayoutInflater
+import android.view.MotionEvent
 import android.view.View
+import android.view.ViewConfiguration
 import android.view.ViewGroup
 import android.widget.PopupWindow
+import kotlin.math.abs
 import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
@@ -414,18 +418,85 @@ class DashboardFragment : Fragment() {
     }
 
     private fun showBanner(notification: Notification) {
+        val banner = binding.notificationBanner
         binding.bannerTitle.text = notification.title
         binding.bannerMessage.text = notification.message
-        binding.notificationBanner.visibility = View.VISIBLE
-        binding.notificationBanner.setOnClickListener {
+        banner.translationY = 0f
+        banner.alpha = 1f
+        banner.visibility = View.VISIBLE
+        banner.setOnClickListener {
             bannerHandler.removeCallbacks(hideBannerRunnable)
             hideBanner()
             notificationViewModel.handleNotificationClick(notification)
         }
-        ObjectAnimator.ofFloat(binding.notificationBanner, "alpha", 0f, 1f).setDuration(200).start()
+        attachSwipeToDismiss(banner)
+        ObjectAnimator.ofFloat(banner, "alpha", 0f, 1f).setDuration(200).start()
 
         bannerHandler.removeCallbacks(hideBannerRunnable)
         bannerHandler.postDelayed(hideBannerRunnable, 3500)
+    }
+
+    @SuppressLint("ClickableViewAccessibility")
+    private fun attachSwipeToDismiss(view: View) {
+        val slop = ViewConfiguration.get(view.context).scaledTouchSlop
+        var downRawY = 0f
+        var dragging = false
+        var moved = false
+
+        view.setOnTouchListener { v, event ->
+            when (event.actionMasked) {
+                MotionEvent.ACTION_DOWN -> {
+                    downRawY = event.rawY
+                    dragging = false
+                    moved = false
+                    v.animate().cancel()
+                    bannerHandler.removeCallbacks(hideBannerRunnable)
+                    true
+                }
+                MotionEvent.ACTION_MOVE -> {
+                    val dy = event.rawY - downRawY
+                    if (abs(dy) > slop) moved = true
+                    if (dy < -slop) {
+                        dragging = true
+                        v.translationY = dy
+                    }
+                    true
+                }
+                MotionEvent.ACTION_UP -> {
+                    if (dragging) {
+                        val threshold = v.height * 0.4f
+                        if (-v.translationY > threshold) {
+                            v.animate()
+                                .translationY(-v.height.toFloat())
+                                .alpha(0f)
+                                .setDuration(180)
+                                .withEndAction {
+                                    _binding?.notificationBanner?.visibility = View.GONE
+                                    v.translationY = 0f
+                                    v.alpha = 1f
+                                }
+                                .start()
+                        } else {
+                            v.animate().translationY(0f).setDuration(180).start()
+                            bannerHandler.postDelayed(hideBannerRunnable, 3500)
+                        }
+                    } else if (!moved) {
+                        v.performClick()
+                    } else {
+                        bannerHandler.postDelayed(hideBannerRunnable, 3500)
+                    }
+                    true
+                }
+                MotionEvent.ACTION_CANCEL -> {
+                    if (dragging) {
+                        v.animate().translationY(0f).setDuration(180).start()
+                    }
+                    bannerHandler.postDelayed(hideBannerRunnable, 3500)
+                    true
+                }
+                else -> false
+            }
+        }
     }
 
     private fun hideBanner() {

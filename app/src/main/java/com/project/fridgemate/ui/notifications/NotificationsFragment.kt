@@ -49,8 +49,6 @@ class NotificationsFragment : Fragment() {
             binding.progressBar.visibility = if (isLoading) View.VISIBLE else View.GONE
         }
 
-        viewModel.loadNotifications()
-
         binding.btnBack.setOnClickListener { findNavController().navigateUp() }
         requireActivity().onBackPressedDispatcher.addCallback(viewLifecycleOwner) {
             findNavController().navigateUp()
@@ -59,8 +57,7 @@ class NotificationsFragment : Fragment() {
 
     override fun onResume() {
         super.onResume()
-        // Mark all as read when user opens the notification center
-        viewModel.markAllAsRead()
+        viewModel.loadAndMarkAllAsRead()
     }
 
     override fun onDestroyView() {

@@ -49,16 +49,6 @@ class NotificationViewModel : ViewModel() {
         startSocketListener()
     }
 
-    fun loadNotifications() {
-        _isLoading.value = true
-        viewModelScope.launch {
-            repo.getNotifications()
-                .onSuccess { _notifications.value = it }
-                .onFailure { }
-            _isLoading.value = false
-        }
-    }
-
     fun loadUnreadCount() {
         viewModelScope.launch {
             repo.getUnreadCount()
@@ -66,12 +56,16 @@ class NotificationViewModel : ViewModel() {
         }
     }
 
-    fun markAllAsRead() {
+    fun loadAndMarkAllAsRead() {
+        _isLoading.value = true
         viewModelScope.launch {
-            repo.markAllAsRead().onSuccess {
+            val loaded = repo.getNotifications().getOrNull()
+            if (loaded != null) {
+                _notifications.value = loaded.map { it.copy(isRead = true) }
                 _unreadCount.value = 0
-                _notifications.value = _notifications.value?.map { it.copy(isRead = true) }
             }
+            _isLoading.value = false
+            repo.markAllAsRead()
         }
     }
 

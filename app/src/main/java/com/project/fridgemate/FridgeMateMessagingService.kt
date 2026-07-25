@@ -36,12 +36,10 @@ class FridgeMateMessagingService : FirebaseMessagingService() {
 
         Log.d(TAG, "Message received from: ${message.from}")
 
+        if (FridgeMateApp.isForeground) return
+
         message.notification?.let {
             showNotification(it.title, it.body, message.data)
-        }
-
-        message.data.let {
-            handleDataPayload(it)
         }
     }
 
@@ -49,31 +47,6 @@ class FridgeMateMessagingService : FirebaseMessagingService() {
         if (!ApiClient.getTokenManager().isLoggedIn) return
         CoroutineScope(Dispatchers.IO).launch {
             runCatching { UserRepository(applicationContext).registerFcmToken(token) }
-        }
-    }
-
-    private fun handleDataPayload(data: Map<String, String>) {
-        val type = data["type"]
-
-        when (type) {
-            "like" -> {
-                val postId = data["postId"]
-                val userName = data["userName"]
-                showNotification("New Like", "$userName liked your post")
-            }
-            "comment" -> {
-                val postId = data["postId"]
-                val userName = data["userName"]
-                showNotification("New Comment", "$userName commented on your post")
-            }
-            "scan_complete" -> {
-                showNotification("Scan Complete", "Your fridge scan is ready!")
-            }
-            "chat_message" -> {
-                val userName = data["userName"]
-                val message = data["message"]
-                showNotification("New Message", "$userName: $message")
-            }
         }
     }
 
