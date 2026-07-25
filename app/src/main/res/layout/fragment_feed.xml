@@ -70,27 +70,43 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_gravity="center"
-                    android:layout_marginTop="10dp"
+                    android:layout_marginTop="16dp"
+                    android:background="@drawable/toggle_background"
+                    android:padding="4dp"
                     app:singleSelection="true"
-                    app:selectionRequired="true">
+                    app:selectionRequired="true"
+                    app:checkedButton="@+id/scopeAll">
 
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/scopeAll"
-                        style="?attr/materialButtonOutlinedStyle"
-                        android:layout_width="wrap_content"
-                        android:layout_height="40dp"
+                        android:layout_width="110dp"
+                        android:layout_height="36dp"
                         android:text="@string/scope_all"
-                        android:textColor="@color/accent_green_dark"
-                        app:strokeColor="@color/accent_green" />
+                        android:insetTop="0dp"
+                        android:insetBottom="0dp"
+                        android:padding="0dp"
+                        android:textColor="@color/toggle_text_color_selector"
+                        android:textSize="13sp"
+                        android:textStyle="bold"
+                        app:backgroundTint="@color/toggle_button_color_selector"
+                        app:cornerRadius="18dp"
+                        app:strokeWidth="0dp" />
 
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/scopeFollowing"
-                        style="?attr/materialButtonOutlinedStyle"
-                        android:layout_width="wrap_content"
-                        android:layout_height="40dp"
+                        android:layout_width="110dp"
+                        android:layout_height="36dp"
                         android:text="@string/scope_following"
-                        android:textColor="@color/accent_green_dark"
-                        app:strokeColor="@color/accent_green" />
+                        android:insetTop="0dp"
+                        android:insetBottom="0dp"
+                        android:padding="0dp"
+                        android:textColor="@color/toggle_text_color_selector"
+                        android:textSize="13sp"
+                        android:textStyle="bold"
+                        app:backgroundTint="@color/toggle_button_color_selector"
+                        app:cornerRadius="18dp"
+                        app:strokeWidth="0dp" />
+
                 </com.google.android.material.button.MaterialButtonToggleGroup>
 
             </LinearLayout>
