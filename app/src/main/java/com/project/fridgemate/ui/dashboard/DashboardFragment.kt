@@ -52,6 +52,8 @@ class DashboardFragment : Fragment() {
     private var chatBadge: BadgeDrawable? = null
     private var chatBadgeAttached = false
 
+    private var hasShownOnboarding = false
+
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -90,6 +92,7 @@ class DashboardFragment : Fragment() {
         loadGreeting()
         observeNotifications()
         observeFridgeChat()
+        observeFridgeState()
         registerFcmToken()
 
         profileViewModel.loggedOut.observe(viewLifecycleOwner) { loggedOut ->
@@ -315,6 +318,15 @@ class DashboardFragment : Fragment() {
         }
         fridgeViewModel.unreadCount.observe(viewLifecycleOwner) { count ->
             applyChatUnreadBadge(count)
+        }
+    }
+
+    private fun observeFridgeState() {
+        fridgeViewModel.state.observe(viewLifecycleOwner) { state ->
+            if (state is FridgeViewModel.State.NoFridge && !hasShownOnboarding) {
+                hasShownOnboarding = true
+                findNavController().navigate(R.id.action_dashboardFragment_to_onboardingFragment)
+            }
         }
     }
 

@@ -256,6 +256,28 @@
 
     <!-- Notification Types -->
     <string name="notification_msg">When you get notifications, they will show up here</string>
+
+    <!-- Onboarding Screen -->
+    <string name="onboarding_title">Welcome to FridgeMate!</string>
+    <string name="onboarding_subtitle">Join the Family</string>
+    <string name="onboarding_desc">FridgeMate is better with friends. Manage your food together, and get recipe ideas based on what you have.</string>
+    <string name="onboarding_create_title">Create a New Fridge</string>
+    <string name="onboarding_create_desc">Start a fresh inventory for your household and invite others to join.</string>
+    <string name="onboarding_join_title">Join Existing Fridge</string>
+    <string name="onboarding_join_desc">Enter an invite code from a household member to join their fridge.</string>
+    <string name="onboarding_join_hint">Invite code (e.g. ABCD12)</string>
+    <string name="onboarding_create_hint">Name (e.g. Home Kitchen)</string>
+    <string name="onboarding_join_button">Join Fridge</string>
+    <string name="onboarding_create_button">Create Fridge</string>
+    <string name="onboarding_skip">Maybe Later</string>
+    <string name="onboarding_feat_share">Share with roommates or family</string>
+    <string name="onboarding_feat_inventory">Keep track of your inventory</string>
+    <string name="onboarding_feat_recipes">Get recipes based on what\'s inside</string>
+    <string name="cd_logo">FridgeMate Logo</string>
+    <string name="cd_community">Community Icon</string>
+    <string name="cd_fridge">Fridge Icon</string>
+    <string name="cd_chef">Chef Icon</string>
+
     <!-- Journal Screen -->
     <string name="add_journal_entry">Add Journal Entry</string>
     <string name="journal_title_hint">Title</string>
