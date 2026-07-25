@@ -67,11 +67,11 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/toolbar" />
 
-    <!-- Empty State -->
     <LinearLayout
         android:id="@+id/emptyState"
-        android:layout_width="wrap_content"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
+        android:layout_marginHorizontal="32dp"
         android:gravity="center"
         android:orientation="vertical"
         android:visibility="gone"
@@ -80,28 +80,38 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/toolbar">
 
-        <ImageView
-            android:layout_width="80dp"
-            android:layout_height="80dp"
-            android:alpha="0.3"
-            android:src="@drawable/ic_notifications"
-            android:tint="@color/gray_medium" />
+        <com.google.android.material.card.MaterialCardView
+            android:layout_width="96dp"
+            android:layout_height="96dp"
+            app:cardBackgroundColor="@color/white"
+            app:cardCornerRadius="48dp"
+            app:cardElevation="2dp"
+            app:strokeWidth="0dp">
+
+            <ImageView
+                android:layout_width="44dp"
+                android:layout_height="44dp"
+                android:layout_gravity="center"
+                android:src="@drawable/ic_notifications"
+                app:tint="@color/accent_green" />
+        </com.google.android.material.card.MaterialCardView>
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
+            android:layout_marginTop="20dp"
             android:text="No notifications yet"
-            android:textColor="@color/gray_dark"
-            android:textSize="16sp"
+            android:textColor="@color/accent_green_dark"
+            android:textSize="18sp"
             android:textStyle="bold" />
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
+            android:gravity="center"
             android:text="When you get notifications, they'll show up here"
-            android:textColor="@color/gray_medium"
+            android:textColor="@color/gray_text"
             android:textSize="14sp" />
 
     </LinearLayout>
