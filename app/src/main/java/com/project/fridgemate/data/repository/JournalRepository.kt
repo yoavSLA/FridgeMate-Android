@@ -136,7 +136,8 @@ class JournalRepository(context: Context) {
             calories = meal?.calories?.toString() ?: "",
             macros = meal?.notes ?: "",
             mood = mood ?: "",
-            imageUrl = imageUrl ?: ""
+            imageUrl = imageUrl ?: "",
+            recipeId = meal?.recipeId
         )
     }
 
@@ -151,7 +152,7 @@ class JournalRepository(context: Context) {
             meals = listOf(
                 com.project.fridgemate.data.remote.dto.JournalMealDto(
                     mealType = mealType,
-                    recipeId = null,
+                    recipeId = recipeId,
                     customRecipeTitle = null,
                     calories = calories.toIntOrNull(),
                     notes = macros

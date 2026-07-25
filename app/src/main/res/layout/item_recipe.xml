@@ -37,19 +37,38 @@
             app:layout_constraintEnd_toEndOf="@+id/ivRecipeImage"
             app:layout_constraintStart_toStartOf="@+id/ivRecipeImage" />
 
-        <com.google.android.material.floatingactionbutton.FloatingActionButton
-            android:id="@+id/btnFavorite"
+        <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_margin="12dp"
-            app:fabSize="mini"
-            app:backgroundTint="@color/white"
-            app:elevation="4dp"
-            app:shapeAppearanceOverlay="@style/CircleImage"
-            app:srcCompat="@drawable/ic_star_outline"
+            android:orientation="horizontal"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            app:tint="@color/gray_text" />
+            app:layout_constraintTop_toTopOf="parent">
+
+            <ImageButton
+                android:id="@+id/btnAddToJournal"
+                android:layout_width="32dp"
+                android:layout_height="32dp"
+                android:layout_marginEnd="8dp"
+                android:background="@drawable/bg_favorite_btn"
+                android:elevation="4dp"
+                android:padding="7dp"
+                android:scaleType="centerInside"
+                android:src="@drawable/ic_journal"
+                app:tint="@color/accent_green" />
+
+            <ImageButton
+                android:id="@+id/btnFavorite"
+                android:layout_width="32dp"
+                android:layout_height="32dp"
+                android:background="@drawable/bg_favorite_btn"
+                android:elevation="4dp"
+                android:padding="7dp"
+                android:scaleType="centerInside"
+                android:src="@drawable/ic_star_outline"
+                app:tint="@color/gray_text" />
+
+        </LinearLayout>
 
         <TextView
             android:id="@+id/tvRecipeName"

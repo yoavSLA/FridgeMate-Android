@@ -14,6 +14,7 @@ import com.project.fridgemate.data.repository.FridgeResult
 import com.project.fridgemate.data.repository.JournalRepository
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
+import java.util.Calendar
 import java.util.Date
 import java.util.Locale
 import java.util.TimeZone
@@ -73,7 +74,7 @@ class JournalViewModel(application: Application) : AndroidViewModel(application)
                 meals = listOf(
                     JournalMealDto(
                         mealType = if (entry.mealType.isNotEmpty()) entry.mealType.uppercase(Locale.US) else "SNACK",
-                        recipeId = null,
+                        recipeId = entry.recipeId,
                         customRecipeTitle = null,
                         calories = entry.calories.toIntOrNull(),
                         notes = entry.macros
@@ -111,7 +112,7 @@ class JournalViewModel(application: Application) : AndroidViewModel(application)
                 meals = listOf(
                     JournalMealDto(
                         mealType = if (updatedEntry.mealType.isNotEmpty()) updatedEntry.mealType.uppercase(Locale.US) else "SNACK",
-                        recipeId = null,
+                        recipeId = updatedEntry.recipeId,
                         customRecipeTitle = null,
                         calories = updatedEntry.calories.toIntOrNull(),
                         notes = updatedEntry.macros
@@ -177,6 +178,36 @@ class JournalViewModel(application: Application) : AndroidViewModel(application)
         return _entries.value?.find { it.id == id }
     }
 
+    fun addRecipeToJournal(recipe: com.project.fridgemate.data.local.entity.RecipeEntity, timestamp: Long) {
+        val calendar = Calendar.getInstance().apply { timeInMillis = timestamp }
+        val hour = calendar.get(Calendar.HOUR_OF_DAY)
+
+        val mealType = when (hour) {
+            in 5..10 -> "Breakfast"
+            in 11..15 -> "Lunch"
+            in 16..21 -> "Dinner"
+            else -> "Snack"
+        }
+
+        val nutritionInfo = buildString {
+            if (recipe.protein.isNotBlank()) append("${recipe.protein} P / ")
+            if (recipe.carbs.isNotBlank()) append("${recipe.carbs} C / ")
+            if (recipe.fat.isNotBlank()) append("${recipe.fat} F")
+        }.trimEnd(' ', '/', ' ')
+
+        val entry = JournalEntry(
+            title = recipe.title,
+            content = recipe.description.ifBlank { "Recipe added from collections." },
+            dateMillis = timestamp,
+            mealType = mealType,
+            calories = recipe.calories.replace(Regex("\\D"), ""),
+            macros = nutritionInfo,
+            imageUrl = recipe.imageUrl,
+            recipeId = recipe.serverId
+        )
+        addEntry(entry)
+    }
+
     private fun JournalEntryDto.toJournalEntry(): JournalEntry {
         val meal = meals.firstOrNull()
         val time = try {
@@ -194,7 +225,8 @@ class JournalViewModel(application: Application) : AndroidViewModel(application)
             calories = meal?.calories?.toString() ?: "",
             macros = meal?.notes ?: "",
             imageUrl = imageUrl,
-            dateMillis = time
+            dateMillis = time,
+            recipeId = meal?.recipeId
         )
     }
 }

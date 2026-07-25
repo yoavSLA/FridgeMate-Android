@@ -27,6 +27,7 @@ import com.project.fridgemate.data.repository.RecipeSharePayload
 import com.project.fridgemate.databinding.FragmentRecipeDetailBinding
 import com.project.fridgemate.databinding.ItemDetailIngredientBinding
 import com.project.fridgemate.databinding.ItemDetailStepBinding
+import com.project.fridgemate.ui.journal.JournalViewModel
 import com.squareup.picasso.Picasso
 import kotlinx.coroutines.launch
 
@@ -36,6 +37,7 @@ class RecipeDetailFragment : Fragment() {
     private val binding get() = _binding!!
     private val gson = Gson()
     private val viewModel: RecipesViewModel by activityViewModels()
+    private val journalViewModel: JournalViewModel by activityViewModels()
     private val args: RecipeDetailFragmentArgs by navArgs()
     private val chatRepo by lazy { FridgeChatRepository() }
     private val fridgeRepo by lazy { FridgeRepository(requireContext().applicationContext) }
@@ -112,6 +114,11 @@ class RecipeDetailFragment : Fragment() {
 
         binding.btnFavorite.setOnClickListener {
             viewModel.toggleFavorite(recipe)
+        }
+
+        binding.btnAddToJournal.setOnClickListener {
+            journalViewModel.addRecipeToJournal(recipe, System.currentTimeMillis())
+            Toast.makeText(requireContext(), R.string.added_to_journal, Toast.LENGTH_SHORT).show()
         }
 
         if (recipe.serverId != null) {

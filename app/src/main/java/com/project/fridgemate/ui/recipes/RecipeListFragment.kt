@@ -15,6 +15,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.project.fridgemate.R
 import com.project.fridgemate.databinding.FragmentRecipeListBinding
 import com.project.fridgemate.ui.dashboard.DashboardFragmentDirections
+import com.project.fridgemate.ui.journal.JournalViewModel
 
 class RecipeListFragment : Fragment() {
 
@@ -35,6 +36,7 @@ class RecipeListFragment : Fragment() {
     private var _binding: FragmentRecipeListBinding? = null
     private val binding get() = _binding!!
     private val viewModel: RecipesViewModel by activityViewModels()
+    private val journalViewModel: JournalViewModel by activityViewModels()
     private lateinit var adapter: RecipeAdapter
     
     private val cookingTips: Array<String> by lazy {
@@ -76,6 +78,11 @@ class RecipeListFragment : Fragment() {
             viewModel.toggleFavorite(recipe)
         }
 
+        val onAddToJournalClick = { recipe: com.project.fridgemate.data.local.entity.RecipeEntity ->
+            journalViewModel.addRecipeToJournal(recipe, System.currentTimeMillis())
+            Toast.makeText(requireContext(), R.string.added_to_journal, Toast.LENGTH_SHORT).show()
+        }
+
         val onItemClick = { recipe: com.project.fridgemate.data.local.entity.RecipeEntity ->
             val action = DashboardFragmentDirections.actionDashboardFragmentToRecipeDetailFragment(recipe.id)
             requireParentFragment().requireParentFragment()
@@ -83,7 +90,7 @@ class RecipeListFragment : Fragment() {
                 .navigate(action)
         }
 
-        adapter = RecipeAdapter(onFavoriteClick, onItemClick)
+        adapter = RecipeAdapter(onFavoriteClick, onAddToJournalClick, onItemClick)
         binding.rvRecipes.layoutManager = LinearLayoutManager(requireContext())
         binding.rvRecipes.adapter = adapter
 

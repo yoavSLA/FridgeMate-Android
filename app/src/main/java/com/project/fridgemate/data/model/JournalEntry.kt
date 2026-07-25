@@ -9,5 +9,6 @@ data class JournalEntry(
     val mood: String = "",
     val calories: String = "",
     val macros: String = "",
-    val imageUrl: String? = null
+    val imageUrl: String? = null,
+    val recipeId: String? = null
 )
