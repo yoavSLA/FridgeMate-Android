@@ -77,4 +77,26 @@ class NotificationRepository {
             socket.off(Socket.EVENT_DISCONNECT, onDisconnect)
         }
     }
+
+    fun observeRemovedNotifications(): Flow<String> = callbackFlow {
+        val socket = SocketManager.connect()
+
+        val onRemoved = Emitter.Listener { args ->
+            val json = args.firstOrNull() as? JSONObject ?: return@Listener
+            val id = json.optString("id").takeIf { it.isNotBlank() } ?: return@Listener
+            trySend(id)
+        }
+
+        val onDisconnect = Emitter.Listener {
+            if (SocketManager.connect() !== socket) close()
+        }
+
+        socket.on("notification_removed", onRemoved)
+        socket.on(Socket.EVENT_DISCONNECT, onDisconnect)
+
+        awaitClose {
+            socket.off("notification_removed", onRemoved)
+            socket.off(Socket.EVENT_DISCONNECT, onDisconnect)
+        }
+    }
 }

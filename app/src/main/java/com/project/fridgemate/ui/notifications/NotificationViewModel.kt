@@ -43,10 +43,12 @@ class NotificationViewModel : ViewModel() {
     val pendingSettingsOpen: LiveData<Unit?> = _pendingSettingsOpen
 
     private var socketJob: Job? = null
+    private var removedJob: Job? = null
 
     init {
         loadUnreadCount()
         startSocketListener()
+        startRemovedListener()
     }
 
     fun loadUnreadCount() {
@@ -165,10 +167,15 @@ class NotificationViewModel : ViewModel() {
         socketJob = viewModelScope.launch {
             while (isActive) {
                 repo.observeNewNotifications().collect { notification ->
-                    _unreadCount.value = (_unreadCount.value ?: 0) + 1
-                    _incomingNotification.value = notification
                     val current = _notifications.value.orEmpty()
-                    _notifications.value = listOf(notification) + current
+                    val existing = current.firstOrNull { it.id == notification.id }
+                    val wasUnread = existing?.isRead == false
+                    val filtered = if (existing != null) current.filter { it.id != notification.id } else current
+                    _notifications.value = listOf(notification) + filtered
+                    if (!wasUnread) {
+                        _unreadCount.value = (_unreadCount.value ?: 0) + 1
+                    }
+                    _incomingNotification.value = notification
                 }
                 // Flow closed because the socket disconnected (e.g. token refresh
                 // caused SocketManager to replace the socket). Wait briefly so the
@@ -178,8 +185,26 @@ class NotificationViewModel : ViewModel() {
         }
     }
 
+    private fun startRemovedListener() {
+        removedJob?.cancel()
+        removedJob = viewModelScope.launch {
+            while (isActive) {
+                repo.observeRemovedNotifications().collect { removedId ->
+                    val current = _notifications.value.orEmpty()
+                    val target = current.firstOrNull { it.id == removedId } ?: return@collect
+                    _notifications.value = current.filter { it.id != removedId }
+                    if (!target.isRead) {
+                        _unreadCount.value = ((_unreadCount.value ?: 0) - 1).coerceAtLeast(0)
+                    }
+                }
+                if (isActive) delay(2000)
+            }
+        }
+    }
+
     override fun onCleared() {
         super.onCleared()
         socketJob?.cancel()
+        removedJob?.cancel()
     }
 }
