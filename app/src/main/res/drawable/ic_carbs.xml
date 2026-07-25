@@ -1,13 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
-    android:width="24dp"
-    android:height="24dp"
-    android:viewportWidth="24"
-    android:viewportHeight="24">
-    <!-- Wheat / grain icon -->
+    android:width="20dp"
+    android:height="20dp"
+    android:viewportWidth="20"
+    android:viewportHeight="20">
     <path
-        android:pathData="M12,2L12,10M12,10C12,10 8,7 5,9C8,9 10,11 12,10M12,10C12,10 16,7 19,9C16,9 14,11 12,10M12,6C12,6 8,3 5,5C8,5 10,7 12,6M12,6C12,6 16,3 19,5C16,5 14,7 12,6M12,14C12,14 8,11 5,13C8,13 10,15 12,14M12,14C12,14 16,11 19,13C16,13 14,15 12,14M12,10L12,22"
-        android:strokeWidth="1.5"
-        android:strokeColor="#F5A623"
-        android:fillColor="@android:color/transparent" />
+        android:pathData="M10,2v16M10,8c0,0 -3,-2 -5,-0.5c2,0 3.5,1.5 5,0.5M10,8c0,0 3,-2 5,-0.5c-2,0 -3.5,1.5 -5,0.5M10,5c0,0 -3,-2 -5,-0.5c2,0 3.5,1.5 5,0.5M10,5c0,0 3,-2 5,-0.5c-2,0 -3.5,1.5 -5,0.5M10,11c0,0 -3,-2 -5,-0.5c2,0 3.5,1.5 5,0.5M10,11c0,0 3,-2 5,-0.5c-2,0 -3.5,1.5 -5,0.5"
+        android:strokeLineJoin="round"
+        android:strokeWidth="1.66667"
+        android:fillColor="#00000000"
+        android:strokeColor="#6A7282"
+        android:strokeLineCap="round"/>
 </vector>

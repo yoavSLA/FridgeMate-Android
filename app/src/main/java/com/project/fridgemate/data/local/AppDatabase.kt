@@ -19,7 +19,7 @@ import com.project.fridgemate.data.local.entity.UserEntity
 
 @Database(
     entities = [RecipeEntity::class, PostEntity::class, FridgeEntity::class, UserEntity::class, InventoryItemEntity::class, JournalEntity::class],
-    version = 8,
+    version = 9,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {

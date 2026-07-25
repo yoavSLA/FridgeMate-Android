@@ -136,6 +136,7 @@
     <string name="recipe_name_placeholder">Recipe Name</string>
     <string name="calories">Calories</string>
     <string name="kcal">kcal</string>
+    <string name="kcal_format">%1$s kcal</string>
     <string name="fat">Fat</string>
     <string name="carbs">Carbs</string>
     <string name="protein">Protein</string>
@@ -294,6 +295,10 @@
     <string name="no_journal_entries">No journal entries yet. Tap + to add one!</string>
     <string name="journal_search_hint">Search journal entries…</string>
     <string name="journal_no_results">No entries match your search</string>
+    <string name="add_to_journal">Add to Journal</string>
+    <string name="added_to_journal">Recipe added to your journal!</string>
+    <string name="select_date_journal">Select date</string>
+    <string name="meal_planned">Meal planned for %s</string>
     <string name="filter_all">All</string>
     <string name="filter_breakfast">🌅 Breakfast</string>
     <string name="filter_lunch">☀️ Lunch</string>
