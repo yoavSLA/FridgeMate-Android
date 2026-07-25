@@ -17,6 +17,7 @@ import com.squareup.picasso.Picasso
 
 class RecipeAdapter(
     private val onFavoriteClick: (RecipeEntity) -> Unit,
+    private val onAddToJournalClick: (RecipeEntity) -> Unit = {},
     private val onItemClick: (RecipeEntity) -> Unit = {}
 ) : ListAdapter<RecipeEntity, RecipeAdapter.RecipeViewHolder>(DIFF) {
 
@@ -82,6 +83,12 @@ class RecipeAdapter(
                     onFavoriteClick(getItem(currentPos))
                 }
             }
+            btnAddToJournal.setOnClickListener {
+                val currentPos = holder.adapterPosition
+                if (currentPos != RecyclerView.NO_POSITION) {
+                    onAddToJournalClick(getItem(currentPos))
+                }
+            }
             root.setOnClickListener { onItemClick(recipe) }
         }
     }
@@ -95,7 +102,7 @@ class RecipeAdapter(
         }
     }
 
-    private fun updateFavoriteIcon(btn: com.google.android.material.floatingactionbutton.FloatingActionButton, isFavorite: Boolean, animate: Boolean) {
+    private fun updateFavoriteIcon(btn: ImageButton, isFavorite: Boolean, animate: Boolean) {
         if (isFavorite) {
             btn.setImageResource(R.drawable.ic_star_filled)
             btn.imageTintList = ColorStateList.valueOf(Color.parseColor("#FFD700")) // Gold
@@ -109,11 +116,11 @@ class RecipeAdapter(
         }
     }
 
-    private fun animateStar(view: com.google.android.material.floatingactionbutton.FloatingActionButton) {
+    private fun animateStar(view: ImageButton) {
         viewScalePop(view, 1.2f)
     }
 
-    private fun viewScalePop(view: com.google.android.material.floatingactionbutton.FloatingActionButton, scale: Float) {
+    private fun viewScalePop(view: ImageButton, scale: Float) {
         view.animate().cancel()
         view.scaleX = 0.8f
         view.scaleY = 0.8f

@@ -12,6 +12,7 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
+import com.project.fridgemate.BuildConfig
 import com.project.fridgemate.R
 import com.project.fridgemate.data.model.JournalEntry
 import com.project.fridgemate.databinding.FragmentAddJournalEntryBinding
@@ -112,11 +113,11 @@ class AddJournalEntryFragment : Fragment() {
 
     private fun setupDropdowns() {
         val mealTypes = listOf("Breakfast", "Lunch", "Dinner", "Snack")
-        val mealAdapter = ArrayAdapter(requireContext(), android.R.layout.simple_dropdown_item_1line, mealTypes)
+        val mealAdapter = ArrayAdapter(requireContext(), R.layout.item_dropdown, mealTypes)
         binding.etMealType.setAdapter(mealAdapter)
 
         val moods = listOf("😊 Happy", "😌 Relaxed", "😐 Neutral", "😔 Tired", "🤩 Energized", "😞 Sad", "🤢 Sick", "😤 Stressed")
-        val moodAdapter = ArrayAdapter(requireContext(), android.R.layout.simple_dropdown_item_1line, moods)
+        val moodAdapter = ArrayAdapter(requireContext(), R.layout.item_dropdown, moods)
         binding.etMood.setAdapter(moodAdapter)
     }
 
@@ -134,7 +135,12 @@ class AddJournalEntryFragment : Fragment() {
         
         existingImageUrl = entry.imageUrl
         if (!existingImageUrl.isNullOrEmpty()) {
-            Picasso.get().load(existingImageUrl).into(binding.ivMealPhoto)
+            val fullUrl = if (existingImageUrl!!.startsWith("/")) {
+                BuildConfig.BASE_URL.trimEnd('/') + existingImageUrl
+            } else {
+                existingImageUrl
+            }
+            Picasso.get().load(fullUrl).fit().centerCrop().into(binding.ivMealPhoto)
             binding.layoutAddImage.visibility = View.GONE
         }
     }
@@ -169,8 +175,8 @@ class AddJournalEntryFragment : Fragment() {
         val calories = binding.etCalories.text.toString().trim()
         val macros = buildMacrosString()
 
-        if (title.isEmpty() || content.isEmpty()) {
-            Toast.makeText(requireContext(), getString(R.string.error_fill_all_fields), Toast.LENGTH_SHORT).show()
+        if (title.isEmpty()) {
+            Toast.makeText(requireContext(), "Please enter a title", Toast.LENGTH_SHORT).show()
             return
         }
 

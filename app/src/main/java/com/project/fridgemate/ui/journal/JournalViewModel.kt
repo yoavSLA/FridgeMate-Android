@@ -14,6 +14,7 @@ import com.project.fridgemate.data.repository.FridgeResult
 import com.project.fridgemate.data.repository.JournalRepository
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
+import java.util.Calendar
 import java.util.Date
 import java.util.Locale
 import java.util.TimeZone
@@ -175,6 +176,35 @@ class JournalViewModel(application: Application) : AndroidViewModel(application)
 
     fun getEntryById(id: String): JournalEntry? {
         return _entries.value?.find { it.id == id }
+    }
+
+    fun addRecipeToJournal(recipe: com.project.fridgemate.data.local.entity.RecipeEntity, timestamp: Long) {
+        val calendar = Calendar.getInstance().apply { timeInMillis = timestamp }
+        val hour = calendar.get(Calendar.HOUR_OF_DAY)
+
+        val mealType = when (hour) {
+            in 5..10 -> "Breakfast"
+            in 11..15 -> "Lunch"
+            in 16..21 -> "Dinner"
+            else -> "Snack"
+        }
+
+        val nutritionInfo = buildString {
+            if (recipe.protein.isNotBlank()) append("${recipe.protein} P / ")
+            if (recipe.carbs.isNotBlank()) append("${recipe.carbs} C / ")
+            if (recipe.fat.isNotBlank()) append("${recipe.fat} F")
+        }.trimEnd(' ', '/', ' ')
+
+        val entry = JournalEntry(
+            title = recipe.title,
+            content = recipe.description.ifBlank { "Recipe added from collections." },
+            dateMillis = timestamp,
+            mealType = mealType,
+            calories = recipe.calories.replace(Regex("[^\\d]"), ""),
+            macros = nutritionInfo,
+            imageUrl = recipe.imageUrl
+        )
+        addEntry(entry)
     }
 
     private fun JournalEntryDto.toJournalEntry(): JournalEntry {

@@ -1,8 +1,5 @@
 package com.project.fridgemate.ui.journal
 
-import android.graphics.Canvas
-import android.graphics.Paint
-import android.graphics.RectF
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
@@ -10,17 +7,21 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
+import android.app.DatePickerDialog
+import android.text.format.DateUtils
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.navigation.fragment.findNavController
-import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.RecyclerView
-import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.project.fridgemate.R
 import com.project.fridgemate.data.model.JournalEntry
 import com.project.fridgemate.databinding.FragmentJournalBinding
 import com.project.fridgemate.ui.dashboard.DashboardFragmentDirections
+import java.text.SimpleDateFormat
+import java.util.Calendar
+import java.util.Date
+import java.util.Locale
 
 class JournalFragment : Fragment() {
 
@@ -55,9 +56,20 @@ class JournalFragment : Fragment() {
         }
         binding.rvJournal.adapter = adapter
 
+        adapter.registerAdapterDataObserver(object : RecyclerView.AdapterDataObserver() {
+            override fun onItemRangeInserted(positionStart: Int, itemCount: Int) {
+                if (positionStart == 0) {
+                    binding.rvJournal.scrollToPosition(0)
+                }
+            }
+        })
+
         setupSearch()
         setupFilterChips()
-        setupSwipeToDelete()
+        
+        binding.btnCalendar.setOnClickListener {
+            showDatePicker()
+        }
 
         binding.swipeRefresh.setOnRefreshListener {
             viewModel.loadEntries()
@@ -135,11 +147,12 @@ class JournalFragment : Fragment() {
             }
         }
 
-        adapter.submitList(filtered)
+        val grouped = groupEntriesByDay(filtered)
+        adapter.submitList(grouped)
 
         val hasAnyEntries = allEntries.isNotEmpty()
         val isFiltered = currentSearchQuery.isNotEmpty() || currentMealFilter != null
-        val isEmpty = filtered.isEmpty()
+        val isEmpty = grouped.isEmpty()
 
         binding.emptyState.visibility = if (isEmpty) View.VISIBLE else View.GONE
 
@@ -151,82 +164,82 @@ class JournalFragment : Fragment() {
         }
     }
 
-    private fun setupSwipeToDelete() {
-        val deleteColor = ContextCompat.getColor(requireContext(), R.color.error_red)
-        val deleteIcon = ContextCompat.getDrawable(requireContext(), R.drawable.ic_delete)!!
-        val iconTint = ContextCompat.getColor(requireContext(), R.color.white)
-        deleteIcon.setTint(iconTint)
-        val cornerRadius = resources.getDimension(R.dimen.card_corner_radius_default)
-
-        val swipeCallback = object : ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.LEFT) {
-
-            override fun onMove(
-                recyclerView: RecyclerView,
-                viewHolder: RecyclerView.ViewHolder,
-                target: RecyclerView.ViewHolder
-            ): Boolean = false
-
-            override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {
-                val position = viewHolder.absoluteAdapterPosition
-                val entry = adapter.currentList[position]
-                showDeleteConfirmation(entry, position)
-            }
-
-            override fun onChildDraw(
-                c: Canvas,
-                recyclerView: RecyclerView,
-                viewHolder: RecyclerView.ViewHolder,
-                dX: Float,
-                dY: Float,
-                actionState: Int,
-                isCurrentlyActive: Boolean
-            ) {
-                val itemView = viewHolder.itemView
-                if (dX < 0) {
-                    // Draw red background with rounded corners
-                    val paint = Paint().apply { color = deleteColor }
-                    val background = RectF(
-                        itemView.right + dX + 16f,
-                        itemView.top.toFloat() + 8f,
-                        itemView.right.toFloat() - 16f,
-                        itemView.bottom.toFloat() - 8f
-                    )
-                    c.drawRoundRect(background, cornerRadius, cornerRadius, paint)
-
-                    // Draw delete icon
-                    val iconMargin = (itemView.height - deleteIcon.intrinsicHeight) / 2
-                    val iconLeft = itemView.right - iconMargin - deleteIcon.intrinsicWidth
-                    val iconTop = itemView.top + iconMargin
-                    val iconRight = itemView.right - iconMargin
-                    val iconBottom = iconTop + deleteIcon.intrinsicHeight
-                    deleteIcon.setBounds(iconLeft, iconTop, iconRight, iconBottom)
-                    deleteIcon.draw(c)
-                }
-
-                super.onChildDraw(c, recyclerView, viewHolder, dX, dY, actionState, isCurrentlyActive)
-            }
-        }
-
-        ItemTouchHelper(swipeCallback).attachToRecyclerView(binding.rvJournal)
+    private fun showDatePicker() {
+        val cal = Calendar.getInstance()
+        DatePickerDialog(
+            requireContext(),
+            { _, year, month, dayOfMonth ->
+                scrollToDate(year, month, dayOfMonth)
+            },
+            cal.get(Calendar.YEAR),
+            cal.get(Calendar.MONTH),
+            cal.get(Calendar.DAY_OF_MONTH)
+        ).show()
     }
 
-    private fun showDeleteConfirmation(entry: JournalEntry, position: Int) {
-        MaterialAlertDialogBuilder(requireContext())
-            .setTitle(R.string.delete_journal_entry)
-            .setMessage(R.string.delete_journal_entry_confirmation)
-            .setIcon(R.drawable.ic_delete)
-            .setNegativeButton(R.string.cancel) { _, _ ->
-                // Restore the swiped item
-                adapter.notifyItemChanged(position)
+    private fun scrollToDate(year: Int, month: Int, day: Int) {
+        val targetCal = Calendar.getInstance().apply {
+            set(year, month, day, 0, 0, 0)
+            set(Calendar.MILLISECOND, 0)
+        }
+        val targetMillis = targetCal.timeInMillis
+
+        val position = adapter.currentList.indexOfFirst { group ->
+            val groupMillis = group.id.toLongOrNull() ?: 0L
+            groupMillis == targetMillis
+        }
+
+        if (position != -1) {
+            binding.rvJournal.scrollToPosition(position)
+        } else {
+            Toast.makeText(requireContext(), "No entries found for this date", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    private fun groupEntriesByDay(entries: List<JournalEntry>): List<JournalDayGroup> {
+        val groups = entries.groupBy { entry ->
+            val cal = Calendar.getInstance().apply { timeInMillis = entry.dateMillis }
+            cal.set(Calendar.HOUR_OF_DAY, 0)
+            cal.set(Calendar.MINUTE, 0)
+            cal.set(Calendar.SECOND, 0)
+            cal.set(Calendar.MILLISECOND, 0)
+            cal.timeInMillis
+        }
+
+        return groups.map { (dayMillis, dayEntries) ->
+            var tCal = 0
+            var tP = 0
+            var tC = 0
+            var tF = 0
+
+            for (entry in dayEntries) {
+                tCal += entry.calories.replace(Regex("\\D"), "").toIntOrNull() ?: 0
+                
+                val regexP = Regex("""(\d+)\s*g?\s*P""")
+                val regexC = Regex("""(\d+)\s*g?\s*C""")
+                val regexF = Regex("""(\d+)\s*g?\s*F""")
+                
+                tP += regexP.find(entry.macros)?.groupValues?.getOrNull(1)?.toIntOrNull() ?: 0
+                tC += regexC.find(entry.macros)?.groupValues?.getOrNull(1)?.toIntOrNull() ?: 0
+                tF += regexF.find(entry.macros)?.groupValues?.getOrNull(1)?.toIntOrNull() ?: 0
             }
-            .setPositiveButton(R.string.delete) { _, _ ->
-                viewModel.deleteEntry(entry.id)
+
+            val label = when {
+                DateUtils.isToday(dayMillis) -> "Today"
+                DateUtils.isToday(dayMillis + DateUtils.DAY_IN_MILLIS) -> "Yesterday"
+                else -> SimpleDateFormat("EEEE, MMM d", Locale.getDefault()).format(Date(dayMillis))
             }
-            .setOnCancelListener {
-                // Restore if dismissed by tapping outside
-                adapter.notifyItemChanged(position)
-            }
-            .show()
+
+            JournalDayGroup(
+                id = dayMillis.toString(),
+                dateLabel = label,
+                entries = dayEntries,
+                totalCalories = tCal,
+                totalProtein = tP,
+                totalCarbs = tC,
+                totalFat = tF
+            )
+        }.sortedByDescending { it.id.toLong() }
     }
 
     override fun onDestroyView() {

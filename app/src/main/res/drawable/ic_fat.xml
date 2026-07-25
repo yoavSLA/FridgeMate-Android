@@ -1,11 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
-    android:width="24dp"
-    android:height="24dp"
-    android:viewportWidth="24"
-    android:viewportHeight="24">
-    <!-- Oil drop icon -->
+    android:width="20dp"
+    android:height="20dp"
+    android:viewportWidth="20"
+    android:viewportHeight="20">
     <path
-        android:fillColor="#5B9BD5"
-        android:pathData="M12,2.69L17.66,8.35C20.78,11.47 20.78,16.53 17.66,19.65C16.1,21.21 14.05,22 12,22C9.95,22 7.9,21.22 6.34,19.65C3.22,16.53 3.22,11.47 6.34,8.35L12,2.69Z" />
+        android:pathData="M10,2.5l4.5,4.5c2.5,2.5 2.5,6.5 0,9c-1.2,1.2 -2.8,1.8 -4.5,1.8s-3.3,-0.6 -4.5,-1.8c-2.5,-2.5 -2.5,-6.5 0,-9L10,2.5z"
+        android:strokeLineJoin="round"
+        android:strokeWidth="1.66667"
+        android:fillColor="#00000000"
+        android:strokeColor="#6A7282"
+        android:strokeLineCap="round"/>
 </vector>
