@@ -31,6 +31,17 @@ class NotificationViewModel : ViewModel() {
     private val _pendingPostId = MutableLiveData<String?>(null)
     val pendingPostId: LiveData<String?> = _pendingPostId
 
+    data class PendingFridgeChat(val fridgeId: String, val fridgeName: String)
+
+    private val _pendingFridgeChat = MutableLiveData<PendingFridgeChat?>(null)
+    val pendingFridgeChat: LiveData<PendingFridgeChat?> = _pendingFridgeChat
+
+    private val _pendingUserProfileId = MutableLiveData<String?>(null)
+    val pendingUserProfileId: LiveData<String?> = _pendingUserProfileId
+
+    private val _pendingSettingsOpen = MutableLiveData<Unit?>(null)
+    val pendingSettingsOpen: LiveData<Unit?> = _pendingSettingsOpen
+
     private var socketJob: Job? = null
 
     init {
@@ -64,6 +75,17 @@ class NotificationViewModel : ViewModel() {
         }
     }
 
+    fun markAsRead(id: String) {
+        val current = _notifications.value.orEmpty()
+        val target = current.firstOrNull { it.id == id } ?: return
+        if (target.isRead) return
+
+        _notifications.value = current.map { if (it.id == id) it.copy(isRead = true) else it }
+        _unreadCount.value = ((_unreadCount.value ?: 0) - 1).coerceAtLeast(0)
+
+        viewModelScope.launch { repo.markAsRead(id) }
+    }
+
     fun consumeIncoming() {
         _incomingNotification.value = null
     }
@@ -76,13 +98,37 @@ class NotificationViewModel : ViewModel() {
         _pendingPostId.value = null
     }
 
+    fun requestNavToFridgeChat(fridgeId: String, fridgeName: String) {
+        _pendingFridgeChat.value = PendingFridgeChat(fridgeId, fridgeName)
+    }
+
+    fun consumePendingFridgeChat() {
+        _pendingFridgeChat.value = null
+    }
+
+    fun requestNavToUserProfile(userId: String) {
+        _pendingUserProfileId.value = userId
+    }
+
+    fun consumePendingUserProfile() {
+        _pendingUserProfileId.value = null
+    }
+
+    fun requestNavToSettings() {
+        _pendingSettingsOpen.value = Unit
+    }
+
+    fun consumePendingSettingsOpen() {
+        _pendingSettingsOpen.value = null
+    }
+
     /**
      * Single source of truth for what tapping a notification does, used by both the
      * notification list and the real-time Dashboard banner. Returns true if it navigated
      * somewhere, so callers can decide whether to also dismiss their own UI.
      */
     fun handleNotificationClick(notification: Notification): Boolean {
-        return when (notification.type) {
+        val handled = when (notification.type) {
             NotificationType.POST_LIKE, NotificationType.POST_COMMENT -> {
                 val postId = notification.relatedId
                 if (postId != null) {
@@ -92,8 +138,32 @@ class NotificationViewModel : ViewModel() {
                     false
                 }
             }
+            NotificationType.CHAT_MESSAGE -> {
+                val fridgeId = notification.relatedId
+                if (fridgeId != null) {
+                    requestNavToFridgeChat(fridgeId, notification.relatedLabel.orEmpty())
+                    true
+                } else {
+                    false
+                }
+            }
+            NotificationType.FOLLOW -> {
+                val followerId = notification.relatedId
+                if (followerId != null) {
+                    requestNavToUserProfile(followerId)
+                    true
+                } else {
+                    false
+                }
+            }
+            NotificationType.FRIDGE_INVITE -> {
+                requestNavToSettings()
+                true
+            }
             else -> false
         }
+        if (handled) markAsRead(notification.id)
+        return handled
     }
 
     private fun startSocketListener() {

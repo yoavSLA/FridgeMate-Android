@@ -37,7 +37,7 @@ class FridgeMateMessagingService : FirebaseMessagingService() {
         Log.d(TAG, "Message received from: ${message.from}")
 
         message.notification?.let {
-            showNotification(it.title, it.body)
+            showNotification(it.title, it.body, message.data)
         }
 
         message.data.let {
@@ -77,15 +77,21 @@ class FridgeMateMessagingService : FirebaseMessagingService() {
         }
     }
 
-    private fun showNotification(title: String?, body: String?) {
+    private fun showNotification(
+        title: String?,
+        body: String?,
+        data: Map<String, String> = emptyMap()
+    ) {
         createNotificationChannel()
 
         val intent = Intent(this, MainActivity::class.java).apply {
-            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+            flags = Intent.FLAG_ACTIVITY_SINGLE_TOP or Intent.FLAG_ACTIVITY_CLEAR_TOP
+            data.forEach { (k, v) -> putExtra(k, v) }
         }
 
+        val requestCode = System.currentTimeMillis().toInt()
         val pendingIntent = PendingIntent.getActivity(
-            this, 0, intent,
+            this, requestCode, intent,
             PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
         )
 
@@ -99,7 +105,7 @@ class FridgeMateMessagingService : FirebaseMessagingService() {
             .build()
 
         val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-        notificationManager.notify(System.currentTimeMillis().toInt(), notification)
+        notificationManager.notify(requestCode, notification)
     }
 
     private fun createNotificationChannel() {

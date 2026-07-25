@@ -378,6 +378,39 @@ class DashboardFragment : Fragment() {
             }
             // FeedFragment observes pendingPostId and scrolls once posts are available
         }
+
+        notificationViewModel.pendingFridgeChat.observe(viewLifecycleOwner) { pending ->
+            pending ?: return@observe
+            if (findNavController().currentDestination?.id != R.id.dashboardFragment) {
+                return@observe
+            }
+            val action = DashboardFragmentDirections
+                .actionDashboardFragmentToFridgeChatFragment(pending.fridgeId, pending.fridgeName)
+            findNavController().navigate(action)
+            notificationViewModel.consumePendingFridgeChat()
+        }
+
+        notificationViewModel.pendingUserProfileId.observe(viewLifecycleOwner) { userId ->
+            userId ?: return@observe
+            if (findNavController().currentDestination?.id != R.id.dashboardFragment) {
+                return@observe
+            }
+            val action = DashboardFragmentDirections
+                .actionDashboardFragmentToUserProfileFragment(userId)
+            findNavController().navigate(action)
+            notificationViewModel.consumePendingUserProfile()
+        }
+
+        notificationViewModel.pendingSettingsOpen.observe(viewLifecycleOwner) { pending ->
+            pending ?: return@observe
+            if (findNavController().currentDestination?.id != R.id.dashboardFragment) {
+                return@observe
+            }
+            val action = DashboardFragmentDirections
+                .actionDashboardFragmentToSettingsFragment()
+            findNavController().navigate(action)
+            notificationViewModel.consumePendingSettingsOpen()
+        }
     }
 
     private fun showBanner(notification: Notification) {
@@ -385,9 +418,9 @@ class DashboardFragment : Fragment() {
         binding.bannerMessage.text = notification.message
         binding.notificationBanner.visibility = View.VISIBLE
         binding.notificationBanner.setOnClickListener {
-            if (notificationViewModel.handleNotificationClick(notification)) {
-                hideBanner()
-            }
+            bannerHandler.removeCallbacks(hideBannerRunnable)
+            hideBanner()
+            notificationViewModel.handleNotificationClick(notification)
         }
         ObjectAnimator.ofFloat(binding.notificationBanner, "alpha", 0f, 1f).setDuration(200).start()
 
@@ -396,12 +429,13 @@ class DashboardFragment : Fragment() {
     }
 
     private fun hideBanner() {
-        val animator = ObjectAnimator.ofFloat(binding.notificationBanner, "alpha", 1f, 0f).apply {
+        val bannerView = _binding?.notificationBanner ?: return
+        val animator = ObjectAnimator.ofFloat(bannerView, "alpha", 1f, 0f).apply {
             duration = 300
         }
         animator.addListener(object : android.animation.AnimatorListenerAdapter() {
             override fun onAnimationEnd(animation: android.animation.Animator) {
-                binding.notificationBanner.visibility = View.GONE
+                _binding?.notificationBanner?.visibility = View.GONE
             }
         })
         animator.start()

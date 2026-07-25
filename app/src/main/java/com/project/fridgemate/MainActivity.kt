@@ -1,12 +1,14 @@
 package com.project.fridgemate
 
 import android.Manifest
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
@@ -15,14 +17,19 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.updatePadding
 import androidx.lifecycle.lifecycleScope
 import com.google.firebase.messaging.FirebaseMessaging
+import com.project.fridgemate.data.remote.ApiClient
 import com.project.fridgemate.data.repository.UserRepository
 import com.project.fridgemate.databinding.ActivityMainBinding
+import com.project.fridgemate.ui.notifications.NotificationViewModel
 import kotlinx.coroutines.launch
+import org.json.JSONObject
 
 class MainActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityMainBinding
     private lateinit var userRepository: UserRepository
+
+    private val notificationViewModel: NotificationViewModel by viewModels()
 
     private val requestNotificationPermission = registerForActivityResult(
         ActivityResultContracts.RequestPermission()
@@ -37,6 +44,7 @@ class MainActivity : AppCompatActivity() {
         setContentView(binding.root)
 
         maybeRequestNotificationPermission()
+        handleNotificationIntent(intent)
 
         // Ensure status bar icons are white and navigation bar icons are dark
         val controller = WindowCompat.getInsetsController(window, window.decorView)
@@ -73,6 +81,34 @@ class MainActivity : AppCompatActivity() {
                 Log.e("FCM_TOKEN", "Failed to get FCM token: ${task.exception?.message}")
             }
         }
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        handleNotificationIntent(intent)
+    }
+
+    private fun handleNotificationIntent(intent: Intent?) {
+        val type = intent?.getStringExtra("type") ?: return
+        if (!ApiClient.getTokenManager().isLoggedIn) return
+
+        val metadataJson = intent.getStringExtra("metadata")
+        val metadata = runCatching {
+            metadataJson?.takeIf { it.isNotBlank() }?.let { JSONObject(it) }
+        }.getOrNull()
+
+        when (type) {
+            "CHAT_MESSAGE" -> {
+                val fridgeId = metadata?.optString("fridgeId")?.takeIf { it.isNotBlank() } ?: return
+                val fridgeName = metadata.optString("fridgeName", "")
+                notificationViewModel.requestNavToFridgeChat(fridgeId, fridgeName)
+            }
+        }
+
+        intent.removeExtra("type")
+        intent.removeExtra("metadata")
+        intent.removeExtra("notificationId")
     }
 
     private fun maybeRequestNotificationPermission() {

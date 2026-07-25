@@ -9,9 +9,7 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
-import com.project.fridgemate.data.model.NotificationType
 import com.project.fridgemate.databinding.FragmentNotificationsBinding
-import com.project.fridgemate.ui.notifications.NotificationsFragmentDirections
 
 class NotificationsFragment : Fragment() {
 
@@ -34,19 +32,8 @@ class NotificationsFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
 
         adapter = NotificationAdapter { notification ->
-            when (notification.type) {
-                NotificationType.FOLLOW -> {
-                    notification.relatedId?.let { followerId ->
-                        val action = NotificationsFragmentDirections
-                            .actionNotificationsFragmentToUserProfileFragment(followerId)
-                        findNavController().navigate(action)
-                    }
-                }
-                else -> {
-                    if (viewModel.handleNotificationClick(notification)) {
-                        findNavController().navigateUp()
-                    }
-                }
+            if (viewModel.handleNotificationClick(notification)) {
+                findNavController().navigateUp()
             }
         }
         binding.rvNotifications.layoutManager = LinearLayoutManager(requireContext())

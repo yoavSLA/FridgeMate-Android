@@ -45,6 +45,11 @@ class NotificationRepository {
         if (!response.isSuccessful) throw Exception("Failed to mark all as read")
     }
 
+    suspend fun markAsRead(id: String): Result<Unit> = runCatching {
+        val response = api.markAsRead(id)
+        if (!response.isSuccessful) throw Exception("Failed to mark notification as read")
+    }
+
     // Reuses the existing SocketManager — no new connection created
     fun observeNewNotifications(): Flow<Notification> = callbackFlow {
         val socket = SocketManager.connect()
