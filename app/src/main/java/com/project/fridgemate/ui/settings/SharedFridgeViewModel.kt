@@ -5,21 +5,32 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.switchMap
+import androidx.work.Data
+import androidx.work.OneTimeWorkRequestBuilder
+import androidx.work.WorkInfo
+import androidx.work.WorkManager
+import com.google.gson.Gson
 import com.project.fridgemate.data.local.AppDatabase
 import com.project.fridgemate.data.local.entity.RecipeEntity
 import com.project.fridgemate.data.remote.dto.DetectedItemDto
 import com.project.fridgemate.data.remote.dto.ScanChangesDto
 import com.project.fridgemate.data.remote.dto.FridgeMemberDetailDto
+import com.project.fridgemate.data.remote.dto.ScanDto
 import com.project.fridgemate.data.repository.FridgeRepository
 import com.project.fridgemate.data.repository.FridgeResult
-import com.project.fridgemate.data.repository.ScanRepository
 import com.project.fridgemate.R
+import com.project.fridgemate.workers.ScanUploadWorker
 import kotlinx.coroutines.launch
+import java.io.File
+import java.io.FileOutputStream
+import java.util.UUID
 
 class SharedFridgeViewModel(application: Application) : AndroidViewModel(application) {
 
     private val repository = FridgeRepository(application.applicationContext)
-    private val scanRepository = ScanRepository()
+    private val workManager = WorkManager.getInstance(application.applicationContext)
+    private val gson = Gson()
 
     private val _hasFridge = MutableLiveData<Boolean?>(null)
     val hasFridge: LiveData<Boolean?> = _hasFridge
@@ -147,40 +158,88 @@ class SharedFridgeViewModel(application: Application) : AndroidViewModel(applica
     private val _scanSummary = MutableLiveData<ScanChangesDto?>(null)
     val scanSummary: LiveData<ScanChangesDto?> = _scanSummary
 
+    private val _activeScanId = MutableLiveData<UUID?>(null)
+    val scanWorkInfo: LiveData<WorkInfo?> = _activeScanId.switchMap { id ->
+        if (id == null) MutableLiveData(null)
+        else workManager.getWorkInfoByIdLiveData(id)
+    }
+
     fun uploadFridgeScan(imageBytes: ByteArray, mimeType: String) {
         _isScanning.value = true
         _scanResult.value = null
         _scanSummary.value = null
+
+        // Cancel previous scan if any
+        _activeScanId.value?.let { workManager.cancelWorkById(it) }
+
         viewModelScope.launch {
-            when (val result = scanRepository.uploadScan(imageBytes, mimeType)) {
-                is FridgeResult.Success -> {
-                    val scan = result.data
-                    if (scan.status == "completed") {
-                        _scanResult.value = scan.detectedItems
-                        _scanSummary.value = scan.changes
-                        _lastScannedAt.value = scan.createdAt // Update timestamp immediately after scan
-                        val count = scan.detectedItems.size
-                        _actionSuccess.value = getApplication<Application>().resources.getQuantityString(
-                            R.plurals.items_detected_success,
-                            count,
-                            count
-                        )
-                    } else {
-                        _error.value = scan.error ?: getApplication<Application>().getString(R.string.error_scan_failed)
-                    }
-                }
-                is FridgeResult.Error -> {
-                    _error.value = result.message
-                }
-                is FridgeResult.NoFridge -> {
-                    _error.value = getApplication<Application>().getString(R.string.error_no_active_fridge)
-                }
+            val file = saveImageToTempFile(imageBytes) ?: run {
+                _error.value = "Failed to prepare image for upload"
+                _isScanning.value = false
+                return@launch
             }
-            _isScanning.value = false
+
+            val inputData = Data.Builder()
+                .putString(ScanUploadWorker.KEY_IMAGE_PATH, file.absolutePath)
+                .putString(ScanUploadWorker.KEY_MIME_TYPE, mimeType)
+                .build()
+
+            val uploadRequest = OneTimeWorkRequestBuilder<ScanUploadWorker>()
+                .addTag("fridge_scan")
+                .setInputData(inputData)
+                .build()
+
+            _activeScanId.value = uploadRequest.id
+            workManager.enqueue(uploadRequest)
         }
     }
 
-    fun clearScanResult() { 
+    private fun saveImageToTempFile(bytes: ByteArray): File? {
+        return try {
+            val tempFile = File(getApplication<Application>().cacheDir, "scan_${System.currentTimeMillis()}.jpg")
+            FileOutputStream(tempFile).use { it.write(bytes) }
+            tempFile
+        } catch (e: Exception) {
+            null
+        }
+    }
+
+    fun handleScanWorkInfo(workInfo: WorkInfo) {
+        when (workInfo.state) {
+            WorkInfo.State.SUCCEEDED -> {
+                val resultJson = workInfo.outputData.getString(ScanUploadWorker.KEY_SCAN_RESULT)
+                if (resultJson != null) {
+                    val scan = gson.fromJson(resultJson, ScanDto::class.java)
+                    _scanResult.value = scan.detectedItems
+                    _scanSummary.value = scan.changes
+                    _lastScannedAt.value = scan.createdAt
+                    val count = scan.detectedItems.size
+                    _actionSuccess.value = getApplication<Application>().resources.getQuantityString(
+                        R.plurals.items_detected_success,
+                        count,
+                        count
+                    )
+                }
+                _isScanning.value = false
+                _activeScanId.value = null
+            }
+            WorkInfo.State.FAILED -> {
+                _error.value = workInfo.outputData.getString(ScanUploadWorker.KEY_ERROR) ?: "Scan failed"
+                _isScanning.value = false
+                _activeScanId.value = null
+            }
+            WorkInfo.State.CANCELLED -> {
+                _isScanning.value = false
+                _activeScanId.value = null
+            }
+            WorkInfo.State.RUNNING, WorkInfo.State.ENQUEUED -> {
+                _isScanning.value = true
+            }
+            else -> {}
+        }
+    }
+
+    fun clearScanResult() {
         _scanResult.value = null
         _scanSummary.value = null
     }

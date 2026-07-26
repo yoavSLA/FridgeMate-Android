@@ -28,7 +28,7 @@ class ScanUploadWorker(
         
         val bytes = file.readBytes()
         
-        return when (val result = scanRepository.uploadScan(bytes, mimeType)) {
+        val workerResult = when (val result = scanRepository.uploadScan(bytes, mimeType)) {
             is FridgeResult.Success -> {
                 val scan = result.data
                 if (scan.status == "completed") {
@@ -52,6 +52,13 @@ class ScanUploadWorker(
                 Result.failure(workDataOf(KEY_ERROR to "No active fridge"))
             }
         }
+
+        // Clean up temp file
+        if (file.exists()) {
+            file.delete()
+        }
+
+        return workerResult
     }
 
     companion object {

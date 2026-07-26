@@ -21,7 +21,7 @@ import com.project.fridgemate.data.local.AppDatabase
 import com.project.fridgemate.data.remote.dto.ScanChangesDto
 import com.project.fridgemate.data.local.entity.RecipeEntity
 import kotlinx.coroutines.launch
-import androidx.fragment.app.viewModels
+import androidx.fragment.app.activityViewModels
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.project.fridgemate.databinding.DialogLeaveFridgeBinding
@@ -33,7 +33,7 @@ class SettingsFragment : Fragment() {
     private var _binding: FragmentSettingsBinding? = null
     private val binding get() = _binding!!
 
-    private val viewModel: SharedFridgeViewModel by viewModels()
+    private val viewModel: SharedFridgeViewModel by activityViewModels()
 
     private val takePictureLauncher =
         registerForActivityResult(ActivityResultContracts.TakePicturePreview()) { bitmap ->
@@ -64,6 +64,10 @@ class SettingsFragment : Fragment() {
 
         setupListeners()
         setupObservers()
+        
+        viewModel.scanWorkInfo.observe(viewLifecycleOwner) { workInfo ->
+            workInfo?.let { viewModel.handleScanWorkInfo(it) }
+        }
 
         viewModel.loadFridge()
     }
