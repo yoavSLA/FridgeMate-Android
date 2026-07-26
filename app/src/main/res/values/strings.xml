@@ -242,6 +242,8 @@
     <string name="profile_name_placeholder">Alex Johnson</string>
     <string name="share_your_creation">Share your creation</string>
     <string name="add_comment_hint">Add a comment...</string>
+    <string name="no_comments_title">No comments yet</string>
+    <string name="no_comments_desc">Be the first to share your thoughts on this post!</string>
     <string name="detecting_location">Detecting location…</string>
 
     <!-- Error Messages -->

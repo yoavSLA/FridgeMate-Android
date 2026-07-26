@@ -270,7 +270,11 @@ class MapViewFragment : Fragment() {
         val dialogBinding = DialogCommentsViewerBinding.inflate(layoutInflater)
         dialog.setContentView(dialogBinding.root)
 
-        val commentAdapter = CommentAdapter(showOptions = false)
+        val commentAdapter = CommentAdapter(
+            onDeleteComment = { comment -> viewModel.deleteComment(post.id, comment.id) },
+            onEditComment = { comment, newText -> viewModel.editComment(post.id, comment.id, newText) },
+            showOptions = true
+        )
         dialogBinding.rvComments.layoutManager = LinearLayoutManager(requireContext())
         dialogBinding.rvComments.adapter = commentAdapter
 
@@ -282,6 +286,14 @@ class MapViewFragment : Fragment() {
                 commentAdapter.submitList(updatedPost.comments)
                 dialogBinding.layoutEmptyComments.visibility = 
                     if (updatedPost.comments.isEmpty()) View.VISIBLE else View.GONE
+            }
+        }
+
+        dialogBinding.btnSendComment.setOnClickListener {
+            val text = dialogBinding.etComment.text.toString().trim()
+            if (text.isNotEmpty()) {
+                viewModel.addComment(post.id, text)
+                dialogBinding.etComment.text?.clear()
             }
         }
 

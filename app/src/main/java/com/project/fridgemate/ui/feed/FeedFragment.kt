@@ -155,6 +155,12 @@ class FeedFragment : Fragment() {
         }
     }
 
+    override fun onResume() {
+        super.onResume()
+        // Refresh the feed when returning to the fragment to ensure everything is in sync
+        viewModel.loadPosts(refresh = true)
+    }
+
     private fun updateEmptyState(posts: List<Post>) {
         val isLoading = viewModel.isLoading.value == true
         if (posts.isEmpty() && !isLoading) {
