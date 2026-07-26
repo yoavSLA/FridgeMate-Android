@@ -5,11 +5,13 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
+import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.google.android.material.chip.Chip
 import com.project.fridgemate.BuildConfig
 import com.project.fridgemate.R
 import com.project.fridgemate.databinding.FragmentUserProfileBinding
@@ -169,14 +171,51 @@ class UserProfileFragment : Fragment() {
                 user.address?.country?.takeIf { it.isNotEmpty() }
             ).joinToString(", ")
             binding.tvLocation.text = locationText
-            binding.tvLocation.visibility = if (locationText.isEmpty()) View.GONE else View.VISIBLE
+            binding.layoutLocationHeader.visibility = if (locationText.isEmpty()) View.GONE else View.VISIBLE
 
+            // Bio (in details card)
+            binding.tvBioLabel.visibility = if (user.bio.isNullOrBlank()) View.GONE else View.VISIBLE
             binding.tvBio.text = user.bio ?: ""
             binding.tvBio.visibility = if (user.bio.isNullOrBlank()) View.GONE else View.VISIBLE
 
             binding.tvPostsCount.text = user.postsCount.toString()
             binding.tvFollowersCount.text = user.followersCount.toString()
             binding.tvFollowingCount.text = user.followingCount.toString()
+
+            // Email (in header card)
+            binding.layoutEmailHeader.visibility = if (!user.email.isNullOrEmpty()) View.VISIBLE else View.GONE
+            binding.tvEmail.text = user.email
+
+            // Dietary Preference
+            val dietText = when (user.dietPreference) {
+                "VEGETARIAN" -> getString(R.string.diet_vegetarian)
+                "VEGAN" -> getString(R.string.diet_vegan)
+                "PESCATARIAN" -> getString(R.string.diet_pescatarian)
+                else -> ""
+            }
+            binding.tvDietaryLabel.visibility = if (dietText.isNotEmpty()) View.VISIBLE else View.GONE
+            binding.tvDietaryValue.visibility = if (dietText.isNotEmpty()) View.VISIBLE else View.GONE
+            binding.tvDietaryValue.text = dietText
+
+            // Allergies
+            binding.tvAllergiesLabel.visibility = if (user.allergies.isNotEmpty()) View.VISIBLE else View.GONE
+            binding.chipGroupAllergies.visibility = if (user.allergies.isNotEmpty()) View.VISIBLE else View.GONE
+            binding.chipGroupAllergies.removeAllViews()
+            user.allergies.forEach { allergy ->
+                val chip = Chip(requireContext()).apply {
+                    text = allergy
+                    isClickable = false
+                    isCheckable = false
+                    chipBackgroundColor = ContextCompat.getColorStateList(requireContext(), R.color.accent_green_light)
+                    setTextColor(ContextCompat.getColor(requireContext(), R.color.accent_green_dark))
+                    chipStrokeWidth = 0f
+                }
+                binding.chipGroupAllergies.addView(chip)
+            }
+
+            // Show cardDetails if any of the above are visible (Bio, Dietary, Allergies)
+            val hasDetails = dietText.isNotEmpty() || user.allergies.isNotEmpty() || !user.bio.isNullOrBlank()
+            binding.cardDetails.visibility = if (hasDetails) View.VISIBLE else View.GONE
 
             updatePrimaryButton(user.isFollowing)
             loadAvatar(user.displayName, user.profileImage)
