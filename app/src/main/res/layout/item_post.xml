@@ -2,22 +2,18 @@
 <com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/cardPost"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_marginBottom="22dp"
     app:cardBackgroundColor="@color/white"
     app:cardCornerRadius="16dp"
     app:cardElevation="4dp"
-    app:strokeWidth="0dp"
-    android:clipChildren="true"
-    android:clipToPadding="true"
-    android:clipToOutline="true">
+    app:strokeWidth="0dp">
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:clipChildren="true"
-        android:clipToPadding="true">
+        android:layout_height="wrap_content">
 
         <!-- Author Profile Photo -->
         <com.google.android.material.imageview.ShapeableImageView
@@ -32,15 +28,38 @@
             app:layout_constraintTop_toTopOf="parent"
             app:shapeAppearanceOverlay="@style/CircleImage" />
 
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnFollow"
+            style="@style/Widget.MaterialComponents.Button.UnelevatedButton"
+            android:layout_width="20dp"
+            android:layout_height="20dp"
+            android:insetTop="0dp"
+            android:insetBottom="0dp"
+            android:insetLeft="0dp"
+            android:insetRight="0dp"
+            android:padding="0dp"
+            android:visibility="gone"
+            app:cornerRadius="10dp"
+            app:elevation="2dp"
+            app:iconGravity="textStart"
+            app:iconPadding="0dp"
+            app:iconSize="12dp"
+            app:layout_constraintBottom_toBottomOf="@id/ivUserPhoto"
+            app:layout_constraintEnd_toEndOf="@id/ivUserPhoto"
+            android:layout_marginEnd="-4dp"
+            android:layout_marginBottom="-4dp"
+            tools:icon="@drawable/ic_plus_small"
+            tools:visibility="visible" />
+
         <!-- Author Info Block: Centered vertically to the photo -->
         <LinearLayout
             android:id="@+id/layoutUserInfo"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginStart="10dp"
+            android:layout_marginStart="14dp"
             android:orientation="vertical"
             app:layout_constraintBottom_toBottomOf="@id/ivUserPhoto"
-            app:layout_constraintEnd_toStartOf="@+id/btnFollow"
+            app:layout_constraintEnd_toStartOf="@+id/btnMoreOptions"
             app:layout_constraintStart_toEndOf="@id/ivUserPhoto"
             app:layout_constraintTop_toTopOf="@id/ivUserPhoto">
 
@@ -83,31 +102,6 @@
                 android:textSize="12sp"
                 tools:text="New York, NY" />
         </LinearLayout>
-
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/btnFollow"
-            style="@style/Widget.MaterialComponents.Button.UnelevatedButton"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginEnd="8dp"
-            android:backgroundTint="@color/accent_green"
-            android:insetTop="0dp"
-            android:insetBottom="0dp"
-            android:minWidth="0dp"
-            android:minHeight="0dp"
-            android:paddingHorizontal="14dp"
-            android:paddingVertical="6dp"
-            android:text="@string/follow_action"
-            android:textAllCaps="false"
-            android:textColor="@color/white"
-            android:textSize="12sp"
-            android:textStyle="bold"
-            android:visibility="gone"
-            app:cornerRadius="8dp"
-            app:layout_constraintBottom_toBottomOf="@id/ivUserPhoto"
-            app:layout_constraintEnd_toStartOf="@+id/btnMoreOptions"
-            app:layout_constraintTop_toTopOf="@id/ivUserPhoto"
-            tools:visibility="visible" />
 
         <ImageButton
             android:id="@+id/btnMoreOptions"

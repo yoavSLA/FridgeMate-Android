@@ -269,13 +269,18 @@ class PostAdapter(
         btn.visibility = View.VISIBLE
         val context = btn.context
         if (post.isFollowingAuthor) {
-            btn.setText(R.string.following_action)
-            btn.setTextColor(context.getColor(R.color.accent_green_dark))
-            btn.backgroundTintList = ColorStateList.valueOf(context.getColor(R.color.accent_green_light))
+            btn.text = ""
+            btn.setIconResource(R.drawable.ic_check)
+            btn.iconTint = ColorStateList.valueOf(context.getColor(R.color.accent_green_dark))
+            btn.backgroundTintList = ColorStateList.valueOf(context.getColor(R.color.white))
+            btn.strokeColor = ColorStateList.valueOf(context.getColor(R.color.divider_color))
+            btn.strokeWidth = context.resources.getDimensionPixelSize(R.dimen.button_stroke_width)
         } else {
-            btn.setText(R.string.follow_action)
-            btn.setTextColor(context.getColor(R.color.white))
+            btn.text = ""
+            btn.setIconResource(R.drawable.ic_plus_small)
+            btn.iconTint = ColorStateList.valueOf(context.getColor(R.color.white))
             btn.backgroundTintList = ColorStateList.valueOf(context.getColor(R.color.accent_green))
+            btn.strokeWidth = 0
         }
         btn.setOnClickListener { onFollowClick(post) }
     }
