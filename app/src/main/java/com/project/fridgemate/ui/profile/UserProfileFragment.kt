@@ -253,8 +253,14 @@ class UserProfileFragment : Fragment() {
         val stillLoading = viewModel.isLoading.value == true || viewModel.isRefreshing.value == true
         val showEmpty = posts.isEmpty() && !stillLoading && viewModel.user.value != null
 
-        binding.tvEmptyPosts.visibility = if (showEmpty) View.VISIBLE else View.GONE
+        binding.emptyStatePosts.visibility = if (showEmpty) View.VISIBLE else View.GONE
         binding.rvPosts.visibility = if (posts.isEmpty()) View.GONE else View.VISIBLE
+
+        if (showEmpty) {
+            binding.tvEmptyPostsDesc.setText(
+                if (isMe) R.string.no_posts_me_desc else R.string.no_posts_user_desc
+            )
+        }
     }
 
     private fun updatePrimaryButton(isFollowing: Boolean) {
