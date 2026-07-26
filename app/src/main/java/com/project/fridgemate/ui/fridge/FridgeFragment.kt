@@ -12,7 +12,6 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.project.fridgemate.R
 import com.project.fridgemate.databinding.FragmentFridgeBinding
 import com.project.fridgemate.databinding.PopupAssignOwnerBinding
-import com.project.fridgemate.ui.settings.MemberAdapter
 
 class FridgeFragment : Fragment() {
 
@@ -104,7 +103,7 @@ class FridgeFragment : Fragment() {
         popupWindow.elevation = 8f
 
         popupBinding.rvAssignOwnerMembers.layoutManager = LinearLayoutManager(requireContext())
-        popupBinding.rvAssignOwnerMembers.adapter = MemberAdapter(
+        popupBinding.rvAssignOwnerMembers.adapter = MemberDropdownAdapter(
             members = members,
             selectedUserId = product.ownerId,
             onMemberClick = { member ->
