@@ -97,24 +97,46 @@ class UserListFragment : Fragment() {
     private fun observe() {
         viewModel.users.observe(viewLifecycleOwner) { users ->
             adapter.submitList(users)
-            val empty = users.isEmpty() && viewModel.isLoading.value != true
-            binding.tvEmpty.visibility = if (empty) View.VISIBLE else View.GONE
-            binding.tvEmpty.setText(
-                when (mode) {
-                    UserListMode.FOLLOWERS -> R.string.no_followers_yet
-                    UserListMode.FOLLOWING -> R.string.no_following_yet
-                    UserListMode.SEARCH -> R.string.no_users_found
-                }
-            )
+            updateEmptyState()
         }
         viewModel.isLoading.observe(viewLifecycleOwner) { loading ->
             binding.progressBar.visibility = if (loading) View.VISIBLE else View.GONE
+            updateEmptyState()
         }
         viewModel.error.observe(viewLifecycleOwner) { err ->
             err?.let {
                 Toast.makeText(requireContext(), it, Toast.LENGTH_SHORT).show()
                 viewModel.clearError()
             }
+        }
+    }
+
+    private fun updateEmptyState() {
+        val users = viewModel.users.value ?: emptyList()
+        val empty = users.isEmpty() && viewModel.isLoading.value != true
+        binding.emptyState.visibility = if (empty) View.VISIBLE else View.GONE
+
+        if (empty) {
+            val (icon, title, desc) = when (mode) {
+                UserListMode.FOLLOWERS -> Triple(
+                    R.drawable.ic_person,
+                    R.string.no_followers_yet,
+                    R.string.no_followers_desc
+                )
+                UserListMode.FOLLOWING -> Triple(
+                    R.drawable.ic_person,
+                    R.string.no_following_yet,
+                    R.string.no_following_desc
+                )
+                UserListMode.SEARCH -> Triple(
+                    R.drawable.ic_group,
+                    R.string.no_users_found,
+                    R.string.no_users_found_desc
+                )
+            }
+            binding.ivEmptyIcon.setImageResource(icon)
+            binding.tvEmptyTitle.setText(title)
+            binding.tvEmptyDesc.setText(desc)
         }
     }
 
