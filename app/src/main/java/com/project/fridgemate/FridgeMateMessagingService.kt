@@ -1,13 +1,14 @@
 package com.project.fridgemate
 
-import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
+import android.media.RingtoneManager
 import android.os.Build
 import android.util.Log
 import androidx.core.app.NotificationCompat
+import androidx.core.app.NotificationManagerCompat
 import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
 import com.project.fridgemate.data.local.ScanSummaryStorage
@@ -19,12 +20,14 @@ import org.json.JSONObject
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import java.util.concurrent.atomic.AtomicInteger
 
 class FridgeMateMessagingService : FirebaseMessagingService() {
 
     companion object {
         private const val TAG = "FCM_Service"
-        private const val CHANNEL_ID = "fridgemate_notifications"
+        const val CHANNEL_ID = "fridgemate_notifications"
+        private val notificationCounter = AtomicInteger((System.currentTimeMillis() % 100000).toInt())
     }
 
     override fun onNewToken(token: String) {
@@ -38,12 +41,13 @@ class FridgeMateMessagingService : FirebaseMessagingService() {
     override fun onMessageReceived(message: RemoteMessage) {
         super.onMessageReceived(message)
 
-        Log.d(TAG, "Message received from: ${message.from}")
+        Log.d(TAG, "Message received: ${message.data}")
 
-        if (FridgeMateApp.isForeground) return
+        val title = message.notification?.title ?: message.data["title"]
+        val body = message.notification?.body ?: message.data["body"]
 
-        message.notification?.let {
-            showNotification(it.title, it.body, message.data)
+        if (title != null || body != null) {
+            showNotification(title, body, message.data)
         }
     }
 
@@ -103,43 +107,41 @@ class FridgeMateMessagingService : FirebaseMessagingService() {
             data.forEach { (k, v) -> putExtra(k, v) }
         }
 
-        val requestCode = System.currentTimeMillis().toInt()
+        val notificationId = notificationCounter.incrementAndGet()
         val pendingIntent = PendingIntent.getActivity(
-            this, requestCode, intent,
+            this, notificationId, intent,
             PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
         )
 
+        val soundUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION)
         val notificationBuilder = NotificationCompat.Builder(this, CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_notifications)
             .setContentTitle(title)
             .setContentText(body)
-            .setPriority(NotificationCompat.PRIORITY_HIGH)
+            .setPriority(NotificationCompat.PRIORITY_MAX)
+            .setCategory(NotificationCompat.CATEGORY_MESSAGE)
+            .setSound(soundUri)
+            .setDefaults(NotificationCompat.DEFAULT_ALL)
+            .setOnlyAlertOnce(false)
             .setAutoCancel(true)
+            .setNumber(1)
+            .setBadgeIconType(NotificationCompat.BADGE_ICON_SMALL)
+            .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
+            .setContentIntent(pendingIntent)
 
-        // Only make clickable if it's not a SCAN_COMPLETE, or if it IS a SCAN_COMPLETE and we have the summary info
-        val isScanComplete = type == "SCAN_COMPLETE"
-        val hasSummaryInfo = storage.getLastScanSummary() != null && storage.getLastScanCreatedAt() != null
-        
-        if (!isScanComplete || hasSummaryInfo) {
-            notificationBuilder.setContentIntent(pendingIntent)
+        val notificationManager = NotificationManagerCompat.from(this)
+        if (androidx.core.content.ContextCompat.checkSelfPermission(
+                this, android.Manifest.permission.POST_NOTIFICATIONS
+            ) == android.content.pm.PackageManager.PERMISSION_GRANTED || Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU
+        ) {
+            // Use just the ID without the tag to ensure it's treated as a fresh notification
+            // but with a unique ID every time.
+            notificationManager.notify(notificationId, notificationBuilder.build())
         }
-
-        val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-        notificationManager.notify(requestCode, notificationBuilder.build())
     }
 
     private fun createNotificationChannel() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val channel = NotificationChannel(
-                CHANNEL_ID,
-                "FridgeMate Notifications",
-                NotificationManager.IMPORTANCE_HIGH
-            ).apply {
-                description = "Notifications for likes, comments, scans, and messages"
-            }
-
-            val notificationManager = getSystemService(NotificationManager::class.java)
-            notificationManager.createNotificationChannel(channel)
-        }
+        // Now handled in FridgeMateApp or lazily if needed
+        NotificationHelper.createNotificationChannel(this)
     }
 }
