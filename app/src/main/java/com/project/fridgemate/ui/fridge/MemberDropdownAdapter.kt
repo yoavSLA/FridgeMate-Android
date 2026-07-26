@@ -1,4 +1,4 @@
-package com.project.fridgemate.ui.settings
+package com.project.fridgemate.ui.fridge
 
 import android.view.LayoutInflater
 import android.view.ViewGroup
@@ -6,22 +6,21 @@ import androidx.recyclerview.widget.RecyclerView
 import com.project.fridgemate.BuildConfig
 import com.project.fridgemate.R
 import com.project.fridgemate.data.remote.dto.FridgeMemberDetailDto
-import com.project.fridgemate.databinding.ItemMemberBinding
+import com.project.fridgemate.databinding.ItemMemberDropdownBinding
 import com.project.fridgemate.utils.AvatarHelper
 import com.squareup.picasso.Picasso
 
-class MemberAdapter(
+class MemberDropdownAdapter(
     private val members: List<FridgeMemberDetailDto>,
-    private val currentUserId: String? = null,
     private val selectedUserId: String? = null,
-    private val onMemberClick: ((FridgeMemberDetailDto) -> Unit)? = null
-) : RecyclerView.Adapter<MemberAdapter.MemberViewHolder>() {
+    private val onMemberClick: (FridgeMemberDetailDto) -> Unit
+) : RecyclerView.Adapter<MemberDropdownAdapter.MemberViewHolder>() {
 
-    inner class MemberViewHolder(val binding: ItemMemberBinding) :
+    class MemberViewHolder(val binding: ItemMemberDropdownBinding) :
         RecyclerView.ViewHolder(binding.root)
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): MemberViewHolder {
-        val binding = ItemMemberBinding.inflate(
+        val binding = ItemMemberDropdownBinding.inflate(
             LayoutInflater.from(parent.context), parent, false
         )
         return MemberViewHolder(binding)
@@ -29,15 +28,11 @@ class MemberAdapter(
 
     override fun onBindViewHolder(holder: MemberViewHolder, position: Int) {
         val member = members[position]
-        val isCurrentUser = member.userId == currentUserId
         with(holder.binding) {
-            val suffix = when {
-                member.userId == selectedUserId -> " (Current owner)"
-                isCurrentUser -> " (You)"
-                else -> ""
-            }
+            val suffix = if (member.userId == selectedUserId) " (Owner)" else ""
             tvMemberName.text = "${member.displayName}$suffix"
-            root.setOnClickListener { onMemberClick?.invoke(member) }
+            root.setOnClickListener { onMemberClick(member) }
+            
             val profileImage = member.profileImage
             val placeholder = AvatarHelper.createPlaceholder(root.context, member.displayName)
             if (!profileImage.isNullOrEmpty()) {

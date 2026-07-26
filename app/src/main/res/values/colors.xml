@@ -55,4 +55,23 @@
 
 
 
+    <!-- Avatar colors -->
+    <color name="avatar_1">#F44336</color>
+    <color name="avatar_2">#E91E63</color>
+    <color name="avatar_3">#9C27B0</color>
+    <color name="avatar_4">#673AB7</color>
+    <color name="avatar_5">#3F51B5</color>
+    <color name="avatar_6">#2196F3</color>
+    <color name="avatar_7">#03A9F4</color>
+    <color name="avatar_8">#00BCD4</color>
+    <color name="avatar_9">#009688</color>
+    <color name="avatar_10">#4CAF50</color>
+    <color name="avatar_11">#8BC34A</color>
+    <color name="avatar_12">#CDDC39</color>
+    <color name="avatar_13">#FFC107</color>
+    <color name="avatar_14">#FF9800</color>
+    <color name="avatar_15">#FF5722</color>
+    <color name="avatar_16">#795548</color>
+    <color name="avatar_17">#607D8B</color>
+
 </resources>

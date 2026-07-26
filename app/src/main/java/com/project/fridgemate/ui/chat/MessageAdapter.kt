@@ -17,6 +17,7 @@ import com.project.fridgemate.databinding.ItemMessageReceivedBinding
 import com.project.fridgemate.databinding.ItemMessageRecipeReceivedBinding
 import com.project.fridgemate.databinding.ItemMessageRecipeSentBinding
 import com.project.fridgemate.databinding.ItemMessageSentBinding
+import com.project.fridgemate.utils.AvatarHelper
 import com.squareup.picasso.Callback
 import com.squareup.picasso.Picasso
 import java.text.DateFormat
@@ -104,11 +105,12 @@ class MessageAdapter(
             b.tvTime.text = formatTime(message.createdAt)
 
             val resolved = resolveAvatarUrl(message.sender?.profileImage)
+            val placeholder = AvatarHelper.createPlaceholder(b.root.context, message.sender?.displayName)
             if (resolved != null) {
                 Picasso.get()
                     .load(resolved)
-                    .placeholder(R.drawable.ic_person)
-                    .error(R.drawable.ic_person)
+                    .placeholder(placeholder)
+                    .error(placeholder)
                     .into(b.ivAvatar, object : Callback {
                         override fun onSuccess() {}
                         override fun onError(e: Exception?) {
@@ -116,7 +118,7 @@ class MessageAdapter(
                         }
                     })
             } else {
-                b.ivAvatar.setImageResource(R.drawable.ic_person)
+                b.ivAvatar.setImageDrawable(placeholder)
             }
         }
     }
@@ -152,7 +154,7 @@ class MessageAdapter(
             b.tvRecipeMeta.visibility = if (b.tvRecipeMeta.text.isBlank()) View.GONE else View.VISIBLE
             b.tvTime.text = formatTime(message.createdAt)
             loadRecipeImage(b.ivRecipeImage, payload.imageUrl)
-            bindAvatar(b.ivAvatar, message.sender?.profileImage)
+            bindAvatar(b.ivAvatar, message.sender?.profileImage, message.sender?.displayName)
             b.cardRecipe.setOnClickListener {
                 payload.recipeId?.let { onRecipeClick?.invoke(it) }
             }
@@ -179,16 +181,17 @@ class MessageAdapter(
         }
     }
 
-    private fun bindAvatar(target: com.google.android.material.imageview.ShapeableImageView, raw: String?) {
+    private fun bindAvatar(target: com.google.android.material.imageview.ShapeableImageView, raw: String?, name: String?) {
         val resolved = resolveAvatarUrl(raw)
+        val placeholder = AvatarHelper.createPlaceholder(target.context, name)
         if (resolved != null) {
             Picasso.get()
                 .load(resolved)
-                .placeholder(R.drawable.ic_person)
-                .error(R.drawable.ic_person)
+                .placeholder(placeholder)
+                .error(placeholder)
                 .into(target)
         } else {
-            target.setImageResource(R.drawable.ic_person)
+            target.setImageDrawable(placeholder)
         }
     }
 

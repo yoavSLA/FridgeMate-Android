@@ -117,10 +117,11 @@
 
     <ImageButton
         android:id="@+id/btnCommentOptions"
-        android:layout_width="24dp"
-        android:layout_height="24dp"
+        android:layout_width="18dp"
+        android:layout_height="18dp"
         android:background="@android:color/transparent"
         android:src="@drawable/ic_more_vert"
+        android:scaleType="centerInside"
         android:visibility="gone"
         app:tint="@color/gray_text" />
 

@@ -27,6 +27,7 @@ import com.project.fridgemate.BuildConfig
 import com.project.fridgemate.MainActivity
 import com.project.fridgemate.R
 import com.project.fridgemate.data.model.Notification
+import com.project.fridgemate.utils.AvatarHelper
 import com.squareup.picasso.Picasso
 import com.project.fridgemate.data.repository.UserRepository
 import com.project.fridgemate.databinding.FragmentDashboardBinding
@@ -141,17 +142,19 @@ class DashboardFragment : Fragment() {
             }
         }
         profileViewModel.profileImageUrl.observe(viewLifecycleOwner) { imageUrl ->
+            val name = profileViewModel.user.value?.displayName
+            val placeholder = AvatarHelper.createPlaceholder(requireContext(), name)
             if (!imageUrl.isNullOrEmpty()) {
                 val url = if (imageUrl.startsWith("/"))
                     BuildConfig.BASE_URL.trimEnd('/') + imageUrl
                 else imageUrl
                 Picasso.get()
                     .load(url)
-                    .placeholder(R.drawable.ic_person)
-                    .error(R.drawable.ic_person)
+                    .placeholder(placeholder)
+                    .error(placeholder)
                     .into(binding.ivProfile)
             } else {
-                binding.ivProfile.setImageResource(R.drawable.ic_person)
+                binding.ivProfile.setImageDrawable(placeholder)
             }
         }
     }

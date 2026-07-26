@@ -27,6 +27,7 @@ import com.google.android.gms.location.Priority
 import com.project.fridgemate.BuildConfig
 import com.project.fridgemate.R
 import com.project.fridgemate.databinding.FragmentMyProfileBinding
+import com.project.fridgemate.utils.AvatarHelper
 import com.squareup.picasso.Picasso
 import java.io.ByteArrayOutputStream
 
@@ -186,7 +187,8 @@ class MyProfileFragment : Fragment() {
         }
 
         profileViewModel.profileImageUrl.observe(viewLifecycleOwner) { url ->
-            loadProfileImage(url)
+            val name = profileViewModel.user.value?.displayName
+            loadProfileImage(name, url)
         }
 
         profileViewModel.locationDisplay.observe(viewLifecycleOwner) { location ->
@@ -214,13 +216,17 @@ class MyProfileFragment : Fragment() {
         }
     }
 
-    private fun loadProfileImage(url: String?) {
-        if (url.isNullOrEmpty()) return
+    private fun loadProfileImage(name: String?, url: String?) {
+        val placeholder = AvatarHelper.createPlaceholder(requireContext(), name)
+        if (url.isNullOrEmpty()) {
+            binding.profilePic.setImageDrawable(placeholder)
+            return
+        }
         val fullUrl = if (url.startsWith("/")) BuildConfig.BASE_URL.trimEnd('/') + url else url
         Picasso.get()
             .load(fullUrl)
-            .placeholder(R.drawable.ic_person)
-            .error(R.drawable.ic_person)
+            .placeholder(placeholder)
+            .error(placeholder)
             .into(binding.profilePic)
     }
 

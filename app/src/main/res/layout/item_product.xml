@@ -21,6 +21,7 @@
             android:id="@+id/name_row"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
+            android:layout_marginEnd="28dp"
             android:gravity="center_vertical"
             android:orientation="horizontal"
             app:layout_constraintEnd_toStartOf="@id/barrier_owner_start"
@@ -41,11 +42,11 @@
 
             <TextView
                 android:id="@+id/tv_product_name"
-                android:layout_width="wrap_content"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
+                android:layout_weight="1"
                 android:ellipsize="end"
-                android:maxLines="1"
-                android:maxWidth="160dp"
+                android:maxLines="3"
                 android:textColor="@color/black"
                 android:textSize="15sp"
                 android:textStyle="bold"
@@ -57,9 +58,11 @@
             android:id="@+id/tv_product_quantity"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="2dp"
-            android:textColor="@color/gray_text"
-            android:textSize="13sp"
+            android:layout_marginTop="6dp"
+            android:background="@drawable/bg_quantity_badge"
+            android:textColor="@color/accent_green_dark"
+            android:textSize="12sp"
+            android:textStyle="bold"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/name_row"
             tools:text="500g" />
@@ -81,8 +84,8 @@
 
             <ImageView
                 android:id="@+id/iv_owner_icon"
-                android:layout_width="14dp"
-                android:layout_height="14dp"
+                android:layout_width="16dp"
+                android:layout_height="16dp"
                 android:src="@drawable/ic_person"
                 app:tint="@color/gray_text" />
 
@@ -103,8 +106,8 @@
 
             <ImageView
                 android:id="@+id/iv_owner_remove"
-                android:layout_width="14dp"
-                android:layout_height="14dp"
+                android:layout_width="15dp"
+                android:layout_height="15dp"
                 android:layout_marginStart="6dp"
                 android:src="@drawable/ic_close"
                 android:visibility="gone"

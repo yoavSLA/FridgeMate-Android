@@ -17,6 +17,7 @@ import com.project.fridgemate.R
 import com.project.fridgemate.databinding.DialogConfirmDeleteBinding
 import com.project.fridgemate.databinding.DialogPostOptionsBinding
 import com.project.fridgemate.databinding.ItemPostBinding
+import com.project.fridgemate.utils.AvatarHelper
 import com.project.fridgemate.utils.TimeAgo
 import com.squareup.picasso.Picasso
 
@@ -85,17 +86,18 @@ class PostAdapter(
             } else {
                 tvUserLocation.setOnClickListener(null)
             }
+            val placeholder = AvatarHelper.createPlaceholder(root.context, post.userName)
             if (post.authorImageUrl.isNotEmpty()) {
                 val url = if (post.authorImageUrl.startsWith("/"))
                     BuildConfig.BASE_URL.trimEnd('/') + post.authorImageUrl
                 else post.authorImageUrl
                 Picasso.get()
                     .load(url)
-                    .placeholder(R.drawable.ic_person)
-                    .error(R.drawable.ic_person)
+                    .placeholder(placeholder)
+                    .error(placeholder)
                     .into(ivUserPhoto)
             } else {
-                ivUserPhoto.setImageResource(R.drawable.ic_person)
+                ivUserPhoto.setImageDrawable(placeholder)
             }
 
             if (post.imageUrl.isNotEmpty()) {
