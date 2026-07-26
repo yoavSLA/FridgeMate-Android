@@ -10,6 +10,7 @@ import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.project.fridgemate.databinding.DialogCommentOptionsBinding
 import com.project.fridgemate.databinding.DialogConfirmDeleteBinding
 import com.project.fridgemate.databinding.ItemCommentBinding
+import com.project.fridgemate.utils.AvatarHelper
 import com.project.fridgemate.utils.TimeAgo
 import com.squareup.picasso.Picasso
 
@@ -80,18 +81,19 @@ class CommentAdapter(
                 }
             }
 
+            val placeholder = AvatarHelper.createPlaceholder(root.context, comment.userName)
             if (comment.authorImageUrl.isNotEmpty()) {
                 val url = if (comment.authorImageUrl.startsWith("/"))
                     BuildConfig.BASE_URL.trimEnd('/') + comment.authorImageUrl
                 else comment.authorImageUrl
                 Picasso.get()
                     .load(url)
-                    .placeholder(R.drawable.ic_person)
-                    .error(R.drawable.ic_person)
+                    .placeholder(placeholder)
+                    .error(placeholder)
                     .noFade()
                     .into(ivCommentUserPhoto)
             } else {
-                ivCommentUserPhoto.setImageResource(R.drawable.ic_person)
+                ivCommentUserPhoto.setImageDrawable(placeholder)
             }
         }
     }

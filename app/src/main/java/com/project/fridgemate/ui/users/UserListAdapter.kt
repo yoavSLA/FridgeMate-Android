@@ -10,6 +10,7 @@ import com.project.fridgemate.BuildConfig
 import com.project.fridgemate.R
 import com.project.fridgemate.data.remote.dto.UserListItemDto
 import com.project.fridgemate.databinding.ItemUserRowBinding
+import com.project.fridgemate.utils.AvatarHelper
 import com.squareup.picasso.Picasso
 
 class UserListAdapter(
@@ -51,15 +52,16 @@ class UserListAdapter(
             tvSubtitle.visibility = if (tvSubtitle.text.isNullOrEmpty()) View.GONE else View.VISIBLE
 
             val avatarUrl = user.profileImage
+            val placeholder = AvatarHelper.createPlaceholder(root.context, user.displayName)
             if (!avatarUrl.isNullOrEmpty()) {
                 val full = if (avatarUrl.startsWith("/")) BuildConfig.BASE_URL.trimEnd('/') + avatarUrl else avatarUrl
                 Picasso.get()
                     .load(full)
-                    .placeholder(R.drawable.ic_person)
-                    .error(R.drawable.ic_person)
+                    .placeholder(placeholder)
+                    .error(placeholder)
                     .into(ivAvatar)
             } else {
-                ivAvatar.setImageResource(R.drawable.ic_person)
+                ivAvatar.setImageDrawable(placeholder)
             }
 
             val isSelf = currentUserId != null && user.id == currentUserId

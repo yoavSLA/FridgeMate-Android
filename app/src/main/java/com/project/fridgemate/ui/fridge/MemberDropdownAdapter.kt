@@ -7,6 +7,7 @@ import com.project.fridgemate.BuildConfig
 import com.project.fridgemate.R
 import com.project.fridgemate.data.remote.dto.FridgeMemberDetailDto
 import com.project.fridgemate.databinding.ItemMemberDropdownBinding
+import com.project.fridgemate.utils.AvatarHelper
 import com.squareup.picasso.Picasso
 
 class MemberDropdownAdapter(
@@ -33,17 +34,18 @@ class MemberDropdownAdapter(
             root.setOnClickListener { onMemberClick(member) }
             
             val profileImage = member.profileImage
+            val placeholder = AvatarHelper.createPlaceholder(root.context, member.displayName)
             if (!profileImage.isNullOrEmpty()) {
                 val url = if (profileImage.startsWith("/"))
                     BuildConfig.BASE_URL.trimEnd('/') + profileImage
                 else profileImage
                 Picasso.get()
                     .load(url)
-                    .placeholder(R.drawable.ic_person)
-                    .error(R.drawable.ic_person)
+                    .placeholder(placeholder)
+                    .error(placeholder)
                     .into(ivMemberPhoto)
             } else {
-                ivMemberPhoto.setImageResource(R.drawable.ic_person)
+                ivMemberPhoto.setImageDrawable(placeholder)
             }
         }
     }

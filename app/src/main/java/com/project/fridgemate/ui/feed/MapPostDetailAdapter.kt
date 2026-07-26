@@ -13,6 +13,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.project.fridgemate.BuildConfig
 import com.project.fridgemate.R
 import com.project.fridgemate.databinding.ItemMapPostDetailBinding
+import com.project.fridgemate.utils.AvatarHelper
 import com.project.fridgemate.utils.TimeAgo
 import com.squareup.picasso.Picasso
 
@@ -64,17 +65,18 @@ class MapPostDetailAdapter(
 
             updateLikeButton(btnLike, post.isLiked, animate = false)
 
+            val placeholder = AvatarHelper.createPlaceholder(root.context, post.userName)
             if (post.authorImageUrl.isNotEmpty()) {
                 val avatarUrl = if (post.authorImageUrl.startsWith("/"))
                     BuildConfig.BASE_URL.trimEnd('/') + post.authorImageUrl
                 else post.authorImageUrl
                 Picasso.get()
                     .load(avatarUrl)
-                    .placeholder(R.drawable.ic_person)
-                    .error(R.drawable.ic_person)
+                    .placeholder(placeholder)
+                    .error(placeholder)
                     .into(ivUserAvatar)
             } else {
-                ivUserAvatar.setImageResource(R.drawable.ic_person)
+                ivUserAvatar.setImageDrawable(placeholder)
             }
 
             if (post.imageUrl.isNotEmpty()) {

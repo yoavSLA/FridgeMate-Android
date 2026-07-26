@@ -14,6 +14,7 @@ import com.project.fridgemate.BuildConfig
 import com.project.fridgemate.R
 import com.project.fridgemate.databinding.FragmentUserProfileBinding
 import com.project.fridgemate.ui.feed.PostAdapter
+import com.project.fridgemate.utils.AvatarHelper
 import com.squareup.picasso.Picasso
 
 /**
@@ -178,7 +179,7 @@ class UserProfileFragment : Fragment() {
             binding.tvFollowingCount.text = user.followingCount.toString()
 
             updatePrimaryButton(user.isFollowing)
-            loadAvatar(user.profileImage)
+            loadAvatar(user.displayName, user.profileImage)
         }
 
         viewModel.posts.observe(viewLifecycleOwner) { _ ->
@@ -235,16 +236,17 @@ class UserProfileFragment : Fragment() {
         }
     }
 
-    private fun loadAvatar(url: String?) {
+    private fun loadAvatar(name: String?, url: String?) {
+        val placeholder = AvatarHelper.createPlaceholder(requireContext(), name)
         if (url.isNullOrEmpty()) {
-            binding.ivAvatar.setImageResource(R.drawable.ic_person)
+            binding.ivAvatar.setImageDrawable(placeholder)
             return
         }
         val full = if (url.startsWith("/")) BuildConfig.BASE_URL.trimEnd('/') + url else url
         Picasso.get()
             .load(full)
-            .placeholder(R.drawable.ic_person)
-            .error(R.drawable.ic_person)
+            .placeholder(placeholder)
+            .error(placeholder)
             .into(binding.ivAvatar)
     }
 
