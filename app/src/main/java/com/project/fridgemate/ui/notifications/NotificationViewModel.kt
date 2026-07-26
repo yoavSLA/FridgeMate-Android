@@ -42,6 +42,9 @@ class NotificationViewModel : ViewModel() {
     private val _pendingSettingsOpen = MutableLiveData<Unit?>(null)
     val pendingSettingsOpen: LiveData<Unit?> = _pendingSettingsOpen
 
+    private val _pendingScanSummaryOpen = MutableLiveData<Unit?>(null)
+    val pendingScanSummaryOpen: LiveData<Unit?> = _pendingScanSummaryOpen
+
     private var socketJob: Job? = null
     private var updatedJob: Job? = null
     private var removedJob: Job? = null
@@ -120,6 +123,14 @@ class NotificationViewModel : ViewModel() {
         _pendingSettingsOpen.value = null
     }
 
+    fun requestNavToScanSummary() {
+        _pendingScanSummaryOpen.value = Unit
+    }
+
+    fun consumePendingScanSummary() {
+        _pendingScanSummaryOpen.value = null
+    }
+
     /**
      * Single source of truth for what tapping a notification does, used by both the
      * notification list and the real-time Dashboard banner. Returns true if it navigated
@@ -156,6 +167,10 @@ class NotificationViewModel : ViewModel() {
             }
             NotificationType.FRIDGE_INVITE -> {
                 requestNavToSettings()
+                true
+            }
+            NotificationType.SCAN_COMPLETE -> {
+                requestNavToScanSummary()
                 true
             }
             else -> false

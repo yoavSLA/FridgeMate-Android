@@ -19,7 +19,7 @@
         android:id="@+id/tvTitle"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Scan Summary"
+        android:text="@string/scan_summary"
         android:textColor="@color/black"
         android:textSize="20sp"
         android:textStyle="bold" />
@@ -29,7 +29,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="4dp"
-        android:textColor="@color/gray_600"
+        android:textColor="@color/gray_text"
         android:textSize="14sp"
         tools:text="July 26, 2026 at 08:07 AM" />
 
@@ -46,7 +46,7 @@
         android:id="@+id/btnClose"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Close"
+        android:text="@string/close"
         app:cornerRadius="8dp" />
 
 </LinearLayout>

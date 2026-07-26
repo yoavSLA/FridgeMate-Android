@@ -51,9 +51,6 @@ class DashboardFragment : Fragment() {
     private val fridgeViewModel: FridgeViewModel by activityViewModels()
     private val feedViewModel: FeedViewModel by activityViewModels()
 
-    private val bannerHandler = Handler(Looper.getMainLooper())
-    private val hideBannerRunnable = Runnable { hideBanner() }
-
     private var currentTabId: Int = R.id.tab_feed
 
     private var chatBadge: BadgeDrawable? = null
@@ -128,10 +125,11 @@ class DashboardFragment : Fragment() {
 
     override fun onResume() {
         super.onResume()
-        // Resync chat badge after coming back from any sub-destination
+        // Resync chat badge and fridge items after coming back from any sub-destination
         // (e.g. FridgeChatFragment, Settings). Cheap GET; safety net for
         // any unread bump events missed while the socket was disconnected.
         fridgeViewModel.refreshUnreadCount()
+        fridgeViewModel.loadItems()
     }
 
     private fun loadGreeting() {
@@ -364,12 +362,6 @@ class DashboardFragment : Fragment() {
             binding.notificationDot.isVisible = count > 0
         }
 
-        notificationViewModel.incomingNotification.observe(viewLifecycleOwner) { notification ->
-            notification ?: return@observe
-            showBanner(notification)
-            notificationViewModel.consumeIncoming()
-        }
-
         notificationViewModel.pendingPostId.observe(viewLifecycleOwner) { postId ->
             postId ?: return@observe
             if (currentTabId != R.id.tab_feed) {
@@ -414,103 +406,7 @@ class DashboardFragment : Fragment() {
         }
     }
 
-    private fun showBanner(notification: Notification) {
-        val banner = binding.notificationBanner
-        binding.bannerTitle.text = notification.title
-        binding.bannerMessage.text = notification.message
-        banner.translationY = 0f
-        banner.alpha = 1f
-        banner.visibility = View.VISIBLE
-        banner.setOnClickListener {
-            bannerHandler.removeCallbacks(hideBannerRunnable)
-            hideBanner()
-            notificationViewModel.handleNotificationClick(notification)
-        }
-        attachSwipeToDismiss(banner)
-        ObjectAnimator.ofFloat(banner, "alpha", 0f, 1f).setDuration(200).start()
-
-        bannerHandler.removeCallbacks(hideBannerRunnable)
-        bannerHandler.postDelayed(hideBannerRunnable, 3500)
-    }
-
-    @SuppressLint("ClickableViewAccessibility")
-    private fun attachSwipeToDismiss(view: View) {
-        val slop = ViewConfiguration.get(view.context).scaledTouchSlop
-        var downRawY = 0f
-        var dragging = false
-        var moved = false
-
-        view.setOnTouchListener { v, event ->
-            when (event.actionMasked) {
-                MotionEvent.ACTION_DOWN -> {
-                    downRawY = event.rawY
-                    dragging = false
-                    moved = false
-                    v.animate().cancel()
-                    bannerHandler.removeCallbacks(hideBannerRunnable)
-                    true
-                }
-                MotionEvent.ACTION_MOVE -> {
-                    val dy = event.rawY - downRawY
-                    if (abs(dy) > slop) moved = true
-                    if (dy < -slop) {
-                        dragging = true
-                        v.translationY = dy
-                    }
-                    true
-                }
-                MotionEvent.ACTION_UP -> {
-                    if (dragging) {
-                        val threshold = v.height * 0.4f
-                        if (-v.translationY > threshold) {
-                            v.animate()
-                                .translationY(-v.height.toFloat())
-                                .alpha(0f)
-                                .setDuration(180)
-                                .withEndAction {
-                                    _binding?.notificationBanner?.visibility = View.GONE
-                                    v.translationY = 0f
-                                    v.alpha = 1f
-                                }
-                                .start()
-                        } else {
-                            v.animate().translationY(0f).setDuration(180).start()
-                            bannerHandler.postDelayed(hideBannerRunnable, 3500)
-                        }
-                    } else if (!moved) {
-                        v.performClick()
-                    } else {
-                        bannerHandler.postDelayed(hideBannerRunnable, 3500)
-                    }
-                    true
-                }
-                MotionEvent.ACTION_CANCEL -> {
-                    if (dragging) {
-                        v.animate().translationY(0f).setDuration(180).start()
-                    }
-                    bannerHandler.postDelayed(hideBannerRunnable, 3500)
-                    true
-                }
-                else -> false
-            }
-        }
-    }
-
-    private fun hideBanner() {
-        val bannerView = _binding?.notificationBanner ?: return
-        val animator = ObjectAnimator.ofFloat(bannerView, "alpha", 1f, 0f).apply {
-            duration = 300
-        }
-        animator.addListener(object : android.animation.AnimatorListenerAdapter() {
-            override fun onAnimationEnd(animation: android.animation.Animator) {
-                _binding?.notificationBanner?.visibility = View.GONE
-            }
-        })
-        animator.start()
-    }
-
     override fun onDestroyView() {
-        bannerHandler.removeCallbacks(hideBannerRunnable)
         chatBadge?.let { badge ->
             if (chatBadgeAttached && _binding != null) {
                 BadgeUtils.detachBadgeDrawable(badge, binding.btnChat)

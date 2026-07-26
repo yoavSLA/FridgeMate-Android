@@ -1,11 +1,18 @@
 package com.project.fridgemate
 
 import android.Manifest
+import android.animation.ObjectAnimator
+import android.annotation.SuppressLint
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.util.Log
+import android.view.MotionEvent
+import android.view.View
+import android.view.ViewConfiguration
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
@@ -17,12 +24,16 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.updatePadding
 import androidx.lifecycle.lifecycleScope
 import com.google.firebase.messaging.FirebaseMessaging
+import com.project.fridgemate.data.local.ScanSummaryStorage
+import com.project.fridgemate.data.model.Notification
 import com.project.fridgemate.data.remote.ApiClient
 import com.project.fridgemate.data.repository.UserRepository
 import com.project.fridgemate.databinding.ActivityMainBinding
 import com.project.fridgemate.ui.notifications.NotificationViewModel
+import com.project.fridgemate.ui.settings.ScanSummaryDialog
 import kotlinx.coroutines.launch
 import org.json.JSONObject
+import kotlin.math.abs
 
 class MainActivity : AppCompatActivity() {
 
@@ -30,6 +41,9 @@ class MainActivity : AppCompatActivity() {
     private lateinit var userRepository: UserRepository
 
     private val notificationViewModel: NotificationViewModel by viewModels()
+
+    private val bannerHandler = Handler(Looper.getMainLooper())
+    private val hideBannerRunnable = Runnable { hideBanner() }
 
     private val requestNotificationPermission = registerForActivityResult(
         ActivityResultContracts.RequestPermission()
@@ -45,6 +59,7 @@ class MainActivity : AppCompatActivity() {
 
         maybeRequestNotificationPermission()
         handleNotificationIntent(intent)
+        observeNotifications()
 
         // Ensure status bar icons are white and navigation bar icons are dark
         val controller = WindowCompat.getInsetsController(window, window.decorView)
@@ -89,8 +104,123 @@ class MainActivity : AppCompatActivity() {
         handleNotificationIntent(intent)
     }
 
+    private fun observeNotifications() {
+        notificationViewModel.incomingNotification.observe(this) { notification ->
+            notification ?: return@observe
+            showBanner(notification)
+            notificationViewModel.consumeIncoming()
+        }
+
+        notificationViewModel.pendingScanSummaryOpen.observe(this) { pending ->
+            pending ?: return@observe
+            showScanSummaryPopup()
+            notificationViewModel.consumePendingScanSummary()
+        }
+    }
+
+    private fun showBanner(notification: Notification) {
+        val banner = binding.notificationBanner
+        binding.bannerTitle.text = notification.title
+        binding.bannerMessage.text = notification.message
+        banner.translationY = 0f
+        banner.alpha = 1f
+        banner.visibility = View.VISIBLE
+        banner.setOnClickListener {
+            bannerHandler.removeCallbacks(hideBannerRunnable)
+            hideBanner()
+            notificationViewModel.handleNotificationClick(notification)
+        }
+        attachSwipeToDismiss(banner)
+        ObjectAnimator.ofFloat(banner, "alpha", 0f, 1f).setDuration(200).start()
+
+        bannerHandler.removeCallbacks(hideBannerRunnable)
+        bannerHandler.postDelayed(hideBannerRunnable, 3500)
+    }
+
+    private fun hideBanner() {
+        val bannerView = binding.notificationBanner
+        val animator = ObjectAnimator.ofFloat(bannerView, "alpha", 1f, 0f).apply {
+            duration = 300
+        }
+        animator.addListener(object : android.animation.AnimatorListenerAdapter() {
+            override fun onAnimationEnd(animation: android.animation.Animator) {
+                binding.notificationBanner.visibility = View.GONE
+            }
+        })
+        animator.start()
+    }
+
+    @SuppressLint("ClickableViewAccessibility")
+    private fun attachSwipeToDismiss(view: View) {
+        val slop = ViewConfiguration.get(view.context).scaledTouchSlop
+        var downRawY = 0f
+        var dragging = false
+        var moved = false
+
+        view.setOnTouchListener { v, event ->
+            when (event.actionMasked) {
+                MotionEvent.ACTION_DOWN -> {
+                    downRawY = event.rawY
+                    dragging = false
+                    moved = false
+                    v.animate().cancel()
+                    bannerHandler.removeCallbacks(hideBannerRunnable)
+                    true
+                }
+                MotionEvent.ACTION_MOVE -> {
+                    val dy = event.rawY - downRawY
+                    if (abs(dy) > slop) moved = true
+                    if (dy < -slop) {
+                        dragging = true
+                        v.translationY = dy
+                    }
+                    true
+                }
+                MotionEvent.ACTION_UP -> {
+                    if (dragging) {
+                        val threshold = v.height * 0.4f
+                        if (-v.translationY > threshold) {
+                            v.animate()
+                                .translationY(-v.height.toFloat())
+                                .alpha(0f)
+                                .setDuration(180)
+                                .withEndAction {
+                                    binding.notificationBanner.visibility = View.GONE
+                                    v.translationY = 0f
+                                    v.alpha = 1f
+                                }
+                                .start()
+                        } else {
+                            v.animate().translationY(0f).setDuration(180).start()
+                            bannerHandler.postDelayed(hideBannerRunnable, 3500)
+                        }
+                    } else if (!moved) {
+                        v.performClick()
+                    } else {
+                        bannerHandler.postDelayed(hideBannerRunnable, 3500)
+                    }
+                    true
+                }
+                MotionEvent.ACTION_CANCEL -> {
+                    if (dragging) {
+                        v.animate().translationY(0f).setDuration(180).start()
+                    }
+                    bannerHandler.postDelayed(hideBannerRunnable, 3500)
+                    true
+                }
+                else -> false
+            }
+        }
+    }
+
+    override fun onDestroy() {
+        bannerHandler.removeCallbacks(hideBannerRunnable)
+        super.onDestroy()
+    }
+
     private fun handleNotificationIntent(intent: Intent?) {
         val type = intent?.getStringExtra("type") ?: return
+        Log.d("NotificationHandling", "Handling notification of type: $type")
         if (!ApiClient.getTokenManager().isLoggedIn) return
 
         val metadataJson = intent.getStringExtra("metadata")
@@ -104,11 +234,31 @@ class MainActivity : AppCompatActivity() {
                 val fridgeName = metadata.optString("fridgeName", "")
                 notificationViewModel.requestNavToFridgeChat(fridgeId, fridgeName)
             }
+            "SCAN_COMPLETE" -> {
+                Log.d("NotificationHandling", "Showing scan summary popup")
+                showScanSummaryPopup()
+            }
         }
 
         intent.removeExtra("type")
         intent.removeExtra("metadata")
         intent.removeExtra("notificationId")
+    }
+
+    private fun showScanSummaryPopup() {
+        val storage = ScanSummaryStorage(this)
+        val summary = storage.getLastScanSummary()
+        val createdAt = storage.getLastScanCreatedAt()
+
+        Log.d("NotificationHandling", "Summary present: ${summary != null}, CreatedAt present: ${createdAt != null}")
+
+        if (summary != null && createdAt != null) {
+            ScanSummaryDialog.newInstance(summary, createdAt)
+                .show(supportFragmentManager, ScanSummaryDialog.TAG)
+        } else {
+            Log.w("NotificationHandling", "Cannot show popup: missing summary or createdAt in storage")
+            android.widget.Toast.makeText(this, "Scan summary not found", android.widget.Toast.LENGTH_SHORT).show()
+        }
     }
 
     private fun maybeRequestNotificationPermission() {

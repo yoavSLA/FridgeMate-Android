@@ -10,8 +10,12 @@ import android.util.Log
 import androidx.core.app.NotificationCompat
 import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
+import com.project.fridgemate.data.local.ScanSummaryStorage
 import com.project.fridgemate.data.remote.ApiClient
+import com.project.fridgemate.data.remote.dto.ScanChangesDto
 import com.project.fridgemate.data.repository.UserRepository
+import com.google.gson.Gson
+import org.json.JSONObject
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -57,6 +61,43 @@ class FridgeMateMessagingService : FirebaseMessagingService() {
     ) {
         createNotificationChannel()
 
+        val type = data["type"]
+        val storage = ScanSummaryStorage(this)
+        
+        // If it's a scan notification, try to save the summary if present in data
+        if (type == "SCAN_COMPLETE") {
+            Log.d(TAG, "Scan complete notification received. Data: $data")
+            data["metadata"]?.let { metadataJson ->
+                try {
+                    val metadata = JSONObject(metadataJson)
+                    val createdAt = metadata.optString("createdAt")
+                    if (metadata.has("changes")) {
+                        val changes = try {
+                            val obj = metadata.optJSONObject("changes")
+                            if (obj != null) {
+                                Gson().fromJson(obj.toString(), ScanChangesDto::class.java)
+                            } else {
+                                val str = metadata.optString("changes")
+                                Gson().fromJson(str, ScanChangesDto::class.java)
+                            }
+                        } catch (e: Exception) {
+                            Log.e(TAG, "Failed to parse changes from metadata", e)
+                            null
+                        }
+
+                        if (changes != null && createdAt.isNotBlank()) {
+                            storage.saveLastScanSummary(changes, createdAt)
+                            Log.d(TAG, "Successfully saved scan summary from FCM")
+                        }
+                    } else {
+                        Log.w(TAG, "Scan complete notification missing 'changes' in metadata.")
+                    }
+                } catch (e: Exception) {
+                    Log.e(TAG, "Failed to parse scan summary from FCM data", e)
+                }
+            }
+        }
+
         val intent = Intent(this, MainActivity::class.java).apply {
             flags = Intent.FLAG_ACTIVITY_SINGLE_TOP or Intent.FLAG_ACTIVITY_CLEAR_TOP
             data.forEach { (k, v) -> putExtra(k, v) }
@@ -68,17 +109,23 @@ class FridgeMateMessagingService : FirebaseMessagingService() {
             PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
         )
 
-        val notification = NotificationCompat.Builder(this, CHANNEL_ID)
+        val notificationBuilder = NotificationCompat.Builder(this, CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_notifications)
             .setContentTitle(title)
             .setContentText(body)
             .setPriority(NotificationCompat.PRIORITY_HIGH)
-            .setContentIntent(pendingIntent)
             .setAutoCancel(true)
-            .build()
+
+        // Only make clickable if it's not a SCAN_COMPLETE, or if it IS a SCAN_COMPLETE and we have the summary info
+        val isScanComplete = type == "SCAN_COMPLETE"
+        val hasSummaryInfo = storage.getLastScanSummary() != null && storage.getLastScanCreatedAt() != null
+        
+        if (!isScanComplete || hasSummaryInfo) {
+            notificationBuilder.setContentIntent(pendingIntent)
+        }
 
         val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-        notificationManager.notify(requestCode, notification)
+        notificationManager.notify(requestCode, notificationBuilder.build())
     }
 
     private fun createNotificationChannel() {

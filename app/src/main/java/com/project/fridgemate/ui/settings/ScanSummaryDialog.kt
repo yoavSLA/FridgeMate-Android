@@ -17,9 +17,6 @@ class ScanSummaryDialog : BottomSheetDialogFragment() {
     private var _binding: DialogScanSummaryBinding? = null
     private val binding get() = _binding!!
 
-    private var summary: ScanChangesDto? = null
-    private var createdAt: String? = null
-
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -35,7 +32,14 @@ class ScanSummaryDialog : BottomSheetDialogFragment() {
     }
 
     private fun setupUI() {
-        val summaryData = summary ?: return
+        val summaryJson = arguments?.getString(ARG_SUMMARY) ?: return
+        val createdAt = arguments?.getString(ARG_CREATED_AT)
+        
+        val summaryData = try {
+            com.google.gson.Gson().fromJson(summaryJson, ScanChangesDto::class.java)
+        } catch (e: Exception) {
+            null
+        } ?: return
         
         val summaryItems = mutableListOf<ScanSummaryItem>()
         summaryData.added.forEach { item -> summaryItems.add(ScanSummaryItem.Added(item.name, item.quantity)) }
@@ -69,11 +73,15 @@ class ScanSummaryDialog : BottomSheetDialogFragment() {
 
     companion object {
         const val TAG = "ScanSummaryDialog"
+        private const val ARG_SUMMARY = "arg_summary"
+        private const val ARG_CREATED_AT = "arg_created_at"
         
         fun newInstance(summary: ScanChangesDto, createdAt: String): ScanSummaryDialog {
             return ScanSummaryDialog().apply {
-                this.summary = summary
-                this.createdAt = createdAt
+                arguments = Bundle().apply {
+                    putString(ARG_SUMMARY, com.google.gson.Gson().toJson(summary))
+                    putString(ARG_CREATED_AT, createdAt)
+                }
             }
         }
     }
