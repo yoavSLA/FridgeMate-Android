@@ -284,6 +284,12 @@
     <string name="onboarding_feat_share">Share with roommates or family</string>
     <string name="onboarding_feat_inventory">Keep track of your inventory</string>
     <string name="onboarding_feat_recipes">Get recipes based on what\'s inside</string>
+    <string name="onboarding_scan_title">Fill Your Fridge!</string>
+    <string name="onboarding_scan_desc">Snap a photo of your fridge, and let AI magic identify everything for you. It\'s the fastest way to get started!</string>
+    <string name="onboarding_finish_button">Finish</string>
+    <string name="onboarding_skip_scan">Skip for now</string>
+    <string name="quantity_format">(%1$s)</string>
+    <string name="onboarding_scan_later_hint">No rush! You can always fill up your virtual fridge later from Settings.</string>
     <string name="cd_logo">FridgeMate Logo</string>
     <string name="cd_community">Community Icon</string>
     <string name="cd_fridge">Fridge Icon</string>

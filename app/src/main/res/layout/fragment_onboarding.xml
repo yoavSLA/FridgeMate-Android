@@ -14,8 +14,8 @@
 
         <ImageView
             android:id="@+id/iv_logo"
-            android:layout_width="100dp"
-            android:layout_height="100dp"
+            android:layout_width="120dp"
+            android:layout_height="120dp"
             android:layout_marginTop="20dp"
             android:src="@drawable/fridgematelogo"
             android:contentDescription="@string/cd_logo"
@@ -27,7 +27,7 @@
             android:id="@+id/tv_title"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="20dp"
+            android:layout_marginTop="8dp"
             android:gravity="center"
             android:text="@string/onboarding_title"
             android:textColor="@color/black"
@@ -158,13 +158,14 @@
 
                 <com.google.android.material.textfield.TextInputLayout
                     android:id="@+id/til_fridge_name"
-                    style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+                    style="@style/Widget.Material3.TextInputLayout.FilledBox"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="12dp"
-                    app:boxBackgroundColor="@color/input_background"
-                    app:boxStrokeWidth="0dp"
-                    app:boxStrokeWidthFocused="1dp"
+                    app:boxBackgroundColor="#F0F4F3"
+                    app:boxStrokeWidth="1dp"
+                    app:boxStrokeColor="@color/accent_green"
+                    app:boxStrokeWidthFocused="1.5dp"
                     app:hintEnabled="false">
 
                     <com.google.android.material.textfield.TextInputEditText
@@ -173,7 +174,9 @@
                         android:layout_height="wrap_content"
                         android:hint="@string/onboarding_create_hint"
                         android:inputType="textCapWords"
-                        android:padding="12dp" />
+                        android:padding="16dp"
+                        android:textSize="15sp"
+                        android:gravity="center_vertical" />
                 </com.google.android.material.textfield.TextInputLayout>
 
                 <com.google.android.material.button.MaterialButton
@@ -227,13 +230,14 @@
 
                 <com.google.android.material.textfield.TextInputLayout
                     android:id="@+id/til_invite_code"
-                    style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+                    style="@style/Widget.Material3.TextInputLayout.FilledBox"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="12dp"
-                    app:boxBackgroundColor="@color/input_background"
-                    app:boxStrokeWidth="0dp"
-                    app:boxStrokeWidthFocused="1dp"
+                    app:boxBackgroundColor="#F0F4F3"
+                    app:boxStrokeWidth="1dp"
+                    app:boxStrokeColor="@color/accent_green"
+                    app:boxStrokeWidthFocused="1.5dp"
                     app:hintEnabled="false">
 
                     <com.google.android.material.textfield.TextInputEditText
@@ -242,12 +246,14 @@
                         android:layout_height="wrap_content"
                         android:hint="@string/onboarding_join_hint"
                         android:inputType="textCapCharacters"
-                        android:padding="12dp" />
+                        android:padding="16dp"
+                        android:textSize="15sp"
+                        android:gravity="center_vertical" />
                 </com.google.android.material.textfield.TextInputLayout>
 
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/btn_join"
-                    style="@style/Widget.Material3.Button.TonalButton"
+                    style="@style/Widget.Material3.Button.OutlinedButton"
                     android:layout_width="match_parent"
                     android:layout_height="52dp"
                     android:layout_marginTop="12dp"
@@ -255,24 +261,12 @@
                     android:textAllCaps="false"
                     android:textSize="15sp"
                     android:textStyle="bold"
+                    android:textColor="@color/accent_green"
+                    app:strokeColor="@color/accent_green"
                     app:cornerRadius="12dp" />
 
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
-
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/btn_skip"
-            style="@style/Widget.Material3.Button.TextButton"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="20dp"
-            android:layout_marginBottom="20dp"
-            android:text="@string/onboarding_skip"
-            android:textColor="@color/gray_text"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/card_join" />
 
         <FrameLayout
             android:id="@+id/loading_overlay"
@@ -282,6 +276,8 @@
             android:clickable="true"
             android:focusable="true"
             android:visibility="gone"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
             tools:visibility="visible">
             <ProgressBar
                 android:layout_width="wrap_content"
