@@ -1,5 +1,6 @@
 package com.project.fridgemate.ui.profile
 
+import android.content.res.ColorStateList
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -264,20 +265,32 @@ class UserProfileFragment : Fragment() {
     }
 
     private fun updatePrimaryButton(isFollowing: Boolean) {
+        val context = requireContext()
         if (isMe) {
             binding.btnPrimary.setText(R.string.edit_profile)
-            binding.btnPrimary.setBackgroundColor(
-                requireContext().getColor(R.color.accent_green)
-            )
+            binding.btnPrimary.setIconResource(R.drawable.ic_edit)
+            binding.btnPrimary.iconTint = ColorStateList.valueOf(context.getColor(R.color.gray_text))
+            binding.btnPrimary.setTextColor(context.getColor(R.color.gray_text))
+            binding.btnPrimary.backgroundTintList = ColorStateList.valueOf(context.getColor(R.color.white))
+            binding.btnPrimary.strokeColor = ColorStateList.valueOf(context.getColor(R.color.divider_color))
+            binding.btnPrimary.strokeWidth = context.resources.getDimensionPixelSize(R.dimen.button_stroke_width)
         } else {
-            binding.btnPrimary.setText(
-                if (isFollowing) R.string.following_action else R.string.follow_action
-            )
-            binding.btnPrimary.setBackgroundColor(
-                requireContext().getColor(
-                    if (isFollowing) R.color.gray_text else R.color.accent_green
-                )
-            )
+            if (isFollowing) {
+                binding.btnPrimary.setText(R.string.following_action)
+                binding.btnPrimary.setIconResource(R.drawable.ic_check)
+                binding.btnPrimary.iconTint = ColorStateList.valueOf(context.getColor(R.color.gray_text))
+                binding.btnPrimary.setTextColor(context.getColor(R.color.gray_text))
+                binding.btnPrimary.backgroundTintList = ColorStateList.valueOf(context.getColor(R.color.white))
+                binding.btnPrimary.strokeColor = ColorStateList.valueOf(context.getColor(R.color.divider_color))
+                binding.btnPrimary.strokeWidth = context.resources.getDimensionPixelSize(R.dimen.button_stroke_width)
+            } else {
+                binding.btnPrimary.setText(R.string.follow_action)
+                binding.btnPrimary.setIconResource(R.drawable.ic_plus_small)
+                binding.btnPrimary.iconTint = ColorStateList.valueOf(context.getColor(R.color.white))
+                binding.btnPrimary.setTextColor(context.getColor(R.color.white))
+                binding.btnPrimary.backgroundTintList = ColorStateList.valueOf(context.getColor(R.color.accent_green))
+                binding.btnPrimary.strokeWidth = 0
+            }
         }
     }
 

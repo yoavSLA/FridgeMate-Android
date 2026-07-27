@@ -213,12 +213,6 @@ class SharedFridgeViewModel(application: Application) : AndroidViewModel(applica
                     _scanResult.value = scan.detectedItems
                     _scanSummary.value = scan.changes
                     _lastScannedAt.value = scan.createdAt
-                    val count = scan.detectedItems.size
-                    _actionSuccess.value = getApplication<Application>().resources.getQuantityString(
-                        R.plurals.items_detected_success,
-                        count,
-                        count
-                    )
                 }
                 _isScanning.value = false
                 _activeScanId.value = null

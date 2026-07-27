@@ -1,5 +1,6 @@
 package com.project.fridgemate.ui.users
 
+import android.content.res.ColorStateList
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -69,14 +70,21 @@ class UserListAdapter(
                 btnFollow.visibility = View.GONE
             } else {
                 btnFollow.visibility = View.VISIBLE
-                btnFollow.setText(
-                    if (user.isFollowing) R.string.following_action else R.string.follow_action
-                )
-                btnFollow.setBackgroundColor(
-                    root.context.getColor(
-                        if (user.isFollowing) R.color.gray_text else R.color.accent_green
-                    )
-                )
+                val context = root.context
+                if (user.isFollowing) {
+                    btnFollow.text = ""
+                    btnFollow.setIconResource(R.drawable.ic_check)
+                    btnFollow.iconTint = ColorStateList.valueOf(context.getColor(R.color.accent_green_dark))
+                    btnFollow.backgroundTintList = ColorStateList.valueOf(context.getColor(R.color.white))
+                    btnFollow.strokeColor = ColorStateList.valueOf(context.getColor(R.color.divider_color))
+                    btnFollow.strokeWidth = context.resources.getDimensionPixelSize(R.dimen.button_stroke_width)
+                } else {
+                    btnFollow.text = ""
+                    btnFollow.setIconResource(R.drawable.ic_plus_small)
+                    btnFollow.iconTint = ColorStateList.valueOf(context.getColor(R.color.white))
+                    btnFollow.backgroundTintList = ColorStateList.valueOf(context.getColor(R.color.accent_green))
+                    btnFollow.strokeWidth = 0
+                }
                 btnFollow.setOnClickListener { onFollowClick(user) }
             }
 

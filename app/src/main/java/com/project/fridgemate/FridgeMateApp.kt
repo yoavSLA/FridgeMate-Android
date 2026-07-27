@@ -15,6 +15,7 @@ class FridgeMateApp : Application() {
         AppDatabase.getInstance(this)
         PicassoCache.init(this)
         registerActivityLifecycleCallbacks(ForegroundTracker)
+        NotificationHelper.createNotificationChannel(this)
     }
 
     companion object {

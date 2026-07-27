@@ -11,7 +11,17 @@ class TokenManager(context: Context) {
 
     private val prefs: SharedPreferences by lazy {
         val masterKey = MasterKeys.getOrCreate(MasterKeys.AES256_GCM_SPEC)
-        EncryptedSharedPreferences.create(
+        try {
+            createPrefs(context, masterKey)
+        } catch (e: Exception) {
+            // If decryption fails (e.g. key corruption), clear and recreate
+            context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE).edit().clear().apply()
+            createPrefs(context, masterKey)
+        }
+    }
+
+    private fun createPrefs(context: Context, masterKey: String): SharedPreferences {
+        return EncryptedSharedPreferences.create(
             PREFS_NAME,
             masterKey,
             context.applicationContext,
