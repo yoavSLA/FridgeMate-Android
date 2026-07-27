@@ -57,8 +57,6 @@ class DashboardFragment : Fragment() {
     private var chatBadge: BadgeDrawable? = null
     private var chatBadgeAttached = false
 
-    private var hasShownOnboarding = false
-
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -331,9 +329,11 @@ class DashboardFragment : Fragment() {
 
     private fun observeFridgeState() {
         fridgeViewModel.state.observe(viewLifecycleOwner) { state ->
-            if (state is FridgeViewModel.State.NoFridge && !hasShownOnboarding) {
-                hasShownOnboarding = true
-                findNavController().navigate(R.id.action_dashboardFragment_to_onboardingFragment)
+            if (state is FridgeViewModel.State.NoFridge) {
+                val navController = findNavController()
+                if (navController.currentDestination?.id == R.id.dashboardFragment) {
+                    navController.navigate(R.id.action_dashboardFragment_to_onboardingFragment)
+                }
             }
         }
     }

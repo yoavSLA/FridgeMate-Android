@@ -1,9 +1,6 @@
 package com.project.fridgemate.ui.settings
 
 import android.Manifest
-import android.content.ClipData
-import android.content.ClipboardManager
-import android.content.Context
 import android.graphics.Bitmap
 import android.net.Uri
 import android.os.Bundle
@@ -14,28 +11,20 @@ import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.lifecycleScope
-import com.google.android.material.bottomsheet.BottomSheetDialog
-import com.project.fridgemate.R
-import com.project.fridgemate.data.local.AppDatabase
-import com.project.fridgemate.data.remote.dto.ScanChangesDto
-import com.project.fridgemate.data.local.entity.RecipeEntity
-import kotlinx.coroutines.launch
 import androidx.fragment.app.activityViewModels
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
-import com.project.fridgemate.databinding.DialogLeaveFridgeBinding
-import com.project.fridgemate.databinding.FragmentSettingsBinding
-import com.project.fridgemate.ui.fridge.FridgeViewModel
+import com.project.fridgemate.R
+import com.project.fridgemate.data.remote.dto.ScanChangesDto
+import com.project.fridgemate.databinding.FragmentFridgeScanOnboardingBinding
 import java.io.ByteArrayOutputStream
 
-class SettingsFragment : Fragment() {
+class FridgeScanOnboardingFragment : Fragment() {
 
-    private var _binding: FragmentSettingsBinding? = null
+    private var _binding: FragmentFridgeScanOnboardingBinding? = null
     private val binding get() = _binding!!
 
     private val viewModel: SharedFridgeViewModel by activityViewModels()
-    private val fridgeViewModel: FridgeViewModel by activityViewModels()
 
     private val takePictureLauncher =
         registerForActivityResult(ActivityResultContracts.TakePicturePreview()) { bitmap ->
@@ -54,10 +43,11 @@ class SettingsFragment : Fragment() {
         }
 
     override fun onCreateView(
-        inflater: LayoutInflater, container: ViewGroup?,
+        inflater: LayoutInflater,
+        container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        _binding = FragmentSettingsBinding.inflate(inflater, container, false)
+        _binding = FragmentFridgeScanOnboardingBinding.inflate(inflater, container, false)
         return binding.root
     }
 
@@ -66,58 +56,27 @@ class SettingsFragment : Fragment() {
 
         setupListeners()
         setupObservers()
-        
+
         viewModel.scanWorkInfo.observe(viewLifecycleOwner) { workInfo ->
             workInfo?.let { viewModel.handleScanWorkInfo(it) }
         }
+    }
 
-        viewModel.loadFridge()
+    private fun setupListeners() {
+        binding.btnUploadPhoto.setOnClickListener {
+            showImageSourceDialog()
+        }
+
+        binding.btnSkipScan.setOnClickListener {
+            finishOnboarding()
+        }
+
+        binding.btnFinish.setOnClickListener {
+            finishOnboarding()
+        }
     }
 
     private fun setupObservers() {
-        viewModel.hasFridge.observe(viewLifecycleOwner) { hasFridge ->
-            when (hasFridge) {
-                true -> {
-                    binding.cardSharedFridge.visibility = View.VISIBLE
-                    binding.cardFridgeScanner.visibility = View.VISIBLE
-                }
-                false -> {
-                    binding.cardSharedFridge.visibility = View.GONE
-                    binding.cardFridgeScanner.visibility = View.GONE
-                    clearRecipeCache()
-                    // Redirect to onboarding
-                    val navController = findNavController()
-                    if (navController.currentDestination?.id == R.id.settingsFragment) {
-                        navController.navigate(R.id.onboardingFragment)
-                    }
-                }
-                null -> {}
-            }
-        }
-
-        viewModel.fridgeName.observe(viewLifecycleOwner) { name ->
-            binding.tvFridgeName.text = name
-        }
-
-        viewModel.inviteCode.observe(viewLifecycleOwner) { code ->
-            binding.tvInviteCode.text = code
-        }
-
-        viewModel.lastScannedAt.observe(viewLifecycleOwner) { timestamp ->
-            if (timestamp != null) {
-                binding.lastScannedLayout.visibility = View.VISIBLE
-                binding.tvLastScannedAt.text = timestamp
-            } else {
-                binding.lastScannedLayout.visibility = View.GONE
-            }
-        }
-
-        viewModel.members.observe(viewLifecycleOwner) { members ->
-            binding.tvMembersCount.text = "${members.size} members"
-            binding.rvMembers.layoutManager = LinearLayoutManager(requireContext())
-            binding.rvMembers.adapter = MemberAdapter(members)
-        }
-
         viewModel.error.observe(viewLifecycleOwner) { error ->
             error?.let {
                 Toast.makeText(requireContext(), it, Toast.LENGTH_LONG).show()
@@ -125,21 +84,11 @@ class SettingsFragment : Fragment() {
             }
         }
 
-        viewModel.actionSuccess.observe(viewLifecycleOwner) { message ->
-            message?.let {
-                Toast.makeText(requireContext(), it, Toast.LENGTH_SHORT).show()
-                viewModel.clearActionSuccess()
-            }
-        }
-
-        viewModel.isLoading.observe(viewLifecycleOwner) { loading ->
-            binding.loadingOverlay.visibility = if (loading) View.VISIBLE else View.GONE
-            binding.btnLeaveFridge.isEnabled = !loading
-        }
-
         viewModel.isScanning.observe(viewLifecycleOwner) { scanning ->
             binding.scanProgressLayout.visibility = if (scanning) View.VISIBLE else View.GONE
-            binding.btnUploadFridgePhoto.isEnabled = !scanning
+            binding.btnUploadPhoto.isEnabled = !scanning
+            binding.btnSkipScan.isEnabled = !scanning
+            binding.tvScanLaterHint.isEnabled = !scanning
         }
 
         viewModel.scanResult.observe(viewLifecycleOwner) { items ->
@@ -148,8 +97,14 @@ class SettingsFragment : Fragment() {
                 binding.tvScanResultTitle.text = "Detected Items (${items.size})"
                 binding.rvScanResults.layoutManager = LinearLayoutManager(requireContext())
                 binding.rvScanResults.adapter = DetectedItemAdapter(items)
+                
+                // Once scanned, hide the skip button and hint, encourage finishing
+                binding.btnSkipScan.visibility = View.GONE
+                binding.tvScanLaterHint.visibility = View.GONE
             } else {
                 binding.scanResultsLayout.visibility = View.GONE
+                binding.btnSkipScan.visibility = View.VISIBLE
+                binding.tvScanLaterHint.visibility = View.VISIBLE
             }
         }
 
@@ -170,53 +125,6 @@ class SettingsFragment : Fragment() {
                 binding.rvScanSummary.visibility = View.GONE
             }
         }
-    }
-
-    private fun setupListeners() {
-        binding.btnBack.setOnClickListener {
-            findNavController().navigateUp()
-        }
-
-        binding.btnUploadFridgePhoto.setOnClickListener {
-            showImageSourceDialog()
-        }
-
-        binding.btnCopyCode.setOnClickListener {
-            copyInviteCode(viewModel.inviteCode.value ?: "")
-        }
-
-        binding.btnLeaveFridge.setOnClickListener {
-            showLeaveFridgeDialog()
-        }
-    }
-
-    private fun copyInviteCode(code: String) {
-        val clipboard = requireContext()
-            .getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-        clipboard.setPrimaryClip(ClipData.newPlainText("Invite Code", code))
-        Toast.makeText(context, "Code copied!", Toast.LENGTH_SHORT).show()
-    }
-
-    private fun showLeaveFridgeDialog() {
-        val dialog = BottomSheetDialog(requireContext())
-        val dialogBinding = DialogLeaveFridgeBinding.inflate(layoutInflater)
-        dialog.setContentView(dialogBinding.root)
-
-        val fridgeName = viewModel.fridgeName.value ?: "this fridge"
-        dialogBinding.tvMessage.text = "Are you sure you want to leave $fridgeName?"
-
-        dialogBinding.btnConfirmLeave.setOnClickListener {
-            viewModel.leaveFridge()
-            // Clear fridge items state immediately
-            fridgeViewModel.loadItems()
-            dialog.dismiss()
-        }
-
-        dialogBinding.btnCancel.setOnClickListener {
-            dialog.dismiss()
-        }
-
-        dialog.show()
     }
 
     private fun showImageSourceDialog() {
@@ -245,12 +153,14 @@ class SettingsFragment : Fragment() {
         viewModel.uploadFridgeScan(bytes, mimeType)
     }
 
-    private fun clearRecipeCache() {
-        viewModel.clearRecipeCache()
+    private fun finishOnboarding() {
+        // Go back to dashboard
+        findNavController().popBackStack(R.id.dashboardFragment, false)
     }
 
     override fun onDestroyView() {
         super.onDestroyView()
+        viewModel.clearScanResult()
         _binding = null
     }
 }

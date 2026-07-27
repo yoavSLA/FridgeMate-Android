@@ -36,19 +36,22 @@ class ScanSummaryAdapter(
             is ScanSummaryItem.Added -> {
                 holder.binding.ivTypeIcon.setImageResource(R.drawable.ic_add)
                 holder.binding.ivTypeIcon.setColorFilter(ContextCompat.getColor(context, R.color.accent_green))
-                holder.binding.tvChangeText.text = "${item.name} (${item.quantity})"
+                holder.binding.tvItemName.text = item.name
+                holder.binding.tvItemQuantity.text = context.getString(R.string.quantity_format, item.quantity)
                 holder.binding.root.setCardBackgroundColor(ContextCompat.getColor(context, R.color.accent_green_light))
             }
             is ScanSummaryItem.Updated -> {
                 holder.binding.ivTypeIcon.setImageResource(R.drawable.ic_edit)
                 holder.binding.ivTypeIcon.setColorFilter(ContextCompat.getColor(context, R.color.macro_carbs))
-                holder.binding.tvChangeText.text = "${item.name}: ${item.oldQuantity} → ${item.newQuantity}"
+                holder.binding.tvItemName.text = item.name
+                holder.binding.tvItemQuantity.text = "${item.oldQuantity} → ${item.newQuantity}"
                 holder.binding.root.setCardBackgroundColor(ContextCompat.getColor(context, R.color.warning_yellow_bg))
             }
             is ScanSummaryItem.Removed -> {
                 holder.binding.ivTypeIcon.setImageResource(R.drawable.ic_close)
                 holder.binding.ivTypeIcon.setColorFilter(ContextCompat.getColor(context, R.color.error_red))
-                holder.binding.tvChangeText.text = "${item.name} (${item.quantity})"
+                holder.binding.tvItemName.text = item.name
+                holder.binding.tvItemQuantity.text = context.getString(R.string.quantity_format, item.quantity)
                 holder.binding.root.setCardBackgroundColor(ContextCompat.getColor(context, R.color.light_gray))
             }
         }

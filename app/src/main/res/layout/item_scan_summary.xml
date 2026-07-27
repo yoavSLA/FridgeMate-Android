@@ -24,14 +24,25 @@
             tools:tint="@color/accent_green" />
 
         <TextView
-            android:id="@+id/tvChangeText"
+            android:id="@+id/tvItemName"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginStart="8dp"
+            android:layout_marginEnd="24dp"
             android:layout_weight="1"
+            android:maxLines="3"
+            android:ellipsize="end"
             android:textColor="@color/black"
             android:textSize="13sp"
-            tools:text="Milk (2L)" />
+            tools:text="Milk" />
+
+        <TextView
+            android:id="@+id/tvItemQuantity"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="@color/gray_text"
+            android:textSize="12sp"
+            tools:text="(2L)" />
 
     </LinearLayout>
 </com.google.android.material.card.MaterialCardView>
