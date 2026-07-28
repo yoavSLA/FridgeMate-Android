@@ -165,6 +165,19 @@ class UserProfileFragment : Fragment() {
                 viewModel.toggleFollow()
             }
         }
+
+        binding.layoutLocationHeader.setOnClickListener {
+            val locationText = binding.tvLocation.text.toString()
+            if (locationText.isNotEmpty()) {
+                val uri = android.net.Uri.parse("geo:0,0?q=${android.net.Uri.encode(locationText)}")
+                val intent = android.content.Intent(android.content.Intent.ACTION_VIEW, uri)
+                try {
+                    startActivity(intent)
+                } catch (e: Exception) {
+                    ToastHelper.showToast(requireContext(), "No map application found")
+                }
+            }
+        }
     }
 
     private fun observe() {
