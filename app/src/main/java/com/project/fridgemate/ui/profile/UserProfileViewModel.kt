@@ -64,12 +64,22 @@ class UserProfileViewModel(application: Application) : AndroidViewModel(applicat
         loadedUserId = targetUserId
         viewModelScope.launch {
             _isLoading.value = true
+            _error.value = null // Clear previous errors
             try {
-                val fresh = userRepository.getUserById(targetUserId)
-                _user.value = fresh
-                loadPostsFor(targetUserId)
+                when (val result = userRepository.getUserById(targetUserId)) {
+                    is FridgeResult.Success -> {
+                        _user.value = result.data
+                        loadPostsFor(targetUserId)
+                    }
+                    is FridgeResult.Error -> {
+                        _error.value = result.message
+                        _user.value = null
+                    }
+                    else -> {}
+                }
             } catch (e: Exception) {
                 _error.value = e.message
+                _user.value = null
             } finally {
                 _isLoading.value = false
             }
@@ -80,11 +90,20 @@ class UserProfileViewModel(application: Application) : AndroidViewModel(applicat
         viewModelScope.launch {
             if (showIndicator) _isRefreshing.value = true
             try {
-                val fresh = userRepository.getUserById(targetUserId)
-                if (fresh != null) _user.value = fresh
-                loadPostsFor(targetUserId)
-            } catch (_: Exception) { /* keep current */ }
-            finally {
+                when (val result = userRepository.getUserById(targetUserId)) {
+                    is FridgeResult.Success -> {
+                        _user.value = result.data
+                        loadPostsFor(targetUserId)
+                        if (!showIndicator) _error.value = null // Success clears error if silent
+                    }
+                    is FridgeResult.Error -> {
+                        if (showIndicator) _error.value = result.message
+                    }
+                    else -> {}
+                }
+            } catch (e: Exception) {
+                if (showIndicator) _error.value = e.message
+            } finally {
                 if (showIndicator) _isRefreshing.value = false
             }
         }

@@ -107,7 +107,13 @@ class UserListFragment : Fragment() {
         viewModel.error.observe(viewLifecycleOwner) { err ->
             err?.let {
                 val userFriendly = ErrorMapper.mapToUserFriendly(requireContext(), it)
-                ToastHelper.showToast(requireContext(), userFriendly)
+                if (adapter.itemCount > 0) {
+                    if (!ErrorMapper.isGeneric(requireContext(), userFriendly)) {
+                        ToastHelper.showToast(requireContext(), userFriendly)
+                    }
+                } else {
+                    ToastHelper.showToast(requireContext(), userFriendly)
+                }
                 viewModel.clearError()
             }
         }

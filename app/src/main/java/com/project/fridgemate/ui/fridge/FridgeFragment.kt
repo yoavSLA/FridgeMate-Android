@@ -71,7 +71,9 @@ class FridgeFragment : Fragment() {
                 // Only show toast if we are NOT showing the full-screen error state
                 // (i.e., we already have some items or members cached/loaded)
                 if (currentItems.isNotEmpty() || viewModel.members.value?.isNotEmpty() == true) {
-                    ToastHelper.showToast(requireContext(), userFriendly)
+                    if (!ErrorMapper.isGeneric(requireContext(), userFriendly)) {
+                        ToastHelper.showToast(requireContext(), userFriendly)
+                    }
                 }
                 viewModel.clearError()
             }

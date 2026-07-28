@@ -28,19 +28,37 @@ class JournalRepository(context: Context) {
     }
 
     suspend fun getJournals(): FridgeResult<JournalListResponse> {
+        android.util.Log.d("JournalRepository", "Fetching journals...")
         return try {
             val response = api.getJournals(1, 100) // fetch latest 100
+            android.util.Log.d("JournalRepository", "API Response: ${response.code()} ${response.message()}")
             if (response.isSuccessful) {
-                val data = response.body()!!
-                // cache
-                val entities = data.items.map { it.toEntity() }
-                dao.clearAll()
-                dao.insertAll(entities)
+                val data = response.body() ?: return FridgeResult.Error("Empty response from server")
+                android.util.Log.d("JournalRepository", "API Response Data: $data")
+                val entities = data.items?.mapNotNull { dto ->
+                    try {
+                        dto.toEntity()
+                    } catch (e: Exception) {
+                        android.util.Log.e("JournalRepository", "Failed to map entry ${dto.id ?: "unknown"}", e)
+                        null
+                    }
+                } ?: emptyList()
+
+                // Only clear and update cache if we managed to map something or it's a valid empty response
+                if (entities.isNotEmpty() || (data.items != null && data.items.isEmpty())) {
+                    dao.clearAll()
+                    dao.insertAll(entities)
+                }
+                
                 FridgeResult.Success(data)
             } else {
-                FridgeResult.Error(parseError(response.errorBody()?.string()))
+                val errorBody = response.errorBody()?.string()
+                val errorMsg = parseError(errorBody)
+                android.util.Log.e("JournalRepository", "API Error ${response.code()}: $errorMsg | Body: $errorBody")
+                FridgeResult.Error(errorMsg)
             }
         } catch (e: Exception) {
+            android.util.Log.e("JournalRepository", "Network/Parsing Exception", e)
             FridgeResult.Error(networkErrorMessage(e))
         }
     }
@@ -61,9 +79,13 @@ class JournalRepository(context: Context) {
                 dao.insert(entry.toEntity())
                 FridgeResult.Success(entry)
             } else {
-                FridgeResult.Error(parseError(response.errorBody()?.string()))
+                val errorBody = response.errorBody()?.string()
+                val errorMsg = parseError(errorBody)
+                android.util.Log.e("JournalRepository", "Create Journal API Error ${response.code()}: $errorMsg")
+                FridgeResult.Error(errorMsg)
             }
         } catch (e: Exception) {
+            android.util.Log.e("JournalRepository", "Create Journal Exception", e)
             FridgeResult.Error(networkErrorMessage(e))
         }
     }
@@ -76,9 +98,13 @@ class JournalRepository(context: Context) {
                 dao.insert(entry.toEntity())
                 FridgeResult.Success(entry)
             } else {
-                FridgeResult.Error(parseError(response.errorBody()?.string()))
+                val errorBody = response.errorBody()?.string()
+                val errorMsg = parseError(errorBody)
+                android.util.Log.e("JournalRepository", "Update Journal API Error ${response.code()}: $errorMsg")
+                FridgeResult.Error(errorMsg)
             }
         } catch (e: Exception) {
+            android.util.Log.e("JournalRepository", "Update Journal Exception", e)
             FridgeResult.Error(networkErrorMessage(e))
         }
     }
@@ -90,9 +116,13 @@ class JournalRepository(context: Context) {
                 dao.deleteById(id)
                 FridgeResult.Success(Unit)
             } else {
-                FridgeResult.Error(parseError(response.errorBody()?.string()))
+                val errorBody = response.errorBody()?.string()
+                val errorMsg = parseError(errorBody)
+                android.util.Log.e("JournalRepository", "Delete Journal API Error ${response.code()}: $errorMsg")
+                FridgeResult.Error(errorMsg)
             }
         } catch (e: Exception) {
+            android.util.Log.e("JournalRepository", "Delete Journal Exception", e)
             FridgeResult.Error(networkErrorMessage(e))
         }
     }
@@ -111,9 +141,13 @@ class JournalRepository(context: Context) {
             if (response.isSuccessful) {
                 FridgeResult.Success(response.body()!!.data.imageUrl)
             } else {
-                FridgeResult.Error(parseError(response.errorBody()?.string()))
+                val errorBody = response.errorBody()?.string()
+                val errorMsg = parseError(errorBody)
+                android.util.Log.e("JournalRepository", "Upload Image API Error ${response.code()}: $errorMsg")
+                FridgeResult.Error(errorMsg)
             }
         } catch (e: Exception) {
+            android.util.Log.e("JournalRepository", "Upload Image Exception", e)
             FridgeResult.Error(networkErrorMessage(e))
         }
     }
@@ -121,15 +155,17 @@ class JournalRepository(context: Context) {
 
 
     private fun JournalEntryDto.toEntity(): JournalEntity {
-        val meal = meals.firstOrNull()
+        val meal = meals?.firstOrNull()
         val time = try {
-            dateFormat.parse(date)?.time ?: System.currentTimeMillis()
+            if (date.isNullOrEmpty()) System.currentTimeMillis()
+            else dateFormat.parse(date)?.time ?: System.currentTimeMillis()
         } catch (e: Exception) {
             System.currentTimeMillis()
         }
+        
         return JournalEntity(
-            id = id,
-            title = title,
+            id = id ?: java.util.UUID.randomUUID().toString(),
+            title = title ?: "Untitled Entry",
             content = content ?: "",
             date = time,
             mealType = meal?.mealType ?: "",
@@ -137,7 +173,11 @@ class JournalRepository(context: Context) {
             macros = meal?.notes ?: "",
             mood = mood ?: "",
             imageUrl = imageUrl ?: "",
-            recipeId = meal?.recipeId
+            recipeId = meal?.recipeId?.let { 
+                if (it.isJsonPrimitive) it.asString 
+                else if (it.isJsonObject) it.asJsonObject.get("id")?.asString ?: it.asJsonObject.get("_id")?.asString
+                else it.toString() 
+            }
         )
     }
 
@@ -152,7 +192,7 @@ class JournalRepository(context: Context) {
             meals = listOf(
                 com.project.fridgemate.data.remote.dto.JournalMealDto(
                     mealType = mealType,
-                    recipeId = recipeId,
+                    recipeId = recipeId?.let { com.google.gson.JsonPrimitive(it) },
                     customRecipeTitle = null,
                     calories = calories.toIntOrNull(),
                     notes = macros
@@ -167,12 +207,12 @@ class JournalRepository(context: Context) {
     }
 
     private fun parseError(errorBody: String?): String {
-        if (errorBody.isNullOrBlank()) return "Something went wrong. Please try again."
+        if (errorBody.isNullOrBlank()) return "Empty error from server"
         return try {
             val json = org.json.JSONObject(errorBody)
-            json.optString("message", "Something went wrong. Please try again.")
+            json.optString("message", errorBody)
         } catch (_: Exception) {
-            errorBody
+            errorBody ?: "Unknown error"
         }
     }
 

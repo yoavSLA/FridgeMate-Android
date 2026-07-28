@@ -32,6 +32,8 @@ class JournalViewModel(application: Application) : AndroidViewModel(application)
     private val _error = MutableLiveData<String?>(null)
     val error: LiveData<String?> = _error
 
+    private var isFirstLoad = true
+
     private val _actionSuccess = MutableLiveData<Boolean?>(null)
     val actionSuccess: LiveData<Boolean?> = _actionSuccess
 
@@ -52,32 +54,47 @@ class JournalViewModel(application: Application) : AndroidViewModel(application)
         if (_isLoading.value == true) return
 
         viewModelScope.launch {
-            val startTime = System.currentTimeMillis()
-            _isLoading.value = true
-            _error.value = null
-            
-            val result = repository.getJournals()
-            
-            // Artificial delay if the request was too fast (e.g. instant network error)
-            val elapsed = System.currentTimeMillis() - startTime
-            if (elapsed < 1500) kotlinx.coroutines.delay(1500 - elapsed)
-
-            when (result) {
-                is FridgeResult.Success -> {
-                    _entries.value = result.data.items.map { it.toJournalEntry() }
-                }
-                is FridgeResult.Error -> {
-                    // Load from cache FIRST if network fails so fragment can see we have data
+            try {
+                val startTime = System.currentTimeMillis()
+                _isLoading.value = true
+                _error.value = null
+                
+                // If it's first load, try to show cache immediately
+                if (isFirstLoad) {
                     val cached = repository.getCachedJournals()
                     if (cached.isNotEmpty()) {
-                        _entries.value = cached.map { it.toJournalEntry() }
+                        _entries.value = cached.mapNotNull { it.toJournalEntry() }
                     }
-                    // THEN set error to trigger the toast
-                    _error.value = result.message
                 }
-                else -> {}
+
+                val result = repository.getJournals()
+                
+                // Artificial delay if the request was too fast (e.g. instant network error)
+                val elapsed = System.currentTimeMillis() - startTime
+                if (elapsed < 1000) kotlinx.coroutines.delay(1000 - elapsed)
+
+                when (result) {
+                    is FridgeResult.Success -> {
+                        _entries.value = result.data.items?.mapNotNull { it.toJournalEntry() } ?: emptyList()
+                        isFirstLoad = false
+                    }
+                    is FridgeResult.Error -> {
+                        // Refresh from cache again if network fails, just in case
+                        val cached = repository.getCachedJournals()
+                        if (cached.isNotEmpty()) {
+                            _entries.value = cached.mapNotNull { it.toJournalEntry() }
+                        }
+                        // THEN set error to trigger the toast or error state
+                        _error.value = result.message
+                    }
+                    else -> {}
+                }
+            } catch (e: Exception) {
+                android.util.Log.e("JournalViewModel", "Load Entries Failed", e)
+                _error.value = e.localizedMessage ?: "Sync failed"
+            } finally {
+                _isLoading.value = false
             }
-            _isLoading.value = false
         }
     }
 
@@ -91,7 +108,7 @@ class JournalViewModel(application: Application) : AndroidViewModel(application)
                 meals = listOf(
                     JournalMealDto(
                         mealType = if (entry.mealType.isNotEmpty()) entry.mealType.uppercase(Locale.US) else "SNACK",
-                        recipeId = entry.recipeId,
+                        recipeId = entry.recipeId?.let { com.google.gson.JsonPrimitive(it) },
                         customRecipeTitle = null,
                         calories = entry.calories.toIntOrNull(),
                         notes = entry.macros
@@ -104,10 +121,16 @@ class JournalViewModel(application: Application) : AndroidViewModel(application)
 
             when (val result = repository.createJournal(request)) {
                 is FridgeResult.Success -> {
-                    val currentList = _entries.value?.toMutableList() ?: mutableListOf()
-                    currentList.add(0, result.data.toJournalEntry())
-                    _entries.value = currentList
-                    _actionSuccess.value = true
+                    val journalEntry = result.data.toJournalEntry()
+                    if (journalEntry != null) {
+                        val currentList = _entries.value?.toMutableList() ?: mutableListOf()
+                        currentList.add(0, journalEntry)
+                        _entries.value = currentList
+                        _actionSuccess.value = true
+                    } else {
+                        _error.value = "Failed to parse new entry"
+                        _actionSuccess.value = false
+                    }
                 }
                 is FridgeResult.Error -> {
                     _error.value = result.message
@@ -129,7 +152,7 @@ class JournalViewModel(application: Application) : AndroidViewModel(application)
                 meals = listOf(
                     JournalMealDto(
                         mealType = if (updatedEntry.mealType.isNotEmpty()) updatedEntry.mealType.uppercase(Locale.US) else "SNACK",
-                        recipeId = updatedEntry.recipeId,
+                        recipeId = updatedEntry.recipeId?.let { com.google.gson.JsonPrimitive(it) },
                         customRecipeTitle = null,
                         calories = updatedEntry.calories.toIntOrNull(),
                         notes = updatedEntry.macros
@@ -142,13 +165,19 @@ class JournalViewModel(application: Application) : AndroidViewModel(application)
 
             when (val result = repository.updateJournal(updatedEntry.id, request)) {
                 is FridgeResult.Success -> {
-                    val currentList = _entries.value?.toMutableList() ?: return@launch
-                    val index = currentList.indexOfFirst { it.id == updatedEntry.id }
-                    if (index != -1) {
-                        currentList[index] = result.data.toJournalEntry()
-                        _entries.value = currentList
+                    val journalEntry = result.data.toJournalEntry()
+                    if (journalEntry != null) {
+                        val currentList = _entries.value?.toMutableList() ?: return@launch
+                        val index = currentList.indexOfFirst { it.id == updatedEntry.id }
+                        if (index != -1) {
+                            currentList[index] = journalEntry
+                            _entries.value = currentList
+                        }
+                        _actionSuccess.value = true
+                    } else {
+                        _error.value = "Failed to parse updated entry"
+                        _actionSuccess.value = false
                     }
-                    _actionSuccess.value = true
                 }
                 is FridgeResult.Error -> {
                     _error.value = result.message
@@ -169,6 +198,8 @@ class JournalViewModel(application: Application) : AndroidViewModel(application)
                     currentList.removeAll { it.id == id }
                     _entries.value = currentList
                     _actionSuccess.value = true
+                    // Refresh from server to ensure sync
+                    loadEntries()
                 }
                 is FridgeResult.Error -> {
                     _error.value = result.message
@@ -225,25 +256,38 @@ class JournalViewModel(application: Application) : AndroidViewModel(application)
         addEntry(entry)
     }
 
-    private fun JournalEntryDto.toJournalEntry(): JournalEntry {
-        val meal = meals.firstOrNull()
-        val time = try {
-            dateFormat.parse(date)?.time ?: System.currentTimeMillis()
-        } catch (e: Exception) {
-            System.currentTimeMillis()
-        }
+    private fun JournalEntryDto.toJournalEntry(): JournalEntry? {
+        return try {
+            val meal = meals?.firstOrNull()
+            val time = if (date.isNullOrEmpty()) {
+                System.currentTimeMillis()
+            } else {
+                try {
+                    dateFormat.parse(date)?.time ?: System.currentTimeMillis()
+                } catch (e: Exception) {
+                    System.currentTimeMillis()
+                }
+            }
 
-        return JournalEntry(
-            id = id,
-            title = title,
-            content = content ?: "",
-            mealType = meal?.mealType ?: "",
-            mood = mood ?: "",
-            calories = meal?.calories?.toString() ?: "",
-            macros = meal?.notes ?: "",
-            imageUrl = imageUrl,
-            dateMillis = time,
-            recipeId = meal?.recipeId
-        )
+            JournalEntry(
+                id = id ?: java.util.UUID.randomUUID().toString(),
+                title = title ?: "Untitled Entry",
+                content = content ?: "",
+                mealType = meal?.mealType ?: "",
+                mood = mood ?: "",
+                calories = meal?.calories?.toString() ?: "",
+                macros = meal?.notes ?: "",
+                imageUrl = imageUrl,
+                dateMillis = time,
+                recipeId = meal?.recipeId?.let { 
+                    if (it.isJsonPrimitive) it.asString 
+                    else if (it.isJsonObject) it.asJsonObject.get("id")?.asString ?: it.asJsonObject.get("_id")?.asString
+                    else it.toString() 
+                }
+            )
+        } catch (e: Exception) {
+            android.util.Log.e("JournalViewModel", "Failed to parse DTO: ${e.message}")
+            null
+        }
     }
 }
