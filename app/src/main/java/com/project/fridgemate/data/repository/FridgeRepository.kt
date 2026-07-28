@@ -52,13 +52,15 @@ class FridgeRepository(context: Context) {
                 lastKnown = LastKnownFridge.None
                 FridgeResult.NoFridge
             } else {
-                loadCachedFridge()?.also { lastKnown = LastKnownFridge.Present(it.data) }
-                    ?: FridgeResult.Error(parseError(response.errorBody()?.string()))
+                FridgeResult.Error(parseError(response.errorBody()?.string()))
             }
         } catch (e: Exception) {
-            loadCachedFridge()?.also { lastKnown = LastKnownFridge.Present(it.data) }
-                ?: FridgeResult.Error(networkErrorMessage(e))
+            FridgeResult.Error(networkErrorMessage(e))
         }
+    }
+
+    suspend fun getCachedFridge(): FridgeDto? {
+        return loadCachedFridge()?.data
     }
 
     suspend fun peekLastKnownFridge(): LastKnownFridge {
@@ -78,11 +80,15 @@ class FridgeRepository(context: Context) {
                 cacheMembers(members)
                 FridgeResult.Success(members)
             } else {
-                loadCachedMembers() ?: FridgeResult.Error(parseError(response.errorBody()?.string()))
+                FridgeResult.Error(parseError(response.errorBody()?.string()))
             }
         } catch (e: Exception) {
-            loadCachedMembers() ?: FridgeResult.Error(networkErrorMessage(e))
+            FridgeResult.Error(networkErrorMessage(e))
         }
+    }
+
+    suspend fun getCachedMembers(): List<FridgeMemberDetailDto> {
+        return loadCachedMembers()?.data ?: emptyList()
     }
 
     suspend fun createFridge(name: String): FridgeResult<Unit> {

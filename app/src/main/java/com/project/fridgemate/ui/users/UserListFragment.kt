@@ -6,7 +6,6 @@ import android.text.TextWatcher
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
@@ -14,6 +13,8 @@ import androidx.navigation.fragment.navArgs
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.project.fridgemate.R
 import com.project.fridgemate.databinding.FragmentUserListBinding
+import com.project.fridgemate.utils.ErrorMapper
+import com.project.fridgemate.utils.ToastHelper
 
 /**
  * Generic list screen for [UserListMode] = followers / following / search.
@@ -105,7 +106,8 @@ class UserListFragment : Fragment() {
         }
         viewModel.error.observe(viewLifecycleOwner) { err ->
             err?.let {
-                Toast.makeText(requireContext(), it, Toast.LENGTH_SHORT).show()
+                val userFriendly = ErrorMapper.mapToUserFriendly(requireContext(), it)
+                ToastHelper.showToast(requireContext(), userFriendly)
                 viewModel.clearError()
             }
         }

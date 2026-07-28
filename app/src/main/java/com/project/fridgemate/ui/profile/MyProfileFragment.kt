@@ -28,6 +28,8 @@ import com.project.fridgemate.BuildConfig
 import com.project.fridgemate.R
 import com.project.fridgemate.databinding.FragmentMyProfileBinding
 import com.project.fridgemate.utils.AvatarHelper
+import com.project.fridgemate.utils.ErrorMapper
+import com.project.fridgemate.utils.ToastHelper
 import com.squareup.picasso.Picasso
 import java.io.ByteArrayOutputStream
 
@@ -53,7 +55,7 @@ class MyProfileFragment : Fragment() {
                     profileViewModel.uploadProfileImage(stream.readBytes(), mimeType)
                 }
             } catch (e: Exception) {
-                Toast.makeText(context, "Failed to read image", Toast.LENGTH_SHORT).show()
+                ToastHelper.showToast(requireContext(), "Failed to read image")
             }
         }
 
@@ -74,7 +76,7 @@ class MyProfileFragment : Fragment() {
     private val requestCameraPermission =
         registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted ->
             if (isGranted) takePictureLauncher.launch(null)
-            else Toast.makeText(context, "Camera permission denied", Toast.LENGTH_SHORT).show()
+            else ToastHelper.showToast(requireContext(), "Camera permission denied")
         }
 
     private val requestLocationPermission =
@@ -210,7 +212,8 @@ class MyProfileFragment : Fragment() {
 
         profileViewModel.error.observe(viewLifecycleOwner) { error ->
             if (error != null) {
-                Toast.makeText(context, "Error: $error", Toast.LENGTH_LONG).show()
+                val userFriendly = ErrorMapper.mapToUserFriendly(requireContext(), error)
+                ToastHelper.showToast(requireContext(), userFriendly, android.widget.Toast.LENGTH_LONG)
                 profileViewModel.clearError()
             }
         }

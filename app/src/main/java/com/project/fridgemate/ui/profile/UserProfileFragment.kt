@@ -18,6 +18,9 @@ import com.project.fridgemate.R
 import com.project.fridgemate.databinding.FragmentUserProfileBinding
 import com.project.fridgemate.ui.feed.PostAdapter
 import com.project.fridgemate.utils.AvatarHelper
+import com.project.fridgemate.utils.ErrorMapper
+import com.project.fridgemate.utils.ToastHelper
+import android.widget.TextView
 import com.squareup.picasso.Picasso
 
 /**
@@ -66,6 +69,10 @@ class UserProfileFragment : Fragment() {
             val uid = resolvedUserId
             if (uid != null) viewModel.refresh(uid, showIndicator = true)
             else binding.swipeRefresh.isRefreshing = false
+        }
+
+        binding.root.findViewById<View>(R.id.error_state)?.findViewById<View>(R.id.btn_retry)?.setOnClickListener {
+            resolvedUserId?.let { viewModel.load(it) }
         }
 
         setupPosts()
@@ -228,7 +235,12 @@ class UserProfileFragment : Fragment() {
         }
 
         viewModel.isLoading.observe(viewLifecycleOwner) { loading ->
-            binding.progressBar.visibility = if (loading && viewModel.user.value == null) View.VISIBLE else View.GONE
+            val hasData = viewModel.user.value != null
+            binding.progressBar.visibility = if (loading && !hasData) View.VISIBLE else View.GONE
+            if (loading && !hasData) {
+                binding.swipeRefresh.visibility = View.GONE
+                binding.root.findViewById<View>(R.id.error_state)?.visibility = View.GONE
+            }
             updateEmptyState()
         }
 
@@ -242,11 +254,28 @@ class UserProfileFragment : Fragment() {
         }
 
         viewModel.error.observe(viewLifecycleOwner) { err ->
-            err?.let {
-                Toast.makeText(requireContext(), it, Toast.LENGTH_SHORT).show()
-                viewModel.clearError()
+            if (err != null) {
+                val userFriendly = ErrorMapper.mapToUserFriendly(requireContext(), err)
+                if (viewModel.user.value != null) {
+                    ToastHelper.showToast(requireContext(), userFriendly)
+                    viewModel.clearError()
+                } else {
+                    showError(userFriendly)
+                }
+            } else {
+                binding.root.findViewById<View>(R.id.error_state)?.visibility = View.GONE
+                if (viewModel.user.value != null) binding.swipeRefresh.visibility = View.VISIBLE
+                updateEmptyState()
             }
         }
+    }
+
+    private fun showError(message: String) {
+        binding.swipeRefresh.visibility = View.GONE
+        binding.progressBar.visibility = View.GONE
+        val errorView = binding.root.findViewById<View>(R.id.error_state)
+        errorView?.visibility = View.VISIBLE
+        errorView?.findViewById<TextView>(R.id.tv_error_desc)?.text = message
     }
 
     private fun updateEmptyState() {

@@ -33,6 +33,7 @@ import com.project.fridgemate.data.repository.UserRepository
 import com.project.fridgemate.databinding.ActivityMainBinding
 import com.project.fridgemate.ui.notifications.NotificationViewModel
 import com.project.fridgemate.ui.settings.ScanSummaryDialog
+import com.project.fridgemate.utils.ToastHelper
 import kotlinx.coroutines.launch
 import org.json.JSONObject
 import kotlin.math.abs
@@ -278,7 +279,7 @@ class MainActivity : AppCompatActivity() {
                 .show(supportFragmentManager, ScanSummaryDialog.TAG)
         } else {
             Log.w("NotificationHandling", "Cannot show popup: missing summary or createdAt in storage")
-            android.widget.Toast.makeText(this, "Scan summary not found", android.widget.Toast.LENGTH_SHORT).show()
+            ToastHelper.showToast(this, "Scan summary not found")
         }
     }
 

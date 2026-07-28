@@ -25,6 +25,7 @@ import com.google.android.gms.location.Priority
 import com.google.android.gms.tasks.CancellationTokenSource
 import com.project.fridgemate.R
 import com.project.fridgemate.databinding.FragmentAddPostBinding
+import com.project.fridgemate.utils.ToastHelper
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
@@ -66,7 +67,7 @@ class AddPostFragment : Fragment() {
     private val requestCameraPermission =
         registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted ->
             if (isGranted) takePictureLauncher.launch(null)
-            else Toast.makeText(context, getString(R.string.camera_permission_denied), Toast.LENGTH_SHORT).show()
+            else ToastHelper.showToast(requireContext(), getString(R.string.camera_permission_denied))
         }
 
     private val requestGalleryPermission =
@@ -81,7 +82,7 @@ class AddPostFragment : Fragment() {
             ) {
                 submitPost()
             } else {
-                Toast.makeText(context, "Location permission is required to post with location", Toast.LENGTH_SHORT).show()
+                ToastHelper.showToast(requireContext(), "Location permission is required to post with location")
                 submitPost() // Still submit without location if denied? Or maybe just submit.
             }
         }
@@ -241,7 +242,7 @@ class AddPostFragment : Fragment() {
                 selectedImageBytes = stream.readBytes()
             }
         } catch (e: Exception) {
-            Toast.makeText(context, getString(R.string.error_read_image), Toast.LENGTH_SHORT).show()
+            ToastHelper.showToast(requireContext(), getString(R.string.error_read_image))
         }
     }
 

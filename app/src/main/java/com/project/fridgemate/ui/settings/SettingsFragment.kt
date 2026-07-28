@@ -27,6 +27,8 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.project.fridgemate.databinding.DialogLeaveFridgeBinding
 import com.project.fridgemate.databinding.FragmentSettingsBinding
 import com.project.fridgemate.ui.fridge.FridgeViewModel
+import com.project.fridgemate.utils.ErrorMapper
+import com.project.fridgemate.utils.ToastHelper
 import java.io.ByteArrayOutputStream
 
 class SettingsFragment : Fragment() {
@@ -50,7 +52,7 @@ class SettingsFragment : Fragment() {
     private val requestCameraPermission =
         registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted ->
             if (isGranted) takePictureLauncher.launch(null)
-            else Toast.makeText(context, "Camera permission denied", Toast.LENGTH_SHORT).show()
+            else ToastHelper.showToast(requireContext(), "Camera permission denied")
         }
 
     override fun onCreateView(
@@ -120,14 +122,15 @@ class SettingsFragment : Fragment() {
 
         viewModel.error.observe(viewLifecycleOwner) { error ->
             error?.let {
-                Toast.makeText(requireContext(), it, Toast.LENGTH_LONG).show()
+                val userFriendly = ErrorMapper.mapToUserFriendly(requireContext(), it)
+                ToastHelper.showToast(requireContext(), userFriendly, Toast.LENGTH_LONG)
                 viewModel.clearError()
             }
         }
 
         viewModel.actionSuccess.observe(viewLifecycleOwner) { message ->
             message?.let {
-                Toast.makeText(requireContext(), it, Toast.LENGTH_SHORT).show()
+                ToastHelper.showToast(requireContext(), it)
                 viewModel.clearActionSuccess()
             }
         }
@@ -194,7 +197,7 @@ class SettingsFragment : Fragment() {
         val clipboard = requireContext()
             .getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
         clipboard.setPrimaryClip(ClipData.newPlainText("Invite Code", code))
-        Toast.makeText(context, "Code copied!", Toast.LENGTH_SHORT).show()
+        ToastHelper.showToast(requireContext(), "Code copied!")
     }
 
     private fun showLeaveFridgeDialog() {

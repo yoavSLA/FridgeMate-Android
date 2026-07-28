@@ -28,6 +28,7 @@ import com.project.fridgemate.data.repository.LastKnownFridge
 import com.project.fridgemate.data.repository.RecipeSharePayload
 import com.project.fridgemate.databinding.FragmentRecipeDetailBinding
 import com.project.fridgemate.databinding.ItemDetailIngredientBinding
+import com.project.fridgemate.utils.ToastHelper
 import com.project.fridgemate.databinding.ItemDetailStepBinding
 import com.project.fridgemate.ui.journal.JournalViewModel
 import com.squareup.picasso.Picasso
@@ -69,7 +70,7 @@ class RecipeDetailFragment : Fragment() {
 
             viewModel.detailLoading.observe(viewLifecycleOwner) { loading ->
                 if (!loading && viewModel.error.value != null) {
-                    Toast.makeText(requireContext(), "Could not load recipe", Toast.LENGTH_SHORT).show()
+                    ToastHelper.showToast(requireContext(), "Could not load recipe")
                     findNavController().navigateUp()
                 }
             }
@@ -120,7 +121,7 @@ class RecipeDetailFragment : Fragment() {
 
         binding.btnAddToJournal.setOnClickListener {
             journalViewModel.addRecipeToJournal(recipe, System.currentTimeMillis())
-            Toast.makeText(requireContext(), R.string.added_to_journal, Toast.LENGTH_SHORT).show()
+            ToastHelper.showToast(requireContext(), getString(R.string.added_to_journal))
         }
 
         if (recipe.serverId != null) {
@@ -192,7 +193,7 @@ class RecipeDetailFragment : Fragment() {
 
     private fun showShareToChatDialog(serverId: String, recipe: RecipeEntity) {
         val fridgeId = activeFridgeId ?: run {
-            Toast.makeText(requireContext(), R.string.share_to_chat_no_fridge, Toast.LENGTH_SHORT).show()
+            ToastHelper.showToast(requireContext(), getString(R.string.share_to_chat_no_fridge))
             return
         }
         MaterialAlertDialogBuilder(requireContext())
