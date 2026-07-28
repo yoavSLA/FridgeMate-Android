@@ -6,6 +6,7 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
@@ -104,6 +105,11 @@ class MessageAdapter(
             b.tvSender.text = message.sender?.displayName ?: ""
             b.tvTime.text = formatTime(message.createdAt)
 
+            val senderId = message.sender?.id ?: ""
+            val colors = getSenderColors(senderId)
+            b.tvSender.setTextColor(ContextCompat.getColor(b.root.context, colors.first))
+            b.cardBubble.setCardBackgroundColor(ContextCompat.getColor(b.root.context, colors.second))
+
             val resolved = resolveAvatarUrl(message.sender?.profileImage)
             val placeholder = AvatarHelper.createPlaceholder(b.root.context, message.sender?.displayName)
             if (resolved != null) {
@@ -149,6 +155,12 @@ class MessageAdapter(
         fun bind(message: ChatMessageDto) {
             val payload = message.payload ?: return
             b.tvSender.text = message.sender?.displayName ?: ""
+            
+            val senderId = message.sender?.id ?: ""
+            val colors = getSenderColors(senderId)
+            b.tvSender.setTextColor(ContextCompat.getColor(b.root.context, colors.first))
+            b.cardRecipe.setCardBackgroundColor(ContextCompat.getColor(b.root.context, colors.second))
+
             b.tvRecipeTitle.text = payload.title.orEmpty()
             b.tvRecipeMeta.text = formatRecipeMeta(payload.cookingTime, payload.difficulty)
             b.tvRecipeMeta.visibility = if (b.tvRecipeMeta.text.isBlank()) View.GONE else View.VISIBLE
@@ -195,7 +207,29 @@ class MessageAdapter(
         }
     }
 
+    private fun getSenderColors(userId: String): Pair<Int, Int> {
+        val hash = Math.abs(userId.hashCode())
+        val index = hash % 15
+        return SENDER_COLORS[index] to BUBBLE_COLORS[index]
+    }
+
     companion object {
+        private val SENDER_COLORS = intArrayOf(
+            R.color.chat_sender_user_1, R.color.chat_sender_user_2, R.color.chat_sender_user_3,
+            R.color.chat_sender_user_4, R.color.chat_sender_user_5, R.color.chat_sender_user_6,
+            R.color.chat_sender_user_7, R.color.chat_sender_user_8, R.color.chat_sender_user_9,
+            R.color.chat_sender_user_10, R.color.chat_sender_user_11, R.color.chat_sender_user_12,
+            R.color.chat_sender_user_13, R.color.chat_sender_user_14, R.color.chat_sender_user_15
+        )
+
+        private val BUBBLE_COLORS = intArrayOf(
+            R.color.chat_bubble_user_1, R.color.chat_bubble_user_2, R.color.chat_bubble_user_3,
+            R.color.chat_bubble_user_4, R.color.chat_bubble_user_5, R.color.chat_bubble_user_6,
+            R.color.chat_bubble_user_7, R.color.chat_bubble_user_8, R.color.chat_bubble_user_9,
+            R.color.chat_bubble_user_10, R.color.chat_bubble_user_11, R.color.chat_bubble_user_12,
+            R.color.chat_bubble_user_13, R.color.chat_bubble_user_14, R.color.chat_bubble_user_15
+        )
+
         private const val TYPE_SENT = 1
         private const val TYPE_RECEIVED = 2
         private const val TYPE_DATE_HEADER = 3

@@ -27,6 +27,7 @@
         android:foreground="?attr/selectableItemBackground"
         app:cardBackgroundColor="@color/chat_bubble_received"
         app:cardElevation="1dp"
+        app:cardUseCompatPadding="true"
         app:shapeAppearanceOverlay="@style/ChatBubble.Received"
         app:strokeWidth="0dp">
 
@@ -60,7 +61,7 @@
                 android:orientation="vertical"
                 android:paddingHorizontal="14dp"
                 android:paddingTop="10dp"
-                android:paddingBottom="6dp">
+                android:paddingBottom="10dp">
 
                 <TextView
                     android:layout_width="wrap_content"

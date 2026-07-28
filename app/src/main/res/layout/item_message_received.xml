@@ -6,7 +6,8 @@
     android:gravity="start|top"
     android:orientation="horizontal"
     android:paddingHorizontal="12dp"
-    android:paddingVertical="3dp">
+    android:paddingTop="3dp"
+    android:paddingBottom="5dp">
 
     <com.google.android.material.imageview.ShapeableImageView
         android:id="@+id/iv_avatar"
@@ -18,11 +19,13 @@
         app:shapeAppearanceOverlay="@style/CircleImageView" />
 
     <com.google.android.material.card.MaterialCardView
+        android:id="@+id/card_bubble"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="8dp"
         app:cardBackgroundColor="@color/chat_bubble_received"
         app:cardElevation="1dp"
+        app:cardUseCompatPadding="true"
         app:shapeAppearanceOverlay="@style/ChatBubble.Received"
         app:strokeWidth="0dp">
 
@@ -31,7 +34,8 @@
             android:layout_height="wrap_content"
             android:orientation="vertical"
             android:paddingHorizontal="12dp"
-            android:paddingVertical="8dp">
+            android:paddingTop="8dp"
+            android:paddingBottom="10dp">
 
             <TextView
                 android:id="@+id/tv_sender"
