@@ -17,6 +17,8 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.project.fridgemate.R
 import com.project.fridgemate.data.remote.dto.ScanChangesDto
 import com.project.fridgemate.databinding.FragmentFridgeScanOnboardingBinding
+import com.project.fridgemate.utils.ErrorMapper
+import com.project.fridgemate.utils.ToastHelper
 import java.io.ByteArrayOutputStream
 
 class FridgeScanOnboardingFragment : Fragment() {
@@ -39,7 +41,7 @@ class FridgeScanOnboardingFragment : Fragment() {
     private val requestCameraPermission =
         registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted ->
             if (isGranted) takePictureLauncher.launch(null)
-            else Toast.makeText(context, "Camera permission denied", Toast.LENGTH_SHORT).show()
+            else ToastHelper.showToast(requireContext(), "Camera permission denied")
         }
 
     override fun onCreateView(
@@ -79,7 +81,8 @@ class FridgeScanOnboardingFragment : Fragment() {
     private fun setupObservers() {
         viewModel.error.observe(viewLifecycleOwner) { error ->
             error?.let {
-                Toast.makeText(requireContext(), it, Toast.LENGTH_LONG).show()
+                val userFriendly = ErrorMapper.mapToUserFriendly(requireContext(), it)
+                ToastHelper.showToast(requireContext(), userFriendly, Toast.LENGTH_LONG)
                 viewModel.clearError()
             }
         }

@@ -70,29 +70,18 @@ class PostRepository(context: Context) {
                 }
                 FridgeResult.Success(data)
             } else {
-                // For scoped queries don't fall back to a cache that doesn't match the scope
-                if (!scope.isNullOrEmpty() && scope != "all") {
-                    FridgeResult.Error(parseError(response.errorBody()?.string()))
-                } else {
-                    val cached = loadCachedPosts()
-                    if (cached.isNotEmpty()) {
-                        FridgeResult.Success(PostListResponse(cached, cached.size, 1, cached.size))
-                    } else {
-                        FridgeResult.Error(parseError(response.errorBody()?.string()))
-                    }
-                }
+                FridgeResult.Error(parseError(response.errorBody()?.string()))
             }
         } catch (e: Exception) {
-            if (!scope.isNullOrEmpty() && scope != "all") {
-                FridgeResult.Error(networkErrorMessage(e))
-            } else {
-                val cached = loadCachedPosts()
-                if (cached.isNotEmpty()) {
-                    FridgeResult.Success(PostListResponse(cached, cached.size, 1, cached.size))
-                } else {
-                    FridgeResult.Error(networkErrorMessage(e))
-                }
-            }
+            FridgeResult.Error(networkErrorMessage(e))
+        }
+    }
+
+    suspend fun getCachedPosts(): List<PostDto> {
+        return try {
+            postDao.getAll().map { it.toDto() }
+        } catch (_: Exception) {
+            emptyList()
         }
     }
 
@@ -122,22 +111,18 @@ class PostRepository(context: Context) {
                 postDao.insertAll(entities)
                 FridgeResult.Success(data)
             } else {
-                val cached = postDao.getMyPosts()
-                if (cached.isNotEmpty()) {
-                    val dtos = cached.map { it.toDto() }
-                    FridgeResult.Success(PostListResponse(dtos, dtos.size, 1, dtos.size))
-                } else {
-                    FridgeResult.Error(parseError(response.errorBody()?.string()))
-                }
+                FridgeResult.Error(parseError(response.errorBody()?.string()))
             }
         } catch (e: Exception) {
-            val cached = postDao.getMyPosts()
-            if (cached.isNotEmpty()) {
-                val dtos = cached.map { it.toDto() }
-                FridgeResult.Success(PostListResponse(dtos, dtos.size, 1, dtos.size))
-            } else {
-                FridgeResult.Error(networkErrorMessage(e))
-            }
+            FridgeResult.Error(networkErrorMessage(e))
+        }
+    }
+
+    suspend fun getCachedMyPosts(): List<PostDto> {
+        return try {
+            postDao.getMyPosts().map { it.toDto() }
+        } catch (_: Exception) {
+            emptyList()
         }
     }
 

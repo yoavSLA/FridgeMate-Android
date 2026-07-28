@@ -77,6 +77,7 @@
     <string name="location">Location</string>
     <string name="allergies_restrictions">Allergies &amp; Restrictions</string>
     <string name="save_changes">Save changes</string>
+    <string name="retry">Retry</string>
 
     <!-- Settings Screen -->
     <string name="settings_title">Settings</string>
@@ -252,7 +253,7 @@
     <string name="detecting_location">Detecting location…</string>
 
     <!-- Error Messages -->
-    <string name="error_no_connection">Looks like you\'re offline. Check your connection and try again.</string>
+    <string name="error_no_connection">Looks like you\'re offline. Check your connection.</string>
     <string name="error_timeout">That took too long! Try again in a moment.</string>
     <string name="error_server">Our kitchen is temporarily closed. Please try again shortly.</string>
     <string name="error_auth_expired">Your session has expired. Please log in again.</string>

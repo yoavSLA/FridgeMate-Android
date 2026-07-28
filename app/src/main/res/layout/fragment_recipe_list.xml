@@ -115,6 +115,12 @@
             android:textSize="14sp" />
     </LinearLayout>
 
+    <include
+        android:id="@+id/error_state"
+        layout="@layout/layout_error_state"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
+
     <!-- Deprecated, keeping ID for compatibility during transition if needed -->
     <TextView
         android:id="@+id/tvEmpty"

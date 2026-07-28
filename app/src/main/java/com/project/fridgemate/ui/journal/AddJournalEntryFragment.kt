@@ -16,6 +16,8 @@ import com.project.fridgemate.BuildConfig
 import com.project.fridgemate.R
 import com.project.fridgemate.data.model.JournalEntry
 import com.project.fridgemate.databinding.FragmentAddJournalEntryBinding
+import com.project.fridgemate.utils.ErrorMapper
+import com.project.fridgemate.utils.ToastHelper
 import com.squareup.picasso.Picasso
 import kotlinx.coroutines.launch
 
@@ -79,7 +81,8 @@ class AddJournalEntryFragment : Fragment() {
 
         viewModel.error.observe(viewLifecycleOwner) { errorMsg ->
             errorMsg?.let {
-                Toast.makeText(requireContext(), it, Toast.LENGTH_SHORT).show()
+                val userFriendly = ErrorMapper.mapToUserFriendly(requireContext(), it)
+                ToastHelper.showToast(requireContext(), userFriendly)
             }
         }
     }
@@ -176,7 +179,7 @@ class AddJournalEntryFragment : Fragment() {
         val macros = buildMacrosString()
 
         if (title.isEmpty()) {
-            Toast.makeText(requireContext(), "Please enter a title", Toast.LENGTH_SHORT).show()
+            ToastHelper.showToast(requireContext(), "Please enter a title")
             return
         }
 
@@ -199,7 +202,7 @@ class AddJournalEntryFragment : Fragment() {
                     }
                 } catch (e: Exception) {
                     binding.loadingOverlay.visibility = View.GONE
-                    Toast.makeText(requireContext(), "Failed to upload image", Toast.LENGTH_SHORT).show()
+                    ToastHelper.showToast(requireContext(), "Failed to upload image")
                     return@launch
                 }
             }

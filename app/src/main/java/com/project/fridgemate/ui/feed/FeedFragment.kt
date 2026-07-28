@@ -13,6 +13,9 @@ import com.project.fridgemate.ui.dashboard.DashboardFragmentDirections
 import com.project.fridgemate.R
 import com.project.fridgemate.databinding.FragmentFeedBinding
 import com.project.fridgemate.ui.notifications.NotificationViewModel
+import com.project.fridgemate.utils.ErrorMapper
+import com.project.fridgemate.utils.ToastHelper
+import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 class FeedFragment : Fragment() {
 
@@ -59,8 +62,15 @@ class FeedFragment : Fragment() {
 
         setupScopeToggle()
         setupPosts()
+        setupErrorState()
         observeLoading()
         observeErrors()
+    }
+
+    private fun setupErrorState() {
+        binding.root.findViewById<View>(R.id.error_state_feed)?.findViewById<View>(R.id.btn_retry)?.setOnClickListener {
+            viewModel.loadPosts(refresh = true)
+        }
     }
 
     private fun setupScopeToggle() {
@@ -157,41 +167,75 @@ class FeedFragment : Fragment() {
 
     override fun onResume() {
         super.onResume()
-        // Refresh the feed when returning to the fragment to ensure everything is in sync
+        // Refresh on resume to catch offline state or sync new data
         viewModel.loadPosts(refresh = true)
     }
 
     private fun updateEmptyState(posts: List<Post>) {
         val isLoading = viewModel.isLoading.value == true
-        if (posts.isEmpty() && !isLoading) {
+        val error = viewModel.error.value
+        val errorContainer = binding.root.findViewById<View>(R.id.error_state_feed)
+        
+        val hasData = posts.isNotEmpty()
+        val hasError = error != null
+
+        if (isLoading) {
+            binding.emptyStateFeed.visibility = View.GONE
+            errorContainer?.visibility = View.GONE
+            if (!hasData) {
+                binding.rvPosts.visibility = View.GONE
+                binding.progressBar.visibility = View.VISIBLE
+                binding.swipeRefresh.visibility = View.GONE
+            } else {
+                binding.rvPosts.visibility = View.VISIBLE
+                binding.progressBar.visibility = View.GONE
+                binding.swipeRefresh.visibility = View.VISIBLE
+                binding.swipeRefresh.isRefreshing = true
+            }
+            return
+        }
+
+        binding.progressBar.visibility = View.GONE
+        binding.swipeRefresh.isRefreshing = false
+
+        if (hasError && !hasData) {
+            binding.rvPosts.visibility = View.GONE
+            binding.emptyStateFeed.visibility = View.GONE
+            errorContainer?.visibility = View.VISIBLE
+            binding.swipeRefresh.visibility = View.GONE
+            binding.fabAddPost.visibility = View.GONE
+            binding.root.findViewById<TextView>(R.id.tv_error_desc)?.text = 
+                ErrorMapper.mapToUserFriendly(requireContext(), error)
+        } else if (!hasData) {
             binding.rvPosts.visibility = View.GONE
             binding.emptyStateFeed.visibility = View.VISIBLE
+            errorContainer?.visibility = View.GONE
+            binding.swipeRefresh.visibility = View.VISIBLE
+            binding.fabAddPost.visibility = View.VISIBLE
         } else {
             binding.rvPosts.visibility = View.VISIBLE
             binding.emptyStateFeed.visibility = View.GONE
+            errorContainer?.visibility = View.GONE
+            binding.swipeRefresh.visibility = View.VISIBLE
+            binding.fabAddPost.visibility = View.VISIBLE
+            
+            if (hasError) {
+                // If we have data and error, it must be a background refresh failure
+                ToastHelper.showToast(requireContext(), ErrorMapper.mapToUserFriendly(requireContext(), error))
+                viewModel.clearError()
+            }
         }
     }
 
     private fun observeLoading() {
-        viewModel.isLoading.observe(viewLifecycleOwner) { loading ->
-            binding.swipeRefresh.isRefreshing = false
-            if (loading && (postAdapter?.itemCount ?: 0) == 0) {
-                binding.progressBar.visibility = View.VISIBLE
-                binding.emptyStateFeed.visibility = View.GONE
-            } else {
-                binding.progressBar.visibility = View.GONE
-                updateEmptyState(viewModel.posts.value ?: emptyList())
-            }
+        viewModel.isLoading.observe(viewLifecycleOwner) { _ ->
+            updateEmptyState(viewModel.posts.value ?: emptyList())
         }
     }
 
     private fun observeErrors() {
-        viewModel.error.observe(viewLifecycleOwner) { error ->
-            error?.let {
-                Toast.makeText(requireContext(), it, Toast.LENGTH_SHORT).show()
-                viewModel.clearError()
-                updateEmptyState(viewModel.posts.value ?: emptyList())
-            }
+        viewModel.error.observe(viewLifecycleOwner) { _ ->
+            updateEmptyState(viewModel.posts.value ?: emptyList())
         }
     }
 

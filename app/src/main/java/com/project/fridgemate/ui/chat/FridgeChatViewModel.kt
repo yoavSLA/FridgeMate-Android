@@ -38,7 +38,6 @@ class FridgeChatViewModel : ViewModel() {
     private var fridgeId: String? = null
 
     fun start(fridgeId: String) {
-        if (this.fridgeId == fridgeId && observeJob?.isActive == true) return
         this.fridgeId = fridgeId
 
         loadInitial(fridgeId)
@@ -49,23 +48,37 @@ class FridgeChatViewModel : ViewModel() {
                 when (event) {
                     is ChatEvent.MessageReceived -> appendMessage(event.message)
                     is ChatEvent.Error -> _error.postValue(event.message)
-                    ChatEvent.Joined, ChatEvent.Disconnected -> Unit
+                    ChatEvent.Disconnected -> _error.postValue("Chat disconnected")
+                    ChatEvent.Joined -> Unit
                 }
             }
         }
     }
 
     private fun loadInitial(fridgeId: String) {
-        _initialLoading.value = true
         viewModelScope.launch {
-            when (val result = repo.getMessages(fridgeId)) {
-                is ChatResult.Success -> {
-                    _messages.value = result.data.items
-                    _hasMore.value = result.data.hasMore
+            val startTime = System.currentTimeMillis()
+            _initialLoading.value = true
+            _error.value = null
+            
+            try {
+                val result = repo.getMessages(fridgeId)
+                
+                when (result) {
+                    is ChatResult.Success -> {
+                        _messages.value = result.data.items
+                        _hasMore.value = result.data.hasMore
+                    }
+                    is ChatResult.Error -> {
+                        _error.value = result.message
+                    }
                 }
-                is ChatResult.Error -> _error.value = result.message
+            } finally {
+                // Artificial delay for professional feel
+                val elapsed = System.currentTimeMillis() - startTime
+                if (elapsed < 1500) kotlinx.coroutines.delay(1500 - elapsed)
+                _initialLoading.value = false
             }
-            _initialLoading.value = false
             markRead()
         }
     }

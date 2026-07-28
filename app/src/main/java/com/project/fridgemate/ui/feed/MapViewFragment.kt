@@ -22,6 +22,8 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.project.fridgemate.databinding.DialogCommentsViewerBinding
 import com.google.android.material.bottomsheet.BottomSheetDialog
+import com.project.fridgemate.utils.ErrorMapper
+import com.project.fridgemate.utils.ToastHelper
 import androidx.viewpager2.widget.ViewPager2
 import com.google.android.material.tabs.TabLayoutMediator
 import com.squareup.picasso.Picasso
@@ -57,6 +59,17 @@ class MapViewFragment : Fragment() {
         setupMap()
         setupListeners()
         observePosts()
+        observeErrors()
+    }
+
+    private fun observeErrors() {
+        viewModel.error.observe(viewLifecycleOwner) { error ->
+            error?.let {
+                val userFriendly = ErrorMapper.mapToUserFriendly(requireContext(), it)
+                ToastHelper.showToast(requireContext(), userFriendly)
+                viewModel.clearError()
+            }
+        }
     }
 
     private fun setupMap() {
@@ -303,6 +316,8 @@ class MapViewFragment : Fragment() {
     override fun onResume() {
         super.onResume()
         binding.mapView.onResume()
+        // Trigger a refresh to catch offline state
+        viewModel.loadPosts(refresh = true)
     }
 
     override fun onPause() {

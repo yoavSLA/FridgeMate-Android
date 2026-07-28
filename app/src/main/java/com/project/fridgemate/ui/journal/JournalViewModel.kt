@@ -49,13 +49,30 @@ class JournalViewModel(application: Application) : AndroidViewModel(application)
     }
 
     fun loadEntries() {
+        if (_isLoading.value == true) return
+
         viewModelScope.launch {
+            val startTime = System.currentTimeMillis()
             _isLoading.value = true
-            when (val result = repository.getJournals()) {
+            _error.value = null
+            
+            val result = repository.getJournals()
+            
+            // Artificial delay if the request was too fast (e.g. instant network error)
+            val elapsed = System.currentTimeMillis() - startTime
+            if (elapsed < 1500) kotlinx.coroutines.delay(1500 - elapsed)
+
+            when (result) {
                 is FridgeResult.Success -> {
                     _entries.value = result.data.items.map { it.toJournalEntry() }
                 }
                 is FridgeResult.Error -> {
+                    // Load from cache FIRST if network fails so fragment can see we have data
+                    val cached = repository.getCachedJournals()
+                    if (cached.isNotEmpty()) {
+                        _entries.value = cached.map { it.toJournalEntry() }
+                    }
+                    // THEN set error to trigger the toast
                     _error.value = result.message
                 }
                 else -> {}

@@ -13,6 +13,8 @@ import androidx.navigation.fragment.findNavController
 import com.project.fridgemate.R
 import com.project.fridgemate.databinding.FragmentOnboardingBinding
 import com.project.fridgemate.ui.fridge.FridgeViewModel
+import com.project.fridgemate.utils.ErrorMapper
+import com.project.fridgemate.utils.ToastHelper
 
 class OnboardingFragment : Fragment() {
 
@@ -98,14 +100,15 @@ class OnboardingFragment : Fragment() {
 
         viewModel.error.observe(viewLifecycleOwner) { error ->
             error?.let {
-                Toast.makeText(requireContext(), it, Toast.LENGTH_LONG).show()
+                val userFriendly = ErrorMapper.mapToUserFriendly(requireContext(), it)
+                ToastHelper.showToast(requireContext(), userFriendly, Toast.LENGTH_LONG)
                 viewModel.clearError()
             }
         }
 
         viewModel.actionSuccess.observe(viewLifecycleOwner) { message ->
             message?.let {
-                Toast.makeText(requireContext(), it, Toast.LENGTH_SHORT).show()
+                ToastHelper.showToast(requireContext(), it)
                 viewModel.clearActionSuccess()
             }
         }

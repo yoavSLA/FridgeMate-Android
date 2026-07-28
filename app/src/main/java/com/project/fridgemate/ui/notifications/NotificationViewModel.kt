@@ -28,6 +28,9 @@ class NotificationViewModel : ViewModel() {
     private val _isLoading = MutableLiveData(false)
     val isLoading: LiveData<Boolean> = _isLoading
 
+    private val _error = MutableLiveData<String?>(null)
+    val error: LiveData<String?> = _error
+
     private val _incomingNotificationFlow = MutableSharedFlow<Notification>(extraBufferCapacity = 10)
     val incomingNotification: SharedFlow<Notification> = _incomingNotificationFlow.asSharedFlow()
 
@@ -67,16 +70,33 @@ class NotificationViewModel : ViewModel() {
     }
 
     fun loadAndMarkAllAsRead() {
-        _isLoading.value = true
         viewModelScope.launch {
-            val loaded = repo.getNotifications().getOrNull()
-            if (loaded != null) {
-                _notifications.value = loaded.map { it.copy(isRead = true) }
-                _unreadCount.value = 0
+            val startTime = System.currentTimeMillis()
+            _isLoading.value = true
+            _error.value = null
+            val loadedResult = repo.getNotifications()
+            
+            // Artificial delay if the request was too fast
+            val elapsed = System.currentTimeMillis() - startTime
+            if (elapsed < 1500) delay(1500 - elapsed)
+
+            when (val loaded = loadedResult.getOrNull()) {
+                null -> {
+                    // repo.getNotifications() failed or returned null
+                    _error.value = "Unable to load notifications" 
+                }
+                else -> {
+                    _notifications.value = loaded.map { it.copy(isRead = true) }
+                    _unreadCount.value = 0
+                }
             }
             _isLoading.value = false
             repo.markAllAsRead()
         }
+    }
+
+    fun clearError() {
+        _error.value = null
     }
 
     fun markAsRead(id: String) {

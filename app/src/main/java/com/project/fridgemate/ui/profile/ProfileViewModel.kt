@@ -63,6 +63,7 @@ class ProfileViewModel(application: Application) : AndroidViewModel(application)
     fun loadProfile() {
         val userId = ApiClient.getTokenManager().userId ?: return
         viewModelScope.launch {
+            val startTime = System.currentTimeMillis()
             // Show cached data immediately — no spinner needed
             val cached = userRepository.getCachedUser(userId)
             if (cached != null) {
@@ -75,6 +76,11 @@ class ProfileViewModel(application: Application) : AndroidViewModel(application)
             // Refresh from network in background
             try {
                 val fresh = userRepository.getUserById(userId)
+                
+                // Artificial delay if the request was too fast
+                val elapsed = System.currentTimeMillis() - startTime
+                if (elapsed < 1500) kotlinx.coroutines.delay(1500 - elapsed)
+
                 if (fresh != null) applyUser(fresh)
             } catch (e: Exception) {
                 if (cached == null) _error.value = e.message

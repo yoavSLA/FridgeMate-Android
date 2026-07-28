@@ -18,6 +18,9 @@ import com.project.fridgemate.R
 import com.project.fridgemate.data.model.JournalEntry
 import com.project.fridgemate.databinding.FragmentJournalBinding
 import com.project.fridgemate.ui.dashboard.DashboardFragmentDirections
+import com.project.fridgemate.utils.ErrorMapper
+import com.project.fridgemate.utils.ToastHelper
+import android.widget.TextView
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
@@ -52,7 +55,7 @@ class JournalFragment : Fragment() {
                     val action = DashboardFragmentDirections.actionDashboardFragmentToAddJournalEntryFragment(entry.id)
                     requireParentFragment().findNavController().navigate(action)
                 } catch (e: Exception) {
-                    Toast.makeText(requireContext(), "Navigation error: ${e.message}", Toast.LENGTH_SHORT).show()
+                    ToastHelper.showToast(requireContext(), "Navigation error: ${e.message}")
                 }
             },
             onRecipeImageClick = { serverRecipeId ->
@@ -60,7 +63,7 @@ class JournalFragment : Fragment() {
                     val action = DashboardFragmentDirections.actionDashboardFragmentToRecipeDetailFragment(0L, serverRecipeId)
                     requireParentFragment().findNavController().navigate(action)
                 } catch (e: Exception) {
-                    Toast.makeText(requireContext(), "Navigation error: ${e.message}", Toast.LENGTH_SHORT).show()
+                    ToastHelper.showToast(requireContext(), "Navigation error: ${e.message}")
                 }
             }
         )
@@ -76,6 +79,7 @@ class JournalFragment : Fragment() {
 
         setupSearch()
         setupFilterChips()
+        setupErrorState()
         
         binding.btnCalendar.setOnClickListener {
             showDatePicker()
@@ -91,13 +95,68 @@ class JournalFragment : Fragment() {
         }
 
         viewModel.isLoading.observe(viewLifecycleOwner) { isLoading ->
-            binding.swipeRefresh.isRefreshing = isLoading
+            val hasItems = allEntries.isNotEmpty()
+            val errorView = binding.root.findViewById<View>(R.id.error_state)
+            
+            if (isLoading) {
+                binding.emptyState.visibility = View.GONE
+                errorView?.visibility = View.GONE
+                
+                if (!hasItems) {
+                    binding.progressBar.visibility = View.VISIBLE
+                    binding.swipeRefresh.isRefreshing = false
+                    binding.swipeRefresh.visibility = View.GONE
+                    binding.headerContainer.visibility = View.GONE
+                    binding.chipsScroll.visibility = View.GONE
+                    binding.fabAddEntry.visibility = View.GONE
+                } else {
+                    binding.progressBar.visibility = View.GONE
+                    binding.swipeRefresh.visibility = View.VISIBLE
+                    binding.swipeRefresh.isRefreshing = true
+                    binding.headerContainer.visibility = View.VISIBLE
+                    binding.chipsScroll.visibility = View.VISIBLE
+                    binding.fabAddEntry.visibility = View.VISIBLE
+                }
+            } else {
+                binding.progressBar.visibility = View.GONE
+                binding.swipeRefresh.visibility = View.VISIBLE
+                binding.swipeRefresh.isRefreshing = false
+                applyFilters()
+            }
+            
+            errorView?.findViewById<View>(R.id.btn_retry)?.isEnabled = !isLoading
         }
 
         viewModel.error.observe(viewLifecycleOwner) { errorMsg ->
-            errorMsg?.let {
-                Toast.makeText(requireContext(), it, Toast.LENGTH_SHORT).show()
-                viewModel.resetActionState()
+            val errorView = binding.root.findViewById<View>(R.id.error_state)
+            val isLoading = viewModel.isLoading.value == true
+            val hasEntries = allEntries.isNotEmpty() || viewModel.entries.value?.isNotEmpty() == true
+            
+            if (errorMsg != null) {
+                val userFriendly = ErrorMapper.mapToUserFriendly(requireContext(), errorMsg)
+                if (hasEntries) {
+                    ToastHelper.showToast(requireContext(), userFriendly)
+                    errorView?.visibility = View.GONE
+                    binding.fabAddEntry.visibility = View.VISIBLE
+                    binding.headerContainer.visibility = View.VISIBLE
+                    binding.chipsScroll.visibility = View.VISIBLE
+                    viewModel.resetActionState() // This clears the error
+                } else if (!isLoading) {
+                    binding.swipeRefresh.visibility = View.GONE
+                    binding.emptyState.visibility = View.GONE
+                    errorView?.visibility = View.VISIBLE
+                    errorView?.findViewById<TextView>(R.id.tv_error_desc)?.text = userFriendly
+                    binding.fabAddEntry.visibility = View.GONE
+                    binding.headerContainer.visibility = View.GONE
+                    binding.chipsScroll.visibility = View.GONE
+                }
+            } else {
+                binding.swipeRefresh.visibility = View.VISIBLE
+                errorView?.visibility = View.GONE
+                binding.fabAddEntry.visibility = View.VISIBLE
+                binding.headerContainer.visibility = View.VISIBLE
+                binding.chipsScroll.visibility = View.VISIBLE
+                applyFilters()
             }
         }
 
@@ -106,8 +165,20 @@ class JournalFragment : Fragment() {
                 val action = DashboardFragmentDirections.actionDashboardFragmentToAddJournalEntryFragment("")
                 requireParentFragment().findNavController().navigate(action)
             } catch (e: Exception) {
-                Toast.makeText(requireContext(), "Navigation error: ${e.message}", Toast.LENGTH_SHORT).show()
+                ToastHelper.showToast(requireContext(), "Navigation error: ${e.message}")
             }
+        }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        // Always try to refresh on resume to catch offline state or new data
+        viewModel.loadEntries()
+    }
+
+    private fun setupErrorState() {
+        binding.root.findViewById<View>(R.id.error_state)?.findViewById<View>(R.id.btn_retry)?.setOnClickListener {
+            viewModel.loadEntries()
         }
     }
 
@@ -137,7 +208,11 @@ class JournalFragment : Fragment() {
     }
 
     private fun applyFilters() {
+        if (viewModel.isLoading.value == true) return
+        
         var filtered = allEntries
+        val errorView = binding.root.findViewById<View>(R.id.error_state)
+        val hasError = viewModel.error.value != null
 
         // Apply meal type filter
         if (currentMealFilter != null) {
@@ -164,7 +239,8 @@ class JournalFragment : Fragment() {
         val isFiltered = currentSearchQuery.isNotEmpty() || currentMealFilter != null
         val isEmpty = grouped.isEmpty()
 
-        binding.emptyState.visibility = if (isEmpty) View.VISIBLE else View.GONE
+        binding.emptyState.visibility = if (isEmpty && !hasError) View.VISIBLE else View.GONE
+        errorView?.visibility = if (hasError && !hasAnyEntries) View.VISIBLE else View.GONE
 
         // Show contextual empty message
         if (isEmpty && hasAnyEntries && isFiltered) {
@@ -202,7 +278,7 @@ class JournalFragment : Fragment() {
         if (position != -1) {
             binding.rvJournal.scrollToPosition(position)
         } else {
-            Toast.makeText(requireContext(), "No entries found for this date", Toast.LENGTH_SHORT).show()
+            ToastHelper.showToast(requireContext(), "No entries found for this date")
         }
     }
 

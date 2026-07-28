@@ -38,10 +38,18 @@ class JournalRepository(context: Context) {
                 dao.insertAll(entities)
                 FridgeResult.Success(data)
             } else {
-                fetchFromCache(response.errorBody()?.string())
+                FridgeResult.Error(parseError(response.errorBody()?.string()))
             }
         } catch (e: Exception) {
-            fetchFromCache(networkErrorMessage(e))
+            FridgeResult.Error(networkErrorMessage(e))
+        }
+    }
+
+    suspend fun getCachedJournals(): List<JournalEntryDto> {
+        return try {
+            dao.getAll().map { it.toDto() }
+        } catch (_: Exception) {
+            emptyList()
         }
     }
 
@@ -110,15 +118,7 @@ class JournalRepository(context: Context) {
         }
     }
 
-    private suspend fun fetchFromCache(errorMsg: String?): FridgeResult<JournalListResponse> {
-        val cached = dao.getAll()
-        return if (cached.isNotEmpty()) {
-            val dtos = cached.map { it.toDto() }
-            FridgeResult.Success(JournalListResponse(dtos, dtos.size, 1, 1))
-        } else {
-            FridgeResult.Error(parseError(errorMsg))
-        }
-    }
+
 
     private fun JournalEntryDto.toEntity(): JournalEntity {
         val meal = meals.firstOrNull()
