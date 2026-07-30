@@ -75,13 +75,18 @@ class ProfileViewModel(application: Application) : AndroidViewModel(application)
 
             // Refresh from network in background
             try {
-                val fresh = userRepository.getUserById(userId)
-                
-                // Artificial delay if the request was too fast
-                val elapsed = System.currentTimeMillis() - startTime
-                if (elapsed < 1500) kotlinx.coroutines.delay(1500 - elapsed)
-
-                if (fresh != null) applyUser(fresh)
+                when (val result = userRepository.getUserById(userId)) {
+                    is com.project.fridgemate.data.repository.FridgeResult.Success -> {
+                        // Artificial delay if the request was too fast
+                        val elapsed = System.currentTimeMillis() - startTime
+                        if (elapsed < 1500) kotlinx.coroutines.delay(1500 - elapsed)
+                        applyUser(result.data)
+                    }
+                    is com.project.fridgemate.data.repository.FridgeResult.Error -> {
+                        if (cached == null) _error.value = result.message
+                    }
+                    else -> {}
+                }
             } catch (e: Exception) {
                 if (cached == null) _error.value = e.message
             } finally {

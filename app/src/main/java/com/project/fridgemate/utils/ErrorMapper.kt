@@ -9,6 +9,7 @@ import com.project.fridgemate.R
 object ErrorMapper {
 
     fun mapToUserFriendly(context: Context, rawError: String?): String {
+        android.util.Log.d("ErrorMapper", "Mapping error: $rawError")
         if (rawError == null) return context.getString(R.string.error_generic)
 
         val errorLower = rawError.lowercase()
@@ -33,7 +34,17 @@ object ErrorMapper {
             errorLower.contains("too many") || errorLower.contains("429") || errorLower.contains("slow down") -> {
                 context.getString(R.string.error_rate_limit)
             }
+            errorLower.contains("illegalstate") || errorLower.contains("nullpointer") -> {
+                context.getString(R.string.error_generic)
+            }
             else -> rawError // Fallback to server message if it's already localized or specific
         }
+    }
+
+    /**
+     * Checks if the mapped error message is the generic system error message.
+     */
+    fun isGeneric(context: Context, message: String): Boolean {
+        return message == context.getString(R.string.error_generic)
     }
 }

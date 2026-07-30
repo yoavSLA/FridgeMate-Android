@@ -60,7 +60,9 @@ class NotificationsFragment : Fragment() {
             if (error != null) {
                 val userFriendly = ErrorMapper.mapToUserFriendly(requireContext(), error)
                 if (adapter.itemCount > 0) {
-                    ToastHelper.showToast(requireContext(), userFriendly)
+                    if (!ErrorMapper.isGeneric(requireContext(), userFriendly)) {
+                        ToastHelper.showToast(requireContext(), userFriendly)
+                    }
                     viewModel.clearError()
                 } else {
                     showError(userFriendly)

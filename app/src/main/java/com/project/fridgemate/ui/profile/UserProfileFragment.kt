@@ -250,7 +250,13 @@ class UserProfileFragment : Fragment() {
         viewModel.isLoading.observe(viewLifecycleOwner) { loading ->
             val hasData = viewModel.user.value != null
             binding.progressBar.visibility = if (loading && !hasData) View.VISIBLE else View.GONE
-            if (loading && !hasData) {
+            
+            if (!loading) {
+                if (hasData) {
+                    binding.swipeRefresh.visibility = View.VISIBLE
+                    binding.root.findViewById<View>(R.id.error_state)?.visibility = View.GONE
+                }
+            } else if (!hasData) {
                 binding.swipeRefresh.visibility = View.GONE
                 binding.root.findViewById<View>(R.id.error_state)?.visibility = View.GONE
             }
@@ -267,17 +273,24 @@ class UserProfileFragment : Fragment() {
         }
 
         viewModel.error.observe(viewLifecycleOwner) { err ->
+            val errorView = binding.root.findViewById<View>(R.id.error_state)
             if (err != null) {
                 val userFriendly = ErrorMapper.mapToUserFriendly(requireContext(), err)
                 if (viewModel.user.value != null) {
-                    ToastHelper.showToast(requireContext(), userFriendly)
+                    if (!ErrorMapper.isGeneric(requireContext(), userFriendly)) {
+                        ToastHelper.showToast(requireContext(), userFriendly)
+                    }
                     viewModel.clearError()
+                    binding.swipeRefresh.visibility = View.VISIBLE
+                    errorView?.visibility = View.GONE
                 } else {
                     showError(userFriendly)
                 }
             } else {
-                binding.root.findViewById<View>(R.id.error_state)?.visibility = View.GONE
-                if (viewModel.user.value != null) binding.swipeRefresh.visibility = View.VISIBLE
+                errorView?.visibility = View.GONE
+                if (viewModel.user.value != null) {
+                    binding.swipeRefresh.visibility = View.VISIBLE
+                }
                 updateEmptyState()
             }
         }
