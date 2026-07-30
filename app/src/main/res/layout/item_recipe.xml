@@ -13,11 +13,15 @@
     app:strokeColor="@color/divider_color"
     app:cardBackgroundColor="@color/white"
     android:clickable="true"
-    android:focusable="true">
+    android:focusable="true"
+    android:clipChildren="false"
+    android:clipToPadding="false">
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content">
+        android:layout_height="wrap_content"
+        android:clipChildren="false"
+        android:clipToPadding="false">
 
         <ImageView
             android:id="@+id/ivRecipeImage"
@@ -42,6 +46,8 @@
             android:layout_height="wrap_content"
             android:layout_margin="12dp"
             android:orientation="horizontal"
+            android:clipChildren="false"
+            android:clipToPadding="false"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toTopOf="parent">
 

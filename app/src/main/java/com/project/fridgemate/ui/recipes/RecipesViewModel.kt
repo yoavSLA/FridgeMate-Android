@@ -72,7 +72,9 @@ class RecipesViewModel(application: Application) : AndroidViewModel(application)
                 repository.clearRecommendedCache()
                 return@launch
             }
-            if (repository.isCacheExpired()) {
+            
+            // Only load automatically if we have nothing in the cache OR the 30-min cache expired.
+            if (!repository.hasRecommended() || repository.isCacheExpired()) {
                 loadRecommended()
             } else {
                 _noFridge.value = false

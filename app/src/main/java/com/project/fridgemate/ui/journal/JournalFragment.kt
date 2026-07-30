@@ -130,13 +130,20 @@ class JournalFragment : Fragment() {
         viewModel.error.observe(viewLifecycleOwner) { errorMsg ->
             val errorView = binding.root.findViewById<View>(R.id.error_state)
             val isLoading = viewModel.isLoading.value == true
-            val hasEntries = allEntries.isNotEmpty() || viewModel.entries.value?.isNotEmpty() == true
+            val hasEntries = allEntries.isNotEmpty()
             
             if (errorMsg != null) {
                 val userFriendly = ErrorMapper.mapToUserFriendly(requireContext(), errorMsg)
+                android.util.Log.d("JournalFragment", "Error observed: $errorMsg -> $userFriendly (hasEntries=$hasEntries, generic=${ErrorMapper.isGeneric(requireContext(), userFriendly)})")
+                val isGeneric = ErrorMapper.isGeneric(requireContext(), userFriendly)
+
                 if (hasEntries) {
-                    ToastHelper.showToast(requireContext(), userFriendly)
+                    // Only show toast for non-generic errors if they happen in the background.
+                    if (!isGeneric || binding.swipeRefresh.isRefreshing) {
+                        ToastHelper.showToast(requireContext(), userFriendly)
+                    }
                     errorView?.visibility = View.GONE
+                    binding.swipeRefresh.visibility = View.VISIBLE
                     binding.fabAddEntry.visibility = View.VISIBLE
                     binding.headerContainer.visibility = View.VISIBLE
                     binding.chipsScroll.visibility = View.VISIBLE
@@ -151,11 +158,10 @@ class JournalFragment : Fragment() {
                     binding.chipsScroll.visibility = View.GONE
                 }
             } else {
-                binding.swipeRefresh.visibility = View.VISIBLE
-                errorView?.visibility = View.GONE
-                binding.fabAddEntry.visibility = View.VISIBLE
-                binding.headerContainer.visibility = View.VISIBLE
-                binding.chipsScroll.visibility = View.VISIBLE
+                // If error is null, ensure error view is hidden if we are not loading or have entries
+                if (!isLoading || hasEntries) {
+                    errorView?.visibility = View.GONE
+                }
                 applyFilters()
             }
         }

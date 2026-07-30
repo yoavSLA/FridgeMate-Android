@@ -138,9 +138,8 @@ class RecipeListFragment : Fragment() {
 
     override fun onResume() {
         super.onResume()
-        if (arguments?.getString(ARG_TYPE) == TYPE_RECOMMENDED) {
-            viewModel.loadRecommended()
-        }
+        // Removed unconditional loadRecommended() to favor caching.
+        // loadRecommendedIfNeeded() is already called by the parent RecipesFragment.
     }
 
     fun showError(error: String) {
@@ -160,7 +159,9 @@ class RecipeListFragment : Fragment() {
             binding.emptyState.visibility = View.GONE
             binding.btnGenerate.visibility = View.VISIBLE
             binding.root.findViewById<View>(R.id.error_state)?.visibility = View.GONE
-            ToastHelper.showToast(requireContext(), userFriendly, Toast.LENGTH_LONG)
+            if (!ErrorMapper.isGeneric(requireContext(), userFriendly)) {
+                ToastHelper.showToast(requireContext(), userFriendly, Toast.LENGTH_LONG)
+            }
             viewModel.clearError()
         }
     }

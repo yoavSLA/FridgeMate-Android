@@ -221,7 +221,10 @@ class FeedFragment : Fragment() {
             
             if (hasError) {
                 // If we have data and error, it must be a background refresh failure
-                ToastHelper.showToast(requireContext(), ErrorMapper.mapToUserFriendly(requireContext(), error))
+                val userFriendly = ErrorMapper.mapToUserFriendly(requireContext(), error)
+                if (!ErrorMapper.isGeneric(requireContext(), userFriendly)) {
+                    ToastHelper.showToast(requireContext(), userFriendly)
+                }
                 viewModel.clearError()
             }
         }

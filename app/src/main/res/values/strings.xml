@@ -258,7 +258,7 @@
     <string name="error_server">Our kitchen is temporarily closed. Please try again shortly.</string>
     <string name="error_auth_expired">Your session has expired. Please log in again.</string>
     <string name="error_rate_limit">Slow down! Give it a moment and try again.</string>
-    <string name="error_generic">Something went wrong. Tap below to try again.</string>
+    <string name="error_generic">Something went wrong. Try again.</string>
     <string name="error_location_detection">Could not detect location: %1$s</string>
     <string name="error_upload_image">Failed to upload image</string>
 

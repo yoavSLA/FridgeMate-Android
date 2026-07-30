@@ -26,13 +26,23 @@ class UserRepository(context: Context) {
         return userDao.get(id)?.toDto()
     }
 
-    suspend fun getUserById(id: String): UserDto? {
-        val response = api.getUserById(id)
-        return if (response.isSuccessful) {
-            val dto = response.body()
-            if (dto != null) cacheUser(dto)
-            dto
-        } else null
+    suspend fun getUserById(id: String): FridgeResult<UserDto> {
+        return try {
+            val response = api.getUserById(id)
+            if (response.isSuccessful) {
+                val dto = response.body()
+                if (dto != null) {
+                    cacheUser(dto)
+                    FridgeResult.Success(dto)
+                } else {
+                    FridgeResult.Error("User not found")
+                }
+            } else {
+                FridgeResult.Error(parseError(response.errorBody()?.string()))
+            }
+        } catch (e: Exception) {
+            FridgeResult.Error(networkErrorMessage(e))
+        }
     }
 
     suspend fun updateProfile(id: String, request: UpdateProfileRequest): UserDto? {

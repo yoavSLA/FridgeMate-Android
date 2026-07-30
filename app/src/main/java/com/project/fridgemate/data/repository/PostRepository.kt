@@ -280,6 +280,7 @@ class PostRepository(context: Context) {
         
         return PostEntity(
             id = id,
+            authorId = authorUserId.id,
             authorName = authorUserId.displayName,
             authorLocation = loc?.placeName ?: authorAddr?.city ?: "",
             authorProfileImage = authorUserId.profileImage ?: "",
@@ -314,7 +315,7 @@ class PostRepository(context: Context) {
         return PostDto(
             id = id,
             authorUserId = PostAuthorDto(
-                id = "",
+                id = authorId,
                 displayName = authorName,
                 profileImage = authorProfileImage.ifEmpty { null },
                 address = if (authorLocation.isNotEmpty()) AddressDto(city = authorLocation) else null
