@@ -286,6 +286,13 @@ class MapViewFragment : Fragment() {
         val commentAdapter = CommentAdapter(
             onDeleteComment = { comment -> viewModel.deleteComment(post.id, comment.id) },
             onEditComment = { comment, newText -> viewModel.editComment(post.id, comment.id, newText) },
+            onAuthorClick = { comment ->
+                if (comment.authorId.isNotEmpty()) {
+                    dialog.dismiss()
+                    val action = MapViewFragmentDirections.actionMapViewFragmentToUserProfileFragment(comment.authorId)
+                    findNavController().navigate(action)
+                }
+            },
             showOptions = true
         )
         dialogBinding.rvComments.layoutManager = LinearLayoutManager(requireContext())

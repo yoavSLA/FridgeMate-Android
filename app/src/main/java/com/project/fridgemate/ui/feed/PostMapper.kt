@@ -51,6 +51,7 @@ fun CommentDto.toComment(): Comment {
     return Comment(
         id = id,
         postId = postId,
+        authorId = authorUserId.id,
         userName = authorUserId.displayName,
         text = text,
         authorImageUrl = authorUserId.profileImage ?: "",

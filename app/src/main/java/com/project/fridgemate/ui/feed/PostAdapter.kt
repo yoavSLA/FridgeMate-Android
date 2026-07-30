@@ -32,7 +32,8 @@ class PostAdapter(
     private val onRecipeClick: (LinkedRecipe) -> Unit = {},
     private val onLocationClick: (Post) -> Unit = {},
     private val onAuthorClick: (Post) -> Unit = {},
-    private val onFollowClick: (Post) -> Unit = {}
+    private val onFollowClick: (Post) -> Unit = {},
+    private val onCommentAuthorClick: (Comment) -> Unit = {}
 ) : ListAdapter<Post, PostAdapter.PostViewHolder>(DIFF_CALLBACK) {
 
     companion object {
@@ -213,7 +214,8 @@ class PostAdapter(
             rv.layoutManager = LinearLayoutManager(holder.itemView.context)
             adapter = CommentAdapter(
                 onDeleteComment = { comment -> onDeleteComment(post.id, comment.id) },
-                onEditComment = { comment, newText -> onEditComment(post.id, comment.id, newText) }
+                onEditComment = { comment, newText -> onEditComment(post.id, comment.id, newText) },
+                onAuthorClick = { comment -> onCommentAuthorClick(comment) }
             )
             rv.adapter = adapter
         }

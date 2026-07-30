@@ -209,6 +209,9 @@
         <action
             android:id="@+id/action_mapViewFragment_to_recipeDetailFragment"
             app:destination="@id/recipeDetailFragment" />
+        <action
+            android:id="@+id/action_mapViewFragment_to_userProfileFragment"
+            app:destination="@id/userProfileFragment" />
     </fragment>
     <fragment
         android:id="@+id/editPostFragment"
