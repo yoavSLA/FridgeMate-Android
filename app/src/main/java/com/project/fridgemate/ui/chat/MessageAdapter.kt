@@ -43,6 +43,7 @@ sealed class ChatItem {
 class MessageAdapter(
     private val currentUserId: String?,
     private val onRecipeClick: ((recipeId: String) -> Unit)? = null,
+    private val onAuthorClick: ((userId: String) -> Unit)? = null,
 ) : ListAdapter<ChatItem, RecyclerView.ViewHolder>(Diff) {
 
 
@@ -112,6 +113,13 @@ class MessageAdapter(
 
             val resolved = resolveAvatarUrl(message.sender?.profileImage)
             val placeholder = AvatarHelper.createPlaceholder(b.root.context, message.sender?.displayName)
+            
+            val authorClickListener = View.OnClickListener {
+                message.sender?.id?.let { onAuthorClick?.invoke(it) }
+            }
+            b.ivAvatar.setOnClickListener(authorClickListener)
+            b.tvSender.setOnClickListener(authorClickListener)
+
             if (resolved != null) {
                 Picasso.get()
                     .load(resolved)
@@ -156,6 +164,12 @@ class MessageAdapter(
             val payload = message.payload ?: return
             b.tvSender.text = message.sender?.displayName ?: ""
             
+            val authorClickListener = View.OnClickListener {
+                message.sender?.id?.let { onAuthorClick?.invoke(it) }
+            }
+            b.ivAvatar.setOnClickListener(authorClickListener)
+            b.tvSender.setOnClickListener(authorClickListener)
+
             val senderId = message.sender?.id ?: ""
             val colors = getSenderColors(senderId)
             b.tvSender.setTextColor(ContextCompat.getColor(b.root.context, colors.first))
