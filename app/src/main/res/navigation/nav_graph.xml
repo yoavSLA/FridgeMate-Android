@@ -140,6 +140,9 @@
         android:name="com.project.fridgemate.ui.profile.MyProfileFragment"
         android:label="MyProfileFragment"
         tools:layout="@layout/fragment_my_profile">
+        <action
+            android:id="@+id/action_myProfileFragment_to_mapViewFragment"
+            app:destination="@id/mapViewFragment" />
     </fragment>
     <fragment
         android:id="@+id/settingsFragment"
@@ -204,6 +207,10 @@
         tools:layout="@layout/fragment_map_view">
         <argument
             android:name="focusPostId"
+            app:argType="string"
+            android:defaultValue="" />
+        <argument
+            android:name="focusLocation"
             app:argType="string"
             android:defaultValue="" />
         <action

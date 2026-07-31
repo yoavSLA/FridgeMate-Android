@@ -177,13 +177,8 @@ class MyProfileFragment : Fragment() {
         binding.locationRow.setOnClickListener {
             val location = profileViewModel.locationDisplay.value
             if (!location.isNullOrEmpty()) {
-                val uri = Uri.parse("geo:0,0?q=${Uri.encode(location)}")
-                val intent = android.content.Intent(android.content.Intent.ACTION_VIEW, uri)
-                try {
-                    startActivity(intent)
-                } catch (e: Exception) {
-                    ToastHelper.showToast(requireContext(), "No map application found")
-                }
+                val action = MyProfileFragmentDirections.actionMyProfileFragmentToMapViewFragment(focusLocation = location)
+                findNavController().navigate(action)
             }
         }
     }

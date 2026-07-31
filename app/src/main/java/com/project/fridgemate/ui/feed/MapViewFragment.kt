@@ -31,6 +31,12 @@ import org.osmdroid.config.Configuration
 import org.osmdroid.tileprovider.tilesource.TileSourceFactory
 import org.osmdroid.util.GeoPoint
 import org.osmdroid.views.overlay.Marker
+import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import android.location.Geocoder
+import java.util.Locale
 
 class MapViewFragment : Fragment() {
 
@@ -81,6 +87,26 @@ class MapViewFragment : Fragment() {
         mapController.setZoom(4.0)
         val startPoint = GeoPoint(39.8283, -98.5795) // Center of US
         mapController.setCenter(startPoint)
+
+        if (args.focusLocation.isNotBlank()) {
+            hasAppliedInitialFocus = true
+            viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
+                try {
+                    val geocoder = Geocoder(requireContext(), Locale.ENGLISH)
+                    val addresses = geocoder.getFromLocationName(args.focusLocation, 1)
+                    if (!addresses.isNullOrEmpty()) {
+                        val address = addresses[0]
+                        val point = GeoPoint(address.latitude, address.longitude)
+                        withContext(Dispatchers.Main) {
+                            mapController.setZoom(15.0)
+                            mapController.setCenter(point)
+                        }
+                    }
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
+            }
+        }
     }
 
     private fun setupListeners() {

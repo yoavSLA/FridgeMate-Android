@@ -116,9 +116,9 @@ class UserProfileFragment : Fragment() {
                     )
                 )
             },
-            onLocationClick = {
+            onLocationClick = { post ->
                 findNavController().navigate(
-                    UserProfileFragmentDirections.actionUserProfileFragmentToMapViewFragment()
+                    UserProfileFragmentDirections.actionUserProfileFragmentToMapViewFragment(focusPostId = post.id)
                 )
             },
             onAuthorClick = { post ->
@@ -176,13 +176,8 @@ class UserProfileFragment : Fragment() {
         binding.layoutLocationHeader.setOnClickListener {
             val locationText = binding.tvLocation.text.toString()
             if (locationText.isNotEmpty()) {
-                val uri = android.net.Uri.parse("geo:0,0?q=${android.net.Uri.encode(locationText)}")
-                val intent = android.content.Intent(android.content.Intent.ACTION_VIEW, uri)
-                try {
-                    startActivity(intent)
-                } catch (e: Exception) {
-                    ToastHelper.showToast(requireContext(), "No map application found")
-                }
+                val action = UserProfileFragmentDirections.actionUserProfileFragmentToMapViewFragment(focusLocation = locationText)
+                findNavController().navigate(action)
             }
         }
     }
