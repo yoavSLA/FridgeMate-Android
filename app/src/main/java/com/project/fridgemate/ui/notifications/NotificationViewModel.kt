@@ -9,6 +9,9 @@ import com.project.fridgemate.data.model.NotificationType
 import com.project.fridgemate.data.repository.NotificationRepository
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 
@@ -25,8 +28,11 @@ class NotificationViewModel : ViewModel() {
     private val _isLoading = MutableLiveData(false)
     val isLoading: LiveData<Boolean> = _isLoading
 
-    private val _incomingNotification = MutableLiveData<Notification?>(null)
-    val incomingNotification: LiveData<Notification?> = _incomingNotification
+    private val _error = MutableLiveData<String?>(null)
+    val error: LiveData<String?> = _error
+
+    private val _incomingNotificationFlow = MutableSharedFlow<Notification>(extraBufferCapacity = 10)
+    val incomingNotification: SharedFlow<Notification> = _incomingNotificationFlow.asSharedFlow()
 
     private val _pendingPostId = MutableLiveData<String?>(null)
     val pendingPostId: LiveData<String?> = _pendingPostId
@@ -64,16 +70,33 @@ class NotificationViewModel : ViewModel() {
     }
 
     fun loadAndMarkAllAsRead() {
-        _isLoading.value = true
         viewModelScope.launch {
-            val loaded = repo.getNotifications().getOrNull()
-            if (loaded != null) {
-                _notifications.value = loaded.map { it.copy(isRead = true) }
-                _unreadCount.value = 0
+            val startTime = System.currentTimeMillis()
+            _isLoading.value = true
+            _error.value = null
+            val loadedResult = repo.getNotifications()
+            
+            // Artificial delay if the request was too fast
+            val elapsed = System.currentTimeMillis() - startTime
+            if (elapsed < 1500) delay(1500 - elapsed)
+
+            when (val loaded = loadedResult.getOrNull()) {
+                null -> {
+                    // repo.getNotifications() failed or returned null
+                    _error.value = "Unable to load notifications" 
+                }
+                else -> {
+                    _notifications.value = loaded.map { it.copy(isRead = true) }
+                    _unreadCount.value = 0
+                }
             }
             _isLoading.value = false
             repo.markAllAsRead()
         }
+    }
+
+    fun clearError() {
+        _error.value = null
     }
 
     fun markAsRead(id: String) {
@@ -85,10 +108,6 @@ class NotificationViewModel : ViewModel() {
         _unreadCount.value = ((_unreadCount.value ?: 0) - 1).coerceAtLeast(0)
 
         viewModelScope.launch { repo.markAsRead(id) }
-    }
-
-    fun consumeIncoming() {
-        _incomingNotification.value = null
     }
 
     fun requestNavToPost(postId: String) {
@@ -192,7 +211,7 @@ class NotificationViewModel : ViewModel() {
                     if (!wasUnread) {
                         _unreadCount.value = (_unreadCount.value ?: 0) + 1
                     }
-                    _incomingNotification.value = notification
+                    _incomingNotificationFlow.tryEmit(notification)
                 }
                 // Flow closed because the socket disconnected (e.g. token refresh
                 // caused SocketManager to replace the socket). Wait briefly so the

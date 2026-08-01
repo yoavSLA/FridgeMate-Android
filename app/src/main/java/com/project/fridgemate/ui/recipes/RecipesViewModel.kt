@@ -43,6 +43,10 @@ class RecipesViewModel(application: Application) : AndroidViewModel(application)
     private val _fridgeEmpty = MutableLiveData(false)
     val fridgeEmpty: LiveData<Boolean> = _fridgeEmpty
 
+    fun clearError() {
+        _error.value = null
+    }
+
     init {
         val dao = AppDatabase.getInstance(application).recipeDao()
         repository = RecipeRepository(dao)
@@ -68,7 +72,9 @@ class RecipesViewModel(application: Application) : AndroidViewModel(application)
                 repository.clearRecommendedCache()
                 return@launch
             }
-            if (repository.isCacheExpired()) {
+            
+            // Only load automatically if we have nothing in the cache OR the 30-min cache expired.
+            if (!repository.hasRecommended() || repository.isCacheExpired()) {
                 loadRecommended()
             } else {
                 _noFridge.value = false
@@ -80,35 +86,39 @@ class RecipesViewModel(application: Application) : AndroidViewModel(application)
         if (recommendedJob?.isActive == true) return
         _error.value = null
         recommendedJob = viewModelScope.launch {
-            if (fridgeRepository.peekLastKnownFridge() is LastKnownFridge.None) {
-                _noFridge.value = true
-                _isLoading.value = false
-                repository.clearRecommendedCache()
-                return@launch
-            }
-
-            val cached = inventoryRepository.getCachedItems()
-            if (cached.isNotEmpty()) {
-                _isLoading.value = true
-            }
-
-            val ingredients = fetchFridgeIngredients()
-            if (ingredients == null) {
-                _isLoading.value = false
-                return@launch
-            }
-            if (ingredients.isEmpty()) {
-                _isLoading.value = false
-                _fridgeEmpty.value = true
-                return@launch
-            }
-            _fridgeEmpty.value = false
+            val startTime = System.currentTimeMillis()
             _isLoading.value = true
-            val result = repository.fetchRecommended(ingredients)
-            if (result.isFailure) {
-                _error.value = friendlyError(result.exceptionOrNull())
+            
+            try {
+                if (fridgeRepository.peekLastKnownFridge() is LastKnownFridge.None) {
+                    _noFridge.value = true
+                    repository.clearRecommendedCache()
+                    return@launch
+                }
+
+                val ingredients = fetchFridgeIngredients()
+                if (ingredients == null) {
+                    // friendlyError already set _error in fetchFridgeIngredients
+                    return@launch
+                }
+                
+                if (ingredients.isEmpty()) {
+                    _fridgeEmpty.value = true
+                    return@launch
+                }
+                
+                _fridgeEmpty.value = false
+                val result = repository.fetchRecommended(ingredients)
+
+                if (result.isFailure) {
+                    _error.value = friendlyError(result.exceptionOrNull())
+                }
+            } finally {
+                // Artificial delay if the request was too fast (e.g. instant network error)
+                val elapsed = System.currentTimeMillis() - startTime
+                if (elapsed < 1500) kotlinx.coroutines.delay(1500 - elapsed)
+                _isLoading.value = false
             }
-            _isLoading.value = false
         }
     }
 
@@ -116,8 +126,16 @@ class RecipesViewModel(application: Application) : AndroidViewModel(application)
         return when (val fridgeResult = fridgeRepository.getMyFridge()) {
             is FridgeResult.Success -> {
                 _noFridge.postValue(false)
-                val items = inventoryRepository.getItems(fridgeResult.data.id, mineOrUnowned = true)
-                items.map { "${it.name} (${it.quantity})" }
+                when (val itemResult = inventoryRepository.getItems(fridgeResult.data.id, mineOrUnowned = true)) {
+                    is FridgeResult.Success -> {
+                        itemResult.data.map { "${it.name} (${it.quantity})" }
+                    }
+                    is FridgeResult.Error -> {
+                        _error.value = friendlyError(Exception(itemResult.message))
+                        null
+                    }
+                    else -> null
+                }
             }
             is FridgeResult.NoFridge -> {
                 _noFridge.postValue(true)
@@ -152,17 +170,21 @@ class RecipesViewModel(application: Application) : AndroidViewModel(application)
 
     private fun friendlyError(e: Throwable?): String {
         val ctx = getApplication<Application>()
+        val msg = e?.message?.lowercase() ?: ""
+        
         return when {
-            e is UnknownHostException || e is ConnectException ->
+            e is UnknownHostException || e is ConnectException || 
+            msg.contains("connect") || msg.contains("unknownhost") || 
+            msg.contains("offline") || msg.contains("network") ||
+            msg.contains("unable to reach") ->
                 ctx.getString(R.string.error_no_connection)
-            e is SocketTimeoutException ->
+            e is SocketTimeoutException || msg.contains("timeout") ->
                 ctx.getString(R.string.error_timeout)
-            e?.message?.contains("500") == true || e?.message?.contains("502") == true ||
-                e?.message?.contains("503") == true ->
+            msg.contains("500") || msg.contains("502") || msg.contains("503") || msg.contains("server") || msg.contains("kitchen") ->
                 ctx.getString(R.string.error_server)
-            e?.message?.contains("401") == true || e?.message?.contains("403") == true ->
+            msg.contains("401") || msg.contains("403") || msg.contains("expired") || msg.contains("unauthorized") || msg.contains("session") ->
                 ctx.getString(R.string.error_auth_expired)
-            e?.message?.contains("429") == true ->
+            msg.contains("429") || msg.contains("too many") || msg.contains("slow down") ->
                 ctx.getString(R.string.error_rate_limit)
             else ->
                 ctx.getString(R.string.error_generic)

@@ -77,6 +77,7 @@
     <string name="location">Location</string>
     <string name="allergies_restrictions">Allergies &amp; Restrictions</string>
     <string name="save_changes">Save changes</string>
+    <string name="retry">Retry</string>
 
     <!-- Settings Screen -->
     <string name="settings_title">Settings</string>
@@ -252,12 +253,12 @@
     <string name="detecting_location">Detecting location…</string>
 
     <!-- Error Messages -->
-    <string name="error_no_connection">Looks like you\'re offline. Check your connection and try again.</string>
+    <string name="error_no_connection">Looks like you\'re offline. Check your connection.</string>
     <string name="error_timeout">That took too long! Try again in a moment.</string>
     <string name="error_server">Our kitchen is temporarily closed. Please try again shortly.</string>
     <string name="error_auth_expired">Your session has expired. Please log in again.</string>
     <string name="error_rate_limit">Slow down! Give it a moment and try again.</string>
-    <string name="error_generic">Something went wrong. Tap below to try again.</string>
+    <string name="error_generic">Something went wrong. Try again.</string>
     <string name="error_location_detection">Could not detect location: %1$s</string>
     <string name="error_upload_image">Failed to upload image</string>
 
@@ -284,6 +285,12 @@
     <string name="onboarding_feat_share">Share with roommates or family</string>
     <string name="onboarding_feat_inventory">Keep track of your inventory</string>
     <string name="onboarding_feat_recipes">Get recipes based on what\'s inside</string>
+    <string name="onboarding_scan_title">Fill Your Fridge!</string>
+    <string name="onboarding_scan_desc">Snap a photo of your fridge, and let AI magic identify everything for you. It\'s the fastest way to get started!</string>
+    <string name="onboarding_finish_button">Finish</string>
+    <string name="onboarding_skip_scan">Skip for now</string>
+    <string name="quantity_format">(%1$s)</string>
+    <string name="onboarding_scan_later_hint">No rush! You can always fill up your virtual fridge later from Settings.</string>
     <string name="cd_logo">FridgeMate Logo</string>
     <string name="cd_community">Community Icon</string>
     <string name="cd_fridge">Fridge Icon</string>

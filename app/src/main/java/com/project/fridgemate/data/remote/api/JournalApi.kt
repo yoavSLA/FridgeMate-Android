@@ -22,7 +22,7 @@ interface JournalApi {
     suspend fun getJournals(
         @Query("page") page: Int = 1,
         @Query("limit") limit: Int = 20
-    ): Response<JournalListResponse>
+    ): Response<com.project.fridgemate.data.remote.dto.JournalListResponse>
 
     @GET("journal/{id}")
     suspend fun getJournalById(@Path("id") id: String): Response<JournalResponse>

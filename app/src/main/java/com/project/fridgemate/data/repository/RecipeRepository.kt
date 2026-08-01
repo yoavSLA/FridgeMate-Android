@@ -31,6 +31,10 @@ class RecipeRepository(private val recipeDao: RecipeDao) {
     fun getByServerId(serverId: String): LiveData<RecipeEntity?> =
         recipeDao.getByServerId(serverId)
 
+    suspend fun hasRecommended(): Boolean {
+        return recipeDao.getByTypeSync(RecipeEntity.TYPE_RECOMMENDED).isNotEmpty()
+    }
+
     suspend fun isCacheExpired(): Boolean {
         val lastCache = recipeDao.getLatestCacheTime(RecipeEntity.TYPE_RECOMMENDED) ?: return true
         return System.currentTimeMillis() - lastCache > CACHE_TTL_MS

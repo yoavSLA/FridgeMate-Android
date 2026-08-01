@@ -1,22 +1,22 @@
 package com.project.fridgemate.data.remote.dto
 
 data class JournalEntryDto(
-    val id: String,
-    val userId: String,
-    val title: String,
+    val id: String?,
+    val userId: String?,
+    val title: String?,
     val content: String?,
-    val date: String, // ISO String
-    val meals: List<JournalMealDto>,
+    val date: String?, // ISO String
+    val meals: List<JournalMealDto>?,
     val rating: Int?,
     val mood: String?,
     val imageUrl: String?,
-    val createdAt: String,
-    val updatedAt: String
+    val createdAt: String?,
+    val updatedAt: String?
 )
 
 data class JournalMealDto(
-    val mealType: String,
-    val recipeId: String?,
+    val mealType: String?,
+    val recipeId: com.google.gson.JsonElement?,
     val customRecipeTitle: String?,
     val calories: Int?,
     val notes: String?
@@ -43,10 +43,10 @@ data class UpdateJournalRequest(
 )
 
 data class JournalListResponse(
-    val items: List<JournalEntryDto>,
-    val total: Int,
-    val page: Int,
-    val totalPages: Int
+    val items: List<JournalEntryDto>?,
+    val total: Int?,
+    val page: Int?,
+    val totalPages: Int?
 )
 
 data class JournalResponse(

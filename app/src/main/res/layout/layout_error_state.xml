@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <LinearLayout
+        android:id="@+id/error_state_container"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="32dp"
+        android:gravity="center"
+        android:orientation="vertical"
+        android:visibility="gone"
+        tools:visibility="visible">
+
+        <com.google.android.material.card.MaterialCardView
+            android:layout_width="96dp"
+            android:layout_height="96dp"
+            app:cardBackgroundColor="@color/white"
+            app:cardCornerRadius="48dp"
+            app:cardElevation="2dp"
+            app:strokeWidth="0dp">
+
+            <ImageView
+                android:id="@+id/iv_error_icon"
+                android:layout_width="44dp"
+                android:layout_height="44dp"
+                android:layout_gravity="center"
+                android:contentDescription="@null"
+                android:src="@drawable/ic_warning"
+                app:tint="@color/error_red" />
+        </com.google.android.material.card.MaterialCardView>
+
+        <TextView
+            android:id="@+id/tv_error_title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            android:gravity="center"
+            android:text="@string/error_generic"
+            android:textColor="@color/accent_green_dark"
+            android:textSize="18sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/tv_error_desc"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="6dp"
+            android:gravity="center"
+            android:textColor="@color/gray_text"
+            android:textSize="14sp"
+            tools:text="Something went wrong. Please check your connection." />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_retry"
+            style="@style/Widget.MaterialComponents.Button.TextButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:text="@string/retry"
+            android:textColor="@color/accent_green"
+            android:textStyle="bold"
+            app:rippleColor="@color/accent_green_light" />
+
+    </LinearLayout>
+</layout>

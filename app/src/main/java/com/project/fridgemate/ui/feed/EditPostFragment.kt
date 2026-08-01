@@ -17,6 +17,7 @@ import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import com.project.fridgemate.R
 import com.project.fridgemate.databinding.FragmentEditPostBinding
+import com.project.fridgemate.utils.ToastHelper
 import com.squareup.picasso.Picasso
 import kotlinx.coroutines.launch
 import java.io.ByteArrayOutputStream
@@ -61,7 +62,7 @@ class EditPostFragment : Fragment() {
     private val requestCameraPermission =
         registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted ->
             if (isGranted) takePictureLauncher.launch(null)
-            else Toast.makeText(context, getString(R.string.camera_permission_denied), Toast.LENGTH_SHORT).show()
+            else ToastHelper.showToast(requireContext(), getString(R.string.camera_permission_denied))
         }
 
     private val requestGalleryPermission =
@@ -185,7 +186,7 @@ class EditPostFragment : Fragment() {
                 selectedImageBytes = stream.readBytes()
             }
         } catch (e: Exception) {
-            Toast.makeText(context, getString(R.string.error_read_image), Toast.LENGTH_SHORT).show()
+            ToastHelper.showToast(requireContext(), getString(R.string.error_read_image))
         }
     }
 

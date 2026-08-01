@@ -31,16 +31,26 @@ class InventoryItemRepository(context: Context) {
     // mineOrUnowned = true excludes other members' items (used for recipe generation).
     // That filtered result is never cached, so it can't clobber the full-fridge cache
     // that the normal fridge screen relies on.
-    suspend fun getItems(fridgeId: String, mineOrUnowned: Boolean = false): List<InventoryItemDto> {
+    suspend fun getItems(fridgeId: String, mineOrUnowned: Boolean = false): FridgeResult<List<InventoryItemDto>> {
         return try {
             val response = api.getItems(fridgeId, mineOrUnowned)
             if (response.isSuccessful) {
                 val items = response.body()?.items ?: emptyList()
                 if (!mineOrUnowned) cacheItems(items)
-                items
-            } else emptyList()
+                FridgeResult.Success(items)
+            } else {
+                FridgeResult.Error("Failed to fetch items: ${response.code()}")
+            }
         } catch (e: Exception) {
-            emptyList()
+            FridgeResult.Error(networkErrorMessage(e))
+        }
+    }
+
+    private fun networkErrorMessage(e: Exception): String {
+        return if (e is java.net.ConnectException || e is java.net.UnknownHostException) {
+            "Unable to connect to server. Please check your connection."
+        } else {
+            e.localizedMessage ?: "An unexpected error occurred."
         }
     }
 

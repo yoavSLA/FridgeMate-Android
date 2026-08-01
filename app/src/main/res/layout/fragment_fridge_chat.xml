@@ -119,6 +119,16 @@
         app:layout_constraintStart_toStartOf="@id/rv_messages"
         app:layout_constraintTop_toTopOf="@id/rv_messages" />
 
+    <include
+        android:id="@+id/error_state"
+        layout="@layout/layout_error_state"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        app:layout_constraintBottom_toBottomOf="@id/rv_messages"
+        app:layout_constraintEnd_toEndOf="@id/rv_messages"
+        app:layout_constraintStart_toStartOf="@id/rv_messages"
+        app:layout_constraintTop_toTopOf="@id/rv_messages" />
+
     <View
         android:id="@+id/input_divider"
         android:layout_width="match_parent"

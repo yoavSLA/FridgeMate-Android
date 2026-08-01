@@ -22,7 +22,9 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.updatePadding
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import com.google.firebase.messaging.FirebaseMessaging
 import com.project.fridgemate.data.local.ScanSummaryStorage
 import com.project.fridgemate.data.model.Notification
@@ -31,6 +33,7 @@ import com.project.fridgemate.data.repository.UserRepository
 import com.project.fridgemate.databinding.ActivityMainBinding
 import com.project.fridgemate.ui.notifications.NotificationViewModel
 import com.project.fridgemate.ui.settings.ScanSummaryDialog
+import com.project.fridgemate.utils.ToastHelper
 import kotlinx.coroutines.launch
 import org.json.JSONObject
 import kotlin.math.abs
@@ -44,6 +47,7 @@ class MainActivity : AppCompatActivity() {
 
     private val bannerHandler = Handler(Looper.getMainLooper())
     private val hideBannerRunnable = Runnable { hideBanner() }
+    private var bannerAnimator: ObjectAnimator? = null
 
     private val requestNotificationPermission = registerForActivityResult(
         ActivityResultContracts.RequestPermission()
@@ -85,11 +89,15 @@ class MainActivity : AppCompatActivity() {
 
                 // Send to server
                 lifecycleScope.launch {
-                    val result = userRepository.registerFcmToken(token)
-                    if (result.isSuccess) {
-                        Log.d("FCM_TOKEN", "Token registered successfully")
+                    if (ApiClient.getTokenManager().isLoggedIn) {
+                        val result = userRepository.registerFcmToken(token)
+                        if (result.isSuccess) {
+                            Log.d("FCM_TOKEN", "Token registered successfully")
+                        } else {
+                            Log.e("FCM_TOKEN", "Failed to register token: ${result.exceptionOrNull()?.message}")
+                        }
                     } else {
-                        Log.e("FCM_TOKEN", "Failed to register token: ${result.exceptionOrNull()?.message}")
+                        Log.d("FCM_TOKEN", "User not logged in, skipping FCM registration for now")
                     }
                 }
             } else {
@@ -105,10 +113,12 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun observeNotifications() {
-        notificationViewModel.incomingNotification.observe(this) { notification ->
-            notification ?: return@observe
-            showBanner(notification)
-            notificationViewModel.consumeIncoming()
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                notificationViewModel.incomingNotification.collect { notification ->
+                    showBanner(notification)
+                }
+            }
         }
 
         notificationViewModel.pendingScanSummaryOpen.observe(this) { pending ->
@@ -122,32 +132,44 @@ class MainActivity : AppCompatActivity() {
         val banner = binding.notificationBanner
         binding.bannerTitle.text = notification.title
         binding.bannerMessage.text = notification.message
+        
+        bannerHandler.removeCallbacks(hideBannerRunnable)
+        bannerAnimator?.cancel()
+        
         banner.translationY = 0f
         banner.alpha = 1f
         banner.visibility = View.VISIBLE
+        
         banner.setOnClickListener {
             bannerHandler.removeCallbacks(hideBannerRunnable)
             hideBanner()
             notificationViewModel.handleNotificationClick(notification)
         }
         attachSwipeToDismiss(banner)
-        ObjectAnimator.ofFloat(banner, "alpha", 0f, 1f).setDuration(200).start()
+        
+        bannerAnimator = ObjectAnimator.ofFloat(banner, "alpha", 0f, 1f).apply {
+            duration = 200
+            start()
+        }
 
-        bannerHandler.removeCallbacks(hideBannerRunnable)
-        bannerHandler.postDelayed(hideBannerRunnable, 3500)
+        bannerHandler.postDelayed(hideBannerRunnable, 4000)
     }
 
     private fun hideBanner() {
         val bannerView = binding.notificationBanner
-        val animator = ObjectAnimator.ofFloat(bannerView, "alpha", 1f, 0f).apply {
+        bannerAnimator?.cancel()
+        
+        bannerAnimator = ObjectAnimator.ofFloat(bannerView, "alpha", 1f, 0f).apply {
             duration = 300
+            addListener(object : android.animation.AnimatorListenerAdapter() {
+                override fun onAnimationEnd(animation: android.animation.Animator) {
+                    if (bannerView.alpha == 0f) {
+                        bannerView.visibility = View.GONE
+                    }
+                }
+            })
+            start()
         }
-        animator.addListener(object : android.animation.AnimatorListenerAdapter() {
-            override fun onAnimationEnd(animation: android.animation.Animator) {
-                binding.notificationBanner.visibility = View.GONE
-            }
-        })
-        animator.start()
     }
 
     @SuppressLint("ClickableViewAccessibility")
@@ -257,7 +279,7 @@ class MainActivity : AppCompatActivity() {
                 .show(supportFragmentManager, ScanSummaryDialog.TAG)
         } else {
             Log.w("NotificationHandling", "Cannot show popup: missing summary or createdAt in storage")
-            android.widget.Toast.makeText(this, "Scan summary not found", android.widget.Toast.LENGTH_SHORT).show()
+            ToastHelper.showToast(this, "Scan summary not found")
         }
     }
 

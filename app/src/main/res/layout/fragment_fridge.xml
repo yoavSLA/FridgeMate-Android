@@ -67,6 +67,16 @@
             android:textSize="14sp" />
     </LinearLayout>
 
+    <include
+        android:id="@+id/error_state"
+        layout="@layout/layout_error_state"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
     <FrameLayout
         android:id="@+id/loadingOverlay"
         android:layout_width="match_parent"

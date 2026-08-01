@@ -5,10 +5,16 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
+import androidx.activity.OnBackPressedCallback
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
+import com.project.fridgemate.R
 import com.project.fridgemate.databinding.FragmentOnboardingBinding
+import com.project.fridgemate.ui.fridge.FridgeViewModel
+import com.project.fridgemate.utils.ErrorMapper
+import com.project.fridgemate.utils.ToastHelper
 
 class OnboardingFragment : Fragment() {
 
@@ -16,6 +22,9 @@ class OnboardingFragment : Fragment() {
     private val binding get() = _binding!!
 
     private val viewModel: SharedFridgeViewModel by viewModels()
+    private val fridgeViewModel: FridgeViewModel by activityViewModels()
+    private var hasNavigated = false
+    private var isJoining = false
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -27,6 +36,12 @@ class OnboardingFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
+        requireActivity().onBackPressedDispatcher.addCallback(viewLifecycleOwner, object : OnBackPressedCallback(true) {
+            override fun handleOnBackPressed() {
+                // Do nothing to prevent back navigation
+            }
+        })
 
         setupListeners()
         setupObservers()
@@ -50,17 +65,30 @@ class OnboardingFragment : Fragment() {
             }
             viewModel.joinFridge(code)
         }
-
-        binding.btnSkip.setOnClickListener {
-            findNavController().navigateUp()
-        }
     }
 
     private fun setupObservers() {
         viewModel.hasFridge.observe(viewLifecycleOwner) { hasFridge ->
             if (hasFridge == true) {
-                // If they successfully joined/created a fridge, go back to dashboard
-                findNavController().navigateUp()
+                // Successful join/create - now check if the fridge is empty
+                isJoining = true
+                fridgeViewModel.loadItems()
+            }
+        }
+
+        fridgeViewModel.state.observe(viewLifecycleOwner) { state ->
+            if (hasNavigated || !isJoining) return@observe
+
+            when (state) {
+                is FridgeViewModel.State.Empty -> {
+                    hasNavigated = true
+                    findNavController().navigate(R.id.action_onboardingFragment_to_fridgeScanOnboardingFragment)
+                }
+                is FridgeViewModel.State.Items -> {
+                    hasNavigated = true
+                    findNavController().popBackStack(R.id.dashboardFragment, false)
+                }
+                else -> {}
             }
         }
 
@@ -68,19 +96,19 @@ class OnboardingFragment : Fragment() {
             binding.loadingOverlay.visibility = if (loading) View.VISIBLE else View.GONE
             binding.btnCreate.isEnabled = !loading
             binding.btnJoin.isEnabled = !loading
-            binding.btnSkip.isEnabled = !loading
         }
 
         viewModel.error.observe(viewLifecycleOwner) { error ->
             error?.let {
-                Toast.makeText(requireContext(), it, Toast.LENGTH_LONG).show()
+                val userFriendly = ErrorMapper.mapToUserFriendly(requireContext(), it)
+                ToastHelper.showToast(requireContext(), userFriendly, Toast.LENGTH_LONG)
                 viewModel.clearError()
             }
         }
 
         viewModel.actionSuccess.observe(viewLifecycleOwner) { message ->
             message?.let {
-                Toast.makeText(requireContext(), it, Toast.LENGTH_SHORT).show()
+                ToastHelper.showToast(requireContext(), it)
                 viewModel.clearActionSuccess()
             }
         }

@@ -74,4 +74,21 @@
     <color name="avatar_16">#795548</color>
     <color name="avatar_17">#607D8B</color>
 
+    <!-- Chat Bubbles -->
+    <color name="chat_bubble_user_1">#FFCDD2</color> <color name="chat_sender_user_1">#B71C1C</color>
+    <color name="chat_bubble_user_2">#F8BBD0</color> <color name="chat_sender_user_2">#880E4F</color>
+    <color name="chat_bubble_user_3">#E1BEE7</color> <color name="chat_sender_user_3">#4A148C</color>
+    <color name="chat_bubble_user_4">#D1C4E9</color> <color name="chat_sender_user_4">#311B92</color>
+    <color name="chat_bubble_user_5">#C5CAE9</color> <color name="chat_sender_user_5">#1A237E</color>
+    <color name="chat_bubble_user_6">#BBDEFB</color> <color name="chat_sender_user_6">#0D47A1</color>
+    <color name="chat_bubble_user_7">#B3E5FC</color> <color name="chat_sender_user_7">#01579B</color>
+    <color name="chat_bubble_user_8">#B2EBF2</color> <color name="chat_sender_user_8">#006064</color>
+    <color name="chat_bubble_user_9">#B2DFDB</color> <color name="chat_sender_user_9">#004D40</color>
+    <color name="chat_bubble_user_10">#C8E6C9</color> <color name="chat_sender_user_10">#1B5E20</color>
+    <color name="chat_bubble_user_11">#DCEDC8</color> <color name="chat_sender_user_11">#33691E</color>
+    <color name="chat_bubble_user_12">#F0F4C3</color> <color name="chat_sender_user_12">#827717</color>
+    <color name="chat_bubble_user_13">#FFECB3</color> <color name="chat_sender_user_13">#FF6F00</color>
+    <color name="chat_bubble_user_14">#FFE0B2</color> <color name="chat_sender_user_14">#E65100</color>
+    <color name="chat_bubble_user_15">#FFCCBC</color> <color name="chat_sender_user_15">#BF360C</color>
+
 </resources>

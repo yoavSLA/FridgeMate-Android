@@ -19,6 +19,10 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.project.fridgemate.databinding.FragmentFridgeChatBinding
 import com.project.fridgemate.ui.fridge.FridgeViewModel
+import com.project.fridgemate.utils.ErrorMapper
+import com.project.fridgemate.utils.ToastHelper
+import android.widget.TextView
+import com.project.fridgemate.R
 
 class FridgeChatFragment : Fragment() {
 
@@ -75,6 +79,7 @@ class FridgeChatFragment : Fragment() {
         }
 
         setupEmojiPicker()
+        setupErrorState()
         observeViewModel()
         viewModel.start(args.fridgeId)
 
@@ -117,6 +122,12 @@ class FridgeChatFragment : Fragment() {
         }
     }
 
+    private fun setupErrorState() {
+        binding.root.findViewById<View>(R.id.error_state)?.findViewById<View>(R.id.btn_retry)?.setOnClickListener {
+            viewModel.start(args.fridgeId)
+        }
+    }
+
     private fun showKeyboard() {
         binding.etMessage.requestFocus()
         val imm = ContextCompat.getSystemService(requireContext(), InputMethodManager::class.java)
@@ -135,27 +146,81 @@ class FridgeChatFragment : Fragment() {
             val previousSize = adapter.itemCount
             val items = MessageAdapter.buildItems(requireContext(), messages)
             adapter.submitList(items) {
-                updateEmptyState()
+                updateUIState()
                 if (wasAtBottom || previousSize == 0) {
                     binding.rvMessages.scrollToPosition((items.size - 1).coerceAtLeast(0))
                 }
             }
         }
 
-        viewModel.initialLoading.observe(viewLifecycleOwner) { loading ->
-            binding.loadingInitial.isVisible = loading
-            updateEmptyState()
+        viewModel.initialLoading.observe(viewLifecycleOwner) { _ ->
+            updateUIState()
         }
 
         viewModel.loadingOlder.observe(viewLifecycleOwner) { loading ->
             binding.loadingTop.isVisible = loading
         }
 
-        viewModel.error.observe(viewLifecycleOwner) { msg ->
-            if (!msg.isNullOrBlank()) {
-                Toast.makeText(requireContext(), msg, Toast.LENGTH_SHORT).show()
-                viewModel.consumeError()
+        viewModel.error.observe(viewLifecycleOwner) { _ ->
+            updateUIState()
+        }
+    }
+
+    private fun updateUIState() {
+        if (_binding == null) return
+        
+        val isLoading = viewModel.initialLoading.value == true
+        val messages = viewModel.messages.value ?: emptyList()
+        val error = viewModel.error.value
+        
+        val isEmpty = messages.isEmpty()
+        val hasError = error != null
+        val errorView = binding.root.findViewById<View>(R.id.error_state)
+
+        // Reset visibility
+        binding.loadingInitial.isVisible = isLoading
+        
+        if (isLoading) {
+            binding.emptyState.isVisible = false
+            errorView?.isVisible = false
+            if (isEmpty) {
+                binding.rvMessages.isVisible = false
+                binding.inputBar.isVisible = false
+                binding.inputDivider.isVisible = false
+            } else {
+                binding.rvMessages.isVisible = true
+                binding.inputBar.isVisible = true
+                binding.inputDivider.isVisible = true
             }
+            return
+        }
+
+        if (hasError) {
+            val userFriendly = ErrorMapper.mapToUserFriendly(requireContext(), error)
+            if (isEmpty) {
+                binding.rvMessages.isVisible = false
+                binding.emptyState.isVisible = false
+                binding.inputBar.isVisible = false
+                binding.inputDivider.isVisible = false
+                
+                errorView?.isVisible = true
+                errorView?.findViewById<TextView>(R.id.tv_error_desc)?.text = userFriendly
+            } else {
+                ToastHelper.showToast(requireContext(), userFriendly)
+                viewModel.consumeError()
+                
+                binding.rvMessages.isVisible = true
+                binding.emptyState.isVisible = false
+                errorView?.isVisible = false
+                binding.inputBar.isVisible = true
+                binding.inputDivider.isVisible = true
+            }
+        } else {
+            binding.rvMessages.isVisible = !isEmpty
+            binding.emptyState.isVisible = isEmpty
+            errorView?.isVisible = false
+            binding.inputBar.isVisible = true
+            binding.inputDivider.isVisible = true
         }
     }
 
@@ -165,12 +230,6 @@ class FridgeChatFragment : Fragment() {
             val firstVisible = layoutManager.findFirstVisibleItemPosition()
             if (firstVisible <= 3) viewModel.loadOlder()
         }
-    }
-
-    private fun updateEmptyState() {
-        val isLoading = viewModel.initialLoading.value == true
-        val isEmpty = viewModel.messages.value.isNullOrEmpty()
-        binding.emptyState.isVisible = isEmpty && !isLoading
     }
 
     private fun isAtBottom(): Boolean {

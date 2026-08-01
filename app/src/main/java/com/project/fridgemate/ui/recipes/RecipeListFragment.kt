@@ -16,6 +16,9 @@ import com.project.fridgemate.R
 import com.project.fridgemate.databinding.FragmentRecipeListBinding
 import com.project.fridgemate.ui.dashboard.DashboardFragmentDirections
 import com.project.fridgemate.ui.journal.JournalViewModel
+import com.project.fridgemate.utils.ErrorMapper
+import com.project.fridgemate.utils.ToastHelper
+import android.widget.TextView
 
 class RecipeListFragment : Fragment() {
 
@@ -80,7 +83,7 @@ class RecipeListFragment : Fragment() {
 
         val onAddToJournalClick = { recipe: com.project.fridgemate.data.local.entity.RecipeEntity ->
             journalViewModel.addRecipeToJournal(recipe, System.currentTimeMillis())
-            Toast.makeText(requireContext(), R.string.added_to_journal, Toast.LENGTH_SHORT).show()
+            ToastHelper.showToast(requireContext(), getString(R.string.added_to_journal))
         }
 
         val onItemClick = { recipe: com.project.fridgemate.data.local.entity.RecipeEntity ->
@@ -93,6 +96,10 @@ class RecipeListFragment : Fragment() {
         adapter = RecipeAdapter(onFavoriteClick, onAddToJournalClick, onItemClick)
         binding.rvRecipes.layoutManager = LinearLayoutManager(requireContext())
         binding.rvRecipes.adapter = adapter
+
+        binding.root.findViewById<View>(R.id.error_state)?.findViewById<View>(R.id.btn_retry)?.setOnClickListener {
+            viewModel.loadRecommended()
+        }
 
         val source = when (type) {
             TYPE_RECOMMENDED -> viewModel.recommended
@@ -110,19 +117,12 @@ class RecipeListFragment : Fragment() {
                     showLoading()
                 } else {
                     hideLoading()
-                    val error = viewModel.error.value
-                    if (error != null) {
-                        showError(error)
+                    val currentError = viewModel.error.value
+                    if (currentError != null) {
+                        showError(currentError)
                     } else {
                         updateEmptyState(adapter.itemCount == 0, type)
                     }
-                }
-            }
-
-            viewModel.error.observe(viewLifecycleOwner) { error ->
-                if (viewModel.isLoading.value == true) return@observe
-                if (error != null) {
-                    showError(error)
                 }
             }
 
@@ -136,20 +136,33 @@ class RecipeListFragment : Fragment() {
         }
     }
 
-    private fun showError(error: String) {
+    override fun onResume() {
+        super.onResume()
+        // Removed unconditional loadRecommended() to favor caching.
+        // loadRecommendedIfNeeded() is already called by the parent RecipesFragment.
+    }
+
+    fun showError(error: String) {
+        if (_binding == null) return
         binding.loadingOverlay.visibility = View.GONE
+        val userFriendly = ErrorMapper.mapToUserFriendly(requireContext(), error)
         val hasRecipes = adapter.itemCount > 0
         if (!hasRecipes) {
-            showEmptyState(
-                title = getString(R.string.recommended_empty_title),
-                description = error
-            )
-            binding.btnGenerate.visibility = View.VISIBLE
+            binding.rvRecipes.visibility = View.GONE
+            binding.emptyState.visibility = View.GONE
+            binding.btnGenerate.visibility = View.GONE
+            val errorView = binding.root.findViewById<View>(R.id.error_state)
+            errorView?.visibility = View.VISIBLE
+            errorView?.findViewById<TextView>(R.id.tv_error_desc)?.text = userFriendly
         } else {
             binding.rvRecipes.visibility = View.VISIBLE
             binding.emptyState.visibility = View.GONE
             binding.btnGenerate.visibility = View.VISIBLE
-            Toast.makeText(requireContext(), error, Toast.LENGTH_LONG).show()
+            binding.root.findViewById<View>(R.id.error_state)?.visibility = View.GONE
+            if (!ErrorMapper.isGeneric(requireContext(), userFriendly)) {
+                ToastHelper.showToast(requireContext(), userFriendly, Toast.LENGTH_LONG)
+            }
+            viewModel.clearError()
         }
     }
 
@@ -157,6 +170,7 @@ class RecipeListFragment : Fragment() {
         if (type == TYPE_RECOMMENDED && viewModel.isLoading.value == true) return
 
         binding.loadingOverlay.visibility = View.GONE
+        binding.root.findViewById<View>(R.id.error_state)?.visibility = View.GONE
 
         if (isEmpty) {
             if (type == TYPE_FAVORITES) {
@@ -207,6 +221,7 @@ class RecipeListFragment : Fragment() {
         binding.rvRecipes.visibility = View.GONE
         binding.btnGenerate.visibility = View.GONE
         binding.emptyState.visibility = View.GONE
+        binding.root.findViewById<View>(R.id.error_state)?.visibility = View.GONE
         tipIndex = (0 until cookingTips.size).random()
         binding.tvLoadingTip.text = cookingTips[tipIndex]
         tipHandler.postDelayed(tipRunnable, 4000)

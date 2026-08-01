@@ -4,7 +4,9 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/accent_green_light">
+    android:background="@color/accent_green_light"
+    android:clipChildren="false"
+    android:clipToPadding="false">
 
     <!-- Search & Calendar Header -->
     <LinearLayout
@@ -15,6 +17,8 @@
         android:layout_marginTop="8dp"
         android:gravity="center_vertical"
         android:orientation="horizontal"
+        android:clipChildren="false"
+        android:clipToPadding="false"
         app:layout_constraintTop_toTopOf="parent">
 
         <com.google.android.material.textfield.TextInputLayout
@@ -48,10 +52,11 @@
             android:id="@+id/btn_calendar"
             android:layout_width="48dp"
             android:layout_height="48dp"
-            android:layout_marginStart="8dp"
+            android:layout_marginStart="17dp"
+            android:layout_marginEnd="2dp"
             android:background="@drawable/bg_favorite_btn"
             android:elevation="2dp"
-            android:padding="12dp"
+            android:padding="10dp"
             android:scaleType="centerInside"
             android:src="@drawable/ic_journal"
             app:tint="@color/accent_green" />
@@ -206,6 +211,28 @@
             android:textColor="@color/gray_text"
             android:textSize="14sp" />
     </LinearLayout>
+
+    <include
+        android:id="@+id/error_state"
+        layout="@layout/layout_error_state"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/chips_scroll" />
+
+    <ProgressBar
+        android:id="@+id/progressBar"
+        style="?android:attr/progressBarStyle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:visibility="gone"
+        android:indeterminateTint="@color/accent_green"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
 
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/fab_add_entry"

@@ -97,7 +97,6 @@ class SharedFridgeViewModel(application: Application) : AndroidViewModel(applica
         viewModelScope.launch {
             when (val result = repository.createFridge(name)) {
                 is FridgeResult.Success -> {
-                    _actionSuccess.value = getApplication<Application>().getString(R.string.fridge_created_success)
                     loadFridge()
                 }
                 is FridgeResult.Error -> {
@@ -121,8 +120,13 @@ class SharedFridgeViewModel(application: Application) : AndroidViewModel(applica
                     loadFridge()
                 }
                 is FridgeResult.Error -> {
-                    _error.value = result.message
-                    _isLoading.value = false
+                    if (result.message.contains("already member", ignoreCase = true) || 
+                        result.message.contains("already joined", ignoreCase = true)) {
+                        loadFridge()
+                    } else {
+                        _error.value = result.message
+                        _isLoading.value = false
+                    }
                 }
                 is FridgeResult.NoFridge -> {}
             }
@@ -213,12 +217,6 @@ class SharedFridgeViewModel(application: Application) : AndroidViewModel(applica
                     _scanResult.value = scan.detectedItems
                     _scanSummary.value = scan.changes
                     _lastScannedAt.value = scan.createdAt
-                    val count = scan.detectedItems.size
-                    _actionSuccess.value = getApplication<Application>().resources.getQuantityString(
-                        R.plurals.items_detected_success,
-                        count,
-                        count
-                    )
                 }
                 _isScanning.value = false
                 _activeScanId.value = null

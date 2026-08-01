@@ -1,5 +1,6 @@
 package com.project.fridgemate.ui.profile
 
+import android.content.res.ColorStateList
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -17,6 +18,9 @@ import com.project.fridgemate.R
 import com.project.fridgemate.databinding.FragmentUserProfileBinding
 import com.project.fridgemate.ui.feed.PostAdapter
 import com.project.fridgemate.utils.AvatarHelper
+import com.project.fridgemate.utils.ErrorMapper
+import com.project.fridgemate.utils.ToastHelper
+import android.widget.TextView
 import com.squareup.picasso.Picasso
 
 /**
@@ -65,6 +69,10 @@ class UserProfileFragment : Fragment() {
             val uid = resolvedUserId
             if (uid != null) viewModel.refresh(uid, showIndicator = true)
             else binding.swipeRefresh.isRefreshing = false
+        }
+
+        binding.root.findViewById<View>(R.id.error_state)?.findViewById<View>(R.id.btn_retry)?.setOnClickListener {
+            resolvedUserId?.let { viewModel.load(it) }
         }
 
         setupPosts()
@@ -227,7 +235,18 @@ class UserProfileFragment : Fragment() {
         }
 
         viewModel.isLoading.observe(viewLifecycleOwner) { loading ->
-            binding.progressBar.visibility = if (loading && viewModel.user.value == null) View.VISIBLE else View.GONE
+            val hasData = viewModel.user.value != null
+            binding.progressBar.visibility = if (loading && !hasData) View.VISIBLE else View.GONE
+            
+            if (!loading) {
+                if (hasData) {
+                    binding.swipeRefresh.visibility = View.VISIBLE
+                    binding.root.findViewById<View>(R.id.error_state)?.visibility = View.GONE
+                }
+            } else if (!hasData) {
+                binding.swipeRefresh.visibility = View.GONE
+                binding.root.findViewById<View>(R.id.error_state)?.visibility = View.GONE
+            }
             updateEmptyState()
         }
 
@@ -241,11 +260,35 @@ class UserProfileFragment : Fragment() {
         }
 
         viewModel.error.observe(viewLifecycleOwner) { err ->
-            err?.let {
-                Toast.makeText(requireContext(), it, Toast.LENGTH_SHORT).show()
-                viewModel.clearError()
+            val errorView = binding.root.findViewById<View>(R.id.error_state)
+            if (err != null) {
+                val userFriendly = ErrorMapper.mapToUserFriendly(requireContext(), err)
+                if (viewModel.user.value != null) {
+                    if (!ErrorMapper.isGeneric(requireContext(), userFriendly)) {
+                        ToastHelper.showToast(requireContext(), userFriendly)
+                    }
+                    viewModel.clearError()
+                    binding.swipeRefresh.visibility = View.VISIBLE
+                    errorView?.visibility = View.GONE
+                } else {
+                    showError(userFriendly)
+                }
+            } else {
+                errorView?.visibility = View.GONE
+                if (viewModel.user.value != null) {
+                    binding.swipeRefresh.visibility = View.VISIBLE
+                }
+                updateEmptyState()
             }
         }
+    }
+
+    private fun showError(message: String) {
+        binding.swipeRefresh.visibility = View.GONE
+        binding.progressBar.visibility = View.GONE
+        val errorView = binding.root.findViewById<View>(R.id.error_state)
+        errorView?.visibility = View.VISIBLE
+        errorView?.findViewById<TextView>(R.id.tv_error_desc)?.text = message
     }
 
     private fun updateEmptyState() {
@@ -264,20 +307,32 @@ class UserProfileFragment : Fragment() {
     }
 
     private fun updatePrimaryButton(isFollowing: Boolean) {
+        val context = requireContext()
         if (isMe) {
             binding.btnPrimary.setText(R.string.edit_profile)
-            binding.btnPrimary.setBackgroundColor(
-                requireContext().getColor(R.color.accent_green)
-            )
+            binding.btnPrimary.setIconResource(R.drawable.ic_edit)
+            binding.btnPrimary.iconTint = ColorStateList.valueOf(context.getColor(R.color.gray_text))
+            binding.btnPrimary.setTextColor(context.getColor(R.color.gray_text))
+            binding.btnPrimary.backgroundTintList = ColorStateList.valueOf(context.getColor(R.color.white))
+            binding.btnPrimary.strokeColor = ColorStateList.valueOf(context.getColor(R.color.divider_color))
+            binding.btnPrimary.strokeWidth = context.resources.getDimensionPixelSize(R.dimen.button_stroke_width)
         } else {
-            binding.btnPrimary.setText(
-                if (isFollowing) R.string.following_action else R.string.follow_action
-            )
-            binding.btnPrimary.setBackgroundColor(
-                requireContext().getColor(
-                    if (isFollowing) R.color.gray_text else R.color.accent_green
-                )
-            )
+            if (isFollowing) {
+                binding.btnPrimary.setText(R.string.following_action)
+                binding.btnPrimary.setIconResource(R.drawable.ic_check)
+                binding.btnPrimary.iconTint = ColorStateList.valueOf(context.getColor(R.color.gray_text))
+                binding.btnPrimary.setTextColor(context.getColor(R.color.gray_text))
+                binding.btnPrimary.backgroundTintList = ColorStateList.valueOf(context.getColor(R.color.white))
+                binding.btnPrimary.strokeColor = ColorStateList.valueOf(context.getColor(R.color.divider_color))
+                binding.btnPrimary.strokeWidth = context.resources.getDimensionPixelSize(R.dimen.button_stroke_width)
+            } else {
+                binding.btnPrimary.setText(R.string.follow_action)
+                binding.btnPrimary.setIconResource(R.drawable.ic_plus_small)
+                binding.btnPrimary.iconTint = ColorStateList.valueOf(context.getColor(R.color.white))
+                binding.btnPrimary.setTextColor(context.getColor(R.color.white))
+                binding.btnPrimary.backgroundTintList = ColorStateList.valueOf(context.getColor(R.color.accent_green))
+                binding.btnPrimary.strokeWidth = 0
+            }
         }
     }
 

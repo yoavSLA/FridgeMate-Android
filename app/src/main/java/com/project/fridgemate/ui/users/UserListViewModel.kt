@@ -49,11 +49,20 @@ class UserListViewModel(application: Application) : AndroidViewModel(application
             return
         }
         searchJob = viewModelScope.launch {
+            val startTime = System.currentTimeMillis()
             delay(300) // debounce typing
             _isLoading.value = true
-            when (val r = userRepository.searchUsers(query)) {
-                is FridgeResult.Success -> _users.value = r.data
-                is FridgeResult.Error -> _error.value = r.message
+            _error.value = null
+
+            val result = userRepository.searchUsers(query)
+            
+            // Artificial delay for professional feel
+            val elapsed = System.currentTimeMillis() - startTime
+            if (elapsed < 1500) delay(1500 - elapsed)
+
+            when (result) {
+                is FridgeResult.Success -> _users.value = result.data
+                is FridgeResult.Error -> _error.value = result.message
                 else -> {}
             }
             _isLoading.value = false
@@ -62,10 +71,18 @@ class UserListViewModel(application: Application) : AndroidViewModel(application
 
     private fun load(block: suspend () -> FridgeResult<List<UserListItemDto>>) {
         viewModelScope.launch {
+            val startTime = System.currentTimeMillis()
             _isLoading.value = true
-            when (val r = block()) {
-                is FridgeResult.Success -> _users.value = r.data
-                is FridgeResult.Error -> _error.value = r.message
+            _error.value = null
+            
+            val result = block()
+            
+            val elapsed = System.currentTimeMillis() - startTime
+            if (elapsed < 1500) delay(1500 - elapsed)
+
+            when (result) {
+                is FridgeResult.Success -> _users.value = result.data
+                is FridgeResult.Error -> _error.value = result.message
                 else -> {}
             }
             _isLoading.value = false

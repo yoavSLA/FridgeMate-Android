@@ -11,12 +11,16 @@
         android:layout_width="match_parent"
         android:layout_height="320dp"
         android:background="@color/white"
+        android:clipChildren="false"
+        android:clipToPadding="false"
         app:elevation="0dp">
 
         <com.google.android.material.appbar.CollapsingToolbarLayout
             android:id="@+id/collapsingToolbar"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
+            android:clipChildren="false"
+            android:clipToPadding="false"
             app:contentScrim="@color/white"
             app:expandedTitleGravity="bottom|start"
             app:expandedTitleMarginBottom="20dp"

@@ -84,6 +84,7 @@ class FeedViewModel(application: Application) : AndroidViewModel(application) {
     private var currentPage = 1
     private var isLastPage = false
 
+    private var loadPostsJob: Job? = null
     private val _isLoadingMore = MutableLiveData(false)
     val isLoadingMore: LiveData<Boolean> = _isLoadingMore
 
@@ -143,11 +144,15 @@ class FeedViewModel(application: Application) : AndroidViewModel(application) {
         _error.value = null
     }
     fun loadPosts(refresh: Boolean = false) {
-        viewModelScope.launch {
+        if (loadPostsJob?.isActive == true) return
+        
+        loadPostsJob = viewModelScope.launch {
+            val startTime = System.currentTimeMillis()
             if (refresh) {
                 currentPage = 1
                 isLastPage = false
-                _posts.value = emptyList()
+                // Don't clear immediately to avoid flicker, just set loading
+                _isLoading.value = true
             }
 
             if (_posts.value.isNullOrEmpty()) {
@@ -155,7 +160,13 @@ class FeedViewModel(application: Application) : AndroidViewModel(application) {
             }
             _error.value = null
 
-            when (val result = repository.getPosts(page = currentPage, limit = PAGE_SIZE, scope = scope)) {
+            val result = repository.getPosts(page = currentPage, limit = PAGE_SIZE, scope = scope)
+            
+            // Artificial delay if the request was too fast (e.g. instant network error)
+            val elapsed = System.currentTimeMillis() - startTime
+            if (elapsed < 1500) delay(1500 - elapsed)
+
+            when (result) {
                 is FridgeResult.Success -> {
                     val currentPostsMap = _posts.value?.associateBy { it.id } ?: emptyMap()
                     val newPosts = result.data.items.map { dto ->
@@ -177,6 +188,14 @@ class FeedViewModel(application: Application) : AndroidViewModel(application) {
                     }
                 }
                 is FridgeResult.Error -> {
+                    // Load from cache FIRST if network fails and we have no data
+                    if (_posts.value.isNullOrEmpty()) {
+                        val cached = repository.getCachedPosts()
+                        if (cached.isNotEmpty()) {
+                            _posts.value = cached.map { it.toPost() }
+                        }
+                    }
+                    // THEN set error to trigger the toast/UI
                     _error.value = result.message
                 }
                 else -> {}
@@ -239,6 +258,10 @@ class FeedViewModel(application: Application) : AndroidViewModel(application) {
                 }
                 is FridgeResult.Error -> {
                     _error.value = result.message
+                    val cached = repository.getCachedMyPosts()
+                    if (cached.isNotEmpty()) {
+                        _myPosts.value = cached.map { it.toPost() }
+                    }
                     Log.e("FeedViewModel", "loadMyPosts error: ${result.message}")
                 }
                 else -> {}

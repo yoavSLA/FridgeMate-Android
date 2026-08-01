@@ -12,6 +12,9 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.project.fridgemate.R
 import com.project.fridgemate.databinding.FragmentFridgeBinding
 import com.project.fridgemate.databinding.PopupAssignOwnerBinding
+import com.project.fridgemate.utils.ErrorMapper
+import com.project.fridgemate.utils.ToastHelper
+import android.widget.TextView
 
 class FridgeFragment : Fragment() {
 
@@ -36,7 +39,14 @@ class FridgeFragment : Fragment() {
         binding.rvFridge.layoutManager = LinearLayoutManager(requireContext())
 
         observeViewModel()
+        setupErrorState()
         viewModel.loadItems()
+    }
+
+    private fun setupErrorState() {
+        binding.root.findViewById<View>(R.id.error_state)?.findViewById<View>(R.id.btn_retry)?.setOnClickListener {
+            viewModel.loadItems()
+        }
     }
 
     override fun onResume() {
@@ -52,7 +62,20 @@ class FridgeFragment : Fragment() {
                 is FridgeViewModel.State.Empty -> showEmptyState()
                 is FridgeViewModel.State.NoFridge -> showNoFridge()
                 is FridgeViewModel.State.NotLoggedIn -> showNotLoggedIn()
-                is FridgeViewModel.State.Error -> showEmptyState()
+                is FridgeViewModel.State.Error -> showError(state.message)
+            }
+        }
+        viewModel.error.observe(viewLifecycleOwner) { error ->
+            error?.let {
+                val userFriendly = ErrorMapper.mapToUserFriendly(requireContext(), it)
+                // Only show toast if we are NOT showing the full-screen error state
+                // (i.e., we already have some items or members cached/loaded)
+                if (currentItems.isNotEmpty() || viewModel.members.value?.isNotEmpty() == true) {
+                    if (!ErrorMapper.isGeneric(requireContext(), userFriendly)) {
+                        ToastHelper.showToast(requireContext(), userFriendly)
+                    }
+                }
+                viewModel.clearError()
             }
         }
         viewModel.members.observe(viewLifecycleOwner) {
@@ -60,7 +83,7 @@ class FridgeFragment : Fragment() {
         }
         viewModel.ownerAssignMessage.observe(viewLifecycleOwner) { msg ->
             if (!msg.isNullOrBlank()) {
-                Toast.makeText(requireContext(), msg, Toast.LENGTH_SHORT).show()
+                ToastHelper.showToast(requireContext(), msg)
                 viewModel.consumeOwnerAssignMessage()
             }
         }
@@ -70,6 +93,7 @@ class FridgeFragment : Fragment() {
         binding.loadingOverlay.visibility = View.VISIBLE
         binding.rvFridge.visibility = View.GONE
         binding.emptyState.visibility = View.GONE
+        binding.root.findViewById<View>(R.id.error_state)?.visibility = View.GONE
     }
 
     private fun showItems(items: List<FridgeItem>) {
@@ -122,6 +146,7 @@ class FridgeFragment : Fragment() {
         binding.loadingOverlay.visibility = View.GONE
         binding.rvFridge.visibility = View.GONE
         binding.emptyState.visibility = View.VISIBLE
+        binding.root.findViewById<View>(R.id.error_state)?.visibility = View.GONE
         binding.tvEmptyTitle.text = getString(R.string.fridge_empty_title)
         binding.tvEmptyDesc.text = getString(R.string.fridge_empty_desc)
     }
@@ -130,6 +155,7 @@ class FridgeFragment : Fragment() {
         binding.loadingOverlay.visibility = View.GONE
         binding.rvFridge.visibility = View.GONE
         binding.emptyState.visibility = View.VISIBLE
+        binding.root.findViewById<View>(R.id.error_state)?.visibility = View.GONE
         binding.tvEmptyTitle.text = getString(R.string.no_fridge_title)
         binding.tvEmptyDesc.text = getString(R.string.no_fridge_desc)
     }
@@ -138,8 +164,18 @@ class FridgeFragment : Fragment() {
         binding.loadingOverlay.visibility = View.GONE
         binding.rvFridge.visibility = View.GONE
         binding.emptyState.visibility = View.VISIBLE
+        binding.root.findViewById<View>(R.id.error_state)?.visibility = View.GONE
         binding.tvEmptyTitle.text = getString(R.string.fridge_not_logged_in_title)
         binding.tvEmptyDesc.text = getString(R.string.fridge_not_logged_in_desc)
+    }
+
+    private fun showError(message: String) {
+        binding.loadingOverlay.visibility = View.GONE
+        binding.rvFridge.visibility = View.GONE
+        binding.emptyState.visibility = View.GONE
+        val errorView = binding.root.findViewById<View>(R.id.error_state)
+        errorView?.visibility = View.VISIBLE
+        errorView?.findViewById<TextView>(R.id.tv_error_desc)?.text = ErrorMapper.mapToUserFriendly(requireContext(), message)
     }
 
     override fun onDestroyView() {
