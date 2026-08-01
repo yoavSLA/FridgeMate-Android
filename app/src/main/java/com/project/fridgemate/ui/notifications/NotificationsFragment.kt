@@ -49,17 +49,20 @@ class NotificationsFragment : Fragment() {
         }
 
         viewModel.isLoading.observe(viewLifecycleOwner) { isLoading ->
-            binding.progressBar.visibility = if (isLoading && adapter.itemCount == 0) View.VISIBLE else View.GONE
+            val isEmpty = viewModel.notifications.value.isNullOrEmpty()
+            binding.progressBar.visibility = if (isLoading && isEmpty) View.VISIBLE else View.GONE
             if (isLoading) {
                 binding.emptyState.visibility = View.GONE
                 binding.root.findViewById<View>(R.id.error_state)?.visibility = View.GONE
+            } else {
+                updateUIState()
             }
         }
 
         viewModel.error.observe(viewLifecycleOwner) { error ->
             if (error != null) {
                 val userFriendly = ErrorMapper.mapToUserFriendly(requireContext(), error)
-                if (adapter.itemCount > 0) {
+                if (!viewModel.notifications.value.isNullOrEmpty()) {
                     if (!ErrorMapper.isGeneric(requireContext(), userFriendly)) {
                         ToastHelper.showToast(requireContext(), userFriendly)
                     }
@@ -83,7 +86,7 @@ class NotificationsFragment : Fragment() {
     }
 
     private fun updateUIState() {
-        val isEmpty = adapter.itemCount == 0
+        val isEmpty = viewModel.notifications.value.isNullOrEmpty()
         val hasError = viewModel.error.value != null
         val isLoading = viewModel.isLoading.value == true
 
