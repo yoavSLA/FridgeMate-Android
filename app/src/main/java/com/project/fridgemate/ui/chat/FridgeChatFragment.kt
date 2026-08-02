@@ -57,6 +57,11 @@ class FridgeChatFragment : Fragment() {
                     )
                 findNavController().navigate(action)
             },
+            onAuthorClick = { userId ->
+                val action = FridgeChatFragmentDirections
+                    .actionFridgeChatFragmentToUserProfileFragment(userId)
+                findNavController().navigate(action)
+            }
         )
         layoutManager = LinearLayoutManager(requireContext()).apply { stackFromEnd = true }
         binding.rvMessages.layoutManager = layoutManager

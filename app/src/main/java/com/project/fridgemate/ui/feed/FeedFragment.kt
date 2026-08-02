@@ -125,7 +125,13 @@ class FeedFragment : Fragment() {
                     requireParentFragment().findNavController().navigate(action)
                 }
             },
-            onFollowClick = { post -> viewModel.toggleAuthorFollow(post) }
+            onFollowClick = { post -> viewModel.toggleAuthorFollow(post) },
+            onCommentAuthorClick = { comment ->
+                if (comment.authorId.isNotEmpty()) {
+                    val action = DashboardFragmentDirections.actionDashboardFragmentToUserProfileFragment(comment.authorId)
+                    requireParentFragment().findNavController().navigate(action)
+                }
+            }
         )
         binding.rvPosts.adapter = postAdapter
         binding.rvPosts.addOnScrollListener(object : RecyclerView.OnScrollListener() {

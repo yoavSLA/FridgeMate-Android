@@ -50,6 +50,7 @@ data class Post(
 data class Comment(
     val id: String,
     val postId: String,
+    val authorId: String = "",
     val userName: String,
     val text: String,
     val authorImageUrl: String = "",

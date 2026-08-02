@@ -174,6 +174,13 @@ class MyProfileFragment : Fragment() {
             val bio = binding.etBio.text.toString().trim()
             profileViewModel.saveProfile(fullName, allergies, bio)
         }
+        binding.locationRow.setOnClickListener {
+            val location = profileViewModel.locationDisplay.value
+            if (!location.isNullOrEmpty()) {
+                val action = MyProfileFragmentDirections.actionMyProfileFragmentToMapViewFragment(focusLocation = location)
+                findNavController().navigate(action)
+            }
+        }
     }
 
     private fun observeViewModel() {
