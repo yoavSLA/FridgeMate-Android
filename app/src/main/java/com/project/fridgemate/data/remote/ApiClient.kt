@@ -13,30 +13,12 @@ object ApiClient {
 
     private const val TIMEOUT_SECONDS = 30L
 
-    private val hostOverrides = mapOf(
-        "fridgemate.cs.colman.ac.il" to "193.106.55.84"
-    )
-
-    val dns: Dns = object : Dns {
-        override fun lookup(hostname: String): List<InetAddress> {
-            return hostOverrides[hostname]?.let { ip -> listOf(InetAddress.getByName(ip)) }
-                ?: Dns.SYSTEM.lookup(hostname)
-        }
-    }
-
-    private val socketHttpClient: OkHttpClient = OkHttpClient.Builder()
-        .dns(dns)
-        .build()
-
     private lateinit var tokenManager: TokenManager
     private lateinit var publicRetrofit: Retrofit
     private lateinit var authenticatedRetrofit: Retrofit
 
     fun init(context: Context) {
         tokenManager = TokenManager(context.applicationContext)
-
-        IO.setDefaultOkHttpCallFactory(socketHttpClient)
-        IO.setDefaultOkHttpWebSocketFactory(socketHttpClient)
 
         val loggingInterceptor = HttpLoggingInterceptor().apply {
             level = if (BuildConfig.DEBUG)
