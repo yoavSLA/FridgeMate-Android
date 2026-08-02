@@ -17,6 +17,7 @@ import com.squareup.picasso.Picasso
 class CommentAdapter(
     private val onDeleteComment: (Comment) -> Unit = {},
     private val onEditComment: (Comment, String) -> Unit = { _, _ -> },
+    private val onAuthorClick: (Comment) -> Unit = {},
     private val showOptions: Boolean = true
 ) : RecyclerView.Adapter<CommentAdapter.CommentViewHolder>() {
 
@@ -47,6 +48,15 @@ class CommentAdapter(
             val timeAgo = TimeAgo.format(comment.createdAt)
             tvCommentTime.text = timeAgo
             tvCommentTime.visibility = if (timeAgo.isEmpty()) View.GONE else View.VISIBLE
+            
+            if (comment.authorId.isNotEmpty()) {
+                val authorClickListener = View.OnClickListener { onAuthorClick(comment) }
+                ivCommentUserPhoto.setOnClickListener(authorClickListener)
+                tvCommentUserName.setOnClickListener(authorClickListener)
+            } else {
+                ivCommentUserPhoto.setOnClickListener(null)
+                tvCommentUserName.setOnClickListener(null)
+            }
             
             if (editingCommentId == comment.id) {
                 tvCommentText.visibility = View.GONE

@@ -116,9 +116,9 @@ class UserProfileFragment : Fragment() {
                     )
                 )
             },
-            onLocationClick = {
+            onLocationClick = { post ->
                 findNavController().navigate(
-                    UserProfileFragmentDirections.actionUserProfileFragmentToMapViewFragment()
+                    UserProfileFragmentDirections.actionUserProfileFragmentToMapViewFragment(focusPostId = post.id)
                 )
             },
             onAuthorClick = { post ->
@@ -129,7 +129,14 @@ class UserProfileFragment : Fragment() {
                     )
                 }
             },
-            onFollowClick = { post -> viewModel.toggleAuthorFollow(post) }
+            onFollowClick = { post -> viewModel.toggleAuthorFollow(post) },
+            onCommentAuthorClick = { comment ->
+                if (comment.authorId.isNotEmpty() && comment.authorId != resolvedUserId) {
+                    findNavController().navigate(
+                        UserProfileFragmentDirections.actionUserProfileFragmentSelf(comment.authorId)
+                    )
+                }
+            }
         )
         binding.rvPosts.layoutManager = LinearLayoutManager(requireContext())
         binding.rvPosts.adapter = postAdapter
@@ -163,6 +170,14 @@ class UserProfileFragment : Fragment() {
                 )
             } else {
                 viewModel.toggleFollow()
+            }
+        }
+
+        binding.layoutLocationHeader.setOnClickListener {
+            val locationText = binding.tvLocation.text.toString()
+            if (locationText.isNotEmpty()) {
+                val action = UserProfileFragmentDirections.actionUserProfileFragmentToMapViewFragment(focusLocation = locationText)
+                findNavController().navigate(action)
             }
         }
     }
