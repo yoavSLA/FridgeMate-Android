@@ -16,7 +16,10 @@ import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.MultipartBody
 import okhttp3.RequestBody.Companion.toRequestBody
 import com.project.fridgemate.data.remote.dto.FcmTokenRequest
-class UserRepository(context: Context) {
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+class UserRepository(context: Context) : BaseRepository() {
 
     private val api = ApiClient.createApi(UserApi::class.java)
     private val userDao = AppDatabase.getInstance(context).userDao()
@@ -114,23 +117,7 @@ class UserRepository(context: Context) {
         }
     }
 
-    private fun parseError(errorBody: String?): String {
-        if (errorBody.isNullOrBlank()) return "Something went wrong. Please try again."
-        return try {
-            val json = org.json.JSONObject(errorBody)
-            json.optString("message", "Something went wrong. Please try again.")
-        } catch (_: Exception) {
-            errorBody
-        }
-    }
 
-    private fun networkErrorMessage(e: Exception): String {
-        return if (e is java.net.ConnectException || e is java.net.UnknownHostException) {
-            "Unable to connect to server. Please check your connection."
-        } else {
-            e.localizedMessage ?: "An unexpected error occurred."
-        }
-    }
 
     suspend fun uploadProfileImage(imageBytes: ByteArray, mimeType: String): String? {
         val extension = when (mimeType) {
@@ -195,6 +182,22 @@ class UserRepository(context: Context) {
             }
         } catch (e: Exception) {
             Result.failure(e)
+        }
+    }
+
+    /**
+     * Fetches the current FCM token and registers it with the server if the user is logged in.
+     */
+    fun syncFcmToken() {
+        if (!ApiClient.getTokenManager().isLoggedIn) return
+
+        com.google.firebase.messaging.FirebaseMessaging.getInstance().token.addOnCompleteListener { task ->
+            if (task.isSuccessful) {
+                val token = task.result
+                CoroutineScope(Dispatchers.IO).launch {
+                    registerFcmToken(token)
+                }
+            }
         }
     }
 }

@@ -162,7 +162,6 @@ class FeedViewModel(application: Application) : AndroidViewModel(application) {
 
             val result = repository.getPosts(page = currentPage, limit = PAGE_SIZE, scope = scope)
             
-            // Artificial delay if the request was too fast (e.g. instant network error)
             val elapsed = System.currentTimeMillis() - startTime
             if (elapsed < 1500) delay(1500 - elapsed)
 
@@ -262,7 +261,6 @@ class FeedViewModel(application: Application) : AndroidViewModel(application) {
                     if (cached.isNotEmpty()) {
                         _myPosts.value = cached.map { it.toPost() }
                     }
-                    Log.e("FeedViewModel", "loadMyPosts error: ${result.message}")
                 }
                 else -> {}
             }
@@ -301,7 +299,6 @@ class FeedViewModel(application: Application) : AndroidViewModel(application) {
                     }
                     _posts.value = _posts.value?.map(revert)
                     _myPosts.value = _myPosts.value?.map(revert)
-                    Log.e("FeedViewModel", "toggleLike error: ${result.message}")
                 }
                 else -> {}
             }
@@ -378,7 +375,6 @@ class FeedViewModel(application: Application) : AndroidViewModel(application) {
                 }
                 is FridgeResult.Error -> {
                     _error.value = result.message
-                    Log.e("FeedViewModel", "addPost error: ${result.message}")
                 }
                 else -> {}
             }
@@ -432,7 +428,6 @@ class FeedViewModel(application: Application) : AndroidViewModel(application) {
                 is FridgeResult.Error -> {
                     _error.value = result.message
                     _updateSuccess.value = false
-                    Log.e("FeedViewModel", "editPost error: ${result.message}")
                 }
                 else -> {}
             }
@@ -508,7 +503,6 @@ class FeedViewModel(application: Application) : AndroidViewModel(application) {
                 }
                 is FridgeResult.Error -> {
                     _error.value = result.message
-                    Log.e("FeedViewModel", "addComment error: ${result.message}")
                 }
                 else -> {}
             }
@@ -532,7 +526,6 @@ class FeedViewModel(application: Application) : AndroidViewModel(application) {
                 }
                 is FridgeResult.Error -> {
                     _error.value = result.message
-                    Log.e("FeedViewModel", "editComment error: ${result.message}")
                 }
                 else -> {}
             }
@@ -565,7 +558,6 @@ class FeedViewModel(application: Application) : AndroidViewModel(application) {
             is FridgeResult.Success -> result.data
             is FridgeResult.Error -> {
                 _error.value = result.message
-                Log.e("FeedViewModel", "uploadImage error: ${result.message}")
                 null
             }
             else -> null

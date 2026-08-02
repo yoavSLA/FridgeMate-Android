@@ -44,7 +44,7 @@ class FridgeFragment : Fragment() {
     }
 
     private fun setupErrorState() {
-        binding.root.findViewById<View>(R.id.error_state)?.findViewById<View>(R.id.btn_retry)?.setOnClickListener {
+        binding.errorState.btnRetry.setOnClickListener {
             viewModel.loadItems()
         }
     }
@@ -93,7 +93,7 @@ class FridgeFragment : Fragment() {
         binding.loadingOverlay.visibility = View.VISIBLE
         binding.rvFridge.visibility = View.GONE
         binding.emptyState.visibility = View.GONE
-        binding.root.findViewById<View>(R.id.error_state)?.visibility = View.GONE
+        binding.errorState.errorStateContainer.visibility = View.GONE
     }
 
     private fun showItems(items: List<FridgeItem>) {
@@ -146,7 +146,7 @@ class FridgeFragment : Fragment() {
         binding.loadingOverlay.visibility = View.GONE
         binding.rvFridge.visibility = View.GONE
         binding.emptyState.visibility = View.VISIBLE
-        binding.root.findViewById<View>(R.id.error_state)?.visibility = View.GONE
+        binding.errorState.errorStateContainer.visibility = View.GONE
         binding.tvEmptyTitle.text = getString(R.string.fridge_empty_title)
         binding.tvEmptyDesc.text = getString(R.string.fridge_empty_desc)
     }
@@ -155,7 +155,7 @@ class FridgeFragment : Fragment() {
         binding.loadingOverlay.visibility = View.GONE
         binding.rvFridge.visibility = View.GONE
         binding.emptyState.visibility = View.VISIBLE
-        binding.root.findViewById<View>(R.id.error_state)?.visibility = View.GONE
+        binding.errorState.errorStateContainer.visibility = View.GONE
         binding.tvEmptyTitle.text = getString(R.string.no_fridge_title)
         binding.tvEmptyDesc.text = getString(R.string.no_fridge_desc)
     }
@@ -164,7 +164,7 @@ class FridgeFragment : Fragment() {
         binding.loadingOverlay.visibility = View.GONE
         binding.rvFridge.visibility = View.GONE
         binding.emptyState.visibility = View.VISIBLE
-        binding.root.findViewById<View>(R.id.error_state)?.visibility = View.GONE
+        binding.errorState.errorStateContainer.visibility = View.GONE
         binding.tvEmptyTitle.text = getString(R.string.fridge_not_logged_in_title)
         binding.tvEmptyDesc.text = getString(R.string.fridge_not_logged_in_desc)
     }
@@ -173,9 +173,8 @@ class FridgeFragment : Fragment() {
         binding.loadingOverlay.visibility = View.GONE
         binding.rvFridge.visibility = View.GONE
         binding.emptyState.visibility = View.GONE
-        val errorView = binding.root.findViewById<View>(R.id.error_state)
-        errorView?.visibility = View.VISIBLE
-        errorView?.findViewById<TextView>(R.id.tv_error_desc)?.text = ErrorMapper.mapToUserFriendly(requireContext(), message)
+        binding.errorState.errorStateContainer.visibility = View.VISIBLE
+        binding.errorState.tvErrorDesc.text = ErrorMapper.mapToUserFriendly(requireContext(), message)
     }
 
     override fun onDestroyView() {

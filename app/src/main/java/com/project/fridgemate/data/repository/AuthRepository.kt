@@ -10,7 +10,7 @@ import com.project.fridgemate.data.remote.dto.RegisterRequest
 import com.project.fridgemate.data.remote.dto.ResetPasswordRequest
 import com.project.fridgemate.utils.AuthResult
 
-class AuthRepository {
+class AuthRepository : BaseRepository() {
 
     private val authApi: AuthApi = ApiClient.getAuthApi()
     private val tokenManager: TokenManager = ApiClient.getTokenManager()
@@ -99,21 +99,5 @@ class AuthRepository {
         }
     }
 
-    private fun parseError(errorBody: String?): String {
-        if (errorBody.isNullOrBlank()) return "Something went wrong. Please try again."
-        return try {
-            val json = org.json.JSONObject(errorBody)
-            json.optString("message", "Something went wrong. Please try again.")
-        } catch (_: Exception) {
-            errorBody
-        }
-    }
 
-    private fun networkErrorMessage(e: Exception): String {
-        return if (e is java.net.ConnectException || e is java.net.UnknownHostException) {
-            "Unable to connect to server. Please check your connection."
-        } else {
-            e.localizedMessage ?: "An unexpected error occurred."
-        }
-    }
 }

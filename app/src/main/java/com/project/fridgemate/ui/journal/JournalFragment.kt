@@ -55,7 +55,7 @@ class JournalFragment : Fragment() {
                     val action = DashboardFragmentDirections.actionDashboardFragmentToAddJournalEntryFragment(entry.id)
                     requireParentFragment().findNavController().navigate(action)
                 } catch (e: Exception) {
-                    ToastHelper.showToast(requireContext(), "Navigation error: ${e.message}")
+                    ToastHelper.showToast(requireContext(), getString(R.string.error_navigation_generic, e.message))
                 }
             },
             onRecipeImageClick = { serverRecipeId ->
@@ -63,7 +63,7 @@ class JournalFragment : Fragment() {
                     val action = DashboardFragmentDirections.actionDashboardFragmentToRecipeDetailFragment(0L, serverRecipeId)
                     requireParentFragment().findNavController().navigate(action)
                 } catch (e: Exception) {
-                    ToastHelper.showToast(requireContext(), "Navigation error: ${e.message}")
+                    ToastHelper.showToast(requireContext(), getString(R.string.error_navigation_generic, e.message))
                 }
             }
         )
@@ -96,11 +96,10 @@ class JournalFragment : Fragment() {
 
         viewModel.isLoading.observe(viewLifecycleOwner) { isLoading ->
             val hasItems = allEntries.isNotEmpty()
-            val errorView = binding.root.findViewById<View>(R.id.error_state)
             
             if (isLoading) {
                 binding.emptyState.visibility = View.GONE
-                errorView?.visibility = View.GONE
+                binding.errorState.errorStateContainer.visibility = View.GONE
                 
                 if (!hasItems) {
                     binding.progressBar.visibility = View.VISIBLE
@@ -124,11 +123,10 @@ class JournalFragment : Fragment() {
                 applyFilters()
             }
             
-            errorView?.findViewById<View>(R.id.btn_retry)?.isEnabled = !isLoading
+            binding.errorState.btnRetry.isEnabled = !isLoading
         }
 
         viewModel.error.observe(viewLifecycleOwner) { errorMsg ->
-            val errorView = binding.root.findViewById<View>(R.id.error_state)
             val isLoading = viewModel.isLoading.value == true
             val hasEntries = allEntries.isNotEmpty()
             
@@ -142,7 +140,7 @@ class JournalFragment : Fragment() {
                     if (!isGeneric || binding.swipeRefresh.isRefreshing) {
                         ToastHelper.showToast(requireContext(), userFriendly)
                     }
-                    errorView?.visibility = View.GONE
+                    binding.errorState.errorStateContainer.visibility = View.GONE
                     binding.swipeRefresh.visibility = View.VISIBLE
                     binding.fabAddEntry.visibility = View.VISIBLE
                     binding.headerContainer.visibility = View.VISIBLE
@@ -151,8 +149,8 @@ class JournalFragment : Fragment() {
                 } else if (!isLoading) {
                     binding.swipeRefresh.visibility = View.GONE
                     binding.emptyState.visibility = View.GONE
-                    errorView?.visibility = View.VISIBLE
-                    errorView?.findViewById<TextView>(R.id.tv_error_desc)?.text = userFriendly
+                    binding.errorState.errorStateContainer.visibility = View.VISIBLE
+                    binding.errorState.tvErrorDesc.text = userFriendly
                     binding.fabAddEntry.visibility = View.GONE
                     binding.headerContainer.visibility = View.GONE
                     binding.chipsScroll.visibility = View.GONE
@@ -160,7 +158,7 @@ class JournalFragment : Fragment() {
             } else {
                 // If error is null, ensure error view is hidden if we are not loading or have entries
                 if (!isLoading || hasEntries) {
-                    errorView?.visibility = View.GONE
+                    binding.errorState.errorStateContainer.visibility = View.GONE
                 }
                 applyFilters()
             }
@@ -171,19 +169,18 @@ class JournalFragment : Fragment() {
                 val action = DashboardFragmentDirections.actionDashboardFragmentToAddJournalEntryFragment("")
                 requireParentFragment().findNavController().navigate(action)
             } catch (e: Exception) {
-                ToastHelper.showToast(requireContext(), "Navigation error: ${e.message}")
+                ToastHelper.showToast(requireContext(), getString(R.string.error_navigation_generic, e.message))
             }
         }
     }
 
     override fun onResume() {
         super.onResume()
-        // Always try to refresh on resume to catch offline state or new data
         viewModel.loadEntries()
     }
 
     private fun setupErrorState() {
-        binding.root.findViewById<View>(R.id.error_state)?.findViewById<View>(R.id.btn_retry)?.setOnClickListener {
+        binding.errorState.btnRetry.setOnClickListener {
             viewModel.loadEntries()
         }
     }
@@ -217,17 +214,14 @@ class JournalFragment : Fragment() {
         if (viewModel.isLoading.value == true) return
         
         var filtered = allEntries
-        val errorView = binding.root.findViewById<View>(R.id.error_state)
         val hasError = viewModel.error.value != null
 
-        // Apply meal type filter
         if (currentMealFilter != null) {
             filtered = filtered.filter {
                 it.mealType.equals(currentMealFilter, ignoreCase = true)
             }
         }
 
-        // Apply search query
         if (currentSearchQuery.isNotEmpty()) {
             val query = currentSearchQuery.lowercase()
             filtered = filtered.filter {
@@ -246,9 +240,7 @@ class JournalFragment : Fragment() {
         val isEmpty = grouped.isEmpty()
 
         binding.emptyState.visibility = if (isEmpty && !hasError) View.VISIBLE else View.GONE
-        errorView?.visibility = if (hasError && !hasAnyEntries) View.VISIBLE else View.GONE
-
-        // Show contextual empty message
+        binding.errorState.errorStateContainer.visibility = if (hasError && !hasAnyEntries) View.VISIBLE else View.GONE
         if (isEmpty && hasAnyEntries && isFiltered) {
             binding.tvEmptyText.text = getString(R.string.journal_no_results)
         } else if (isEmpty) {
@@ -284,7 +276,7 @@ class JournalFragment : Fragment() {
         if (position != -1) {
             binding.rvJournal.scrollToPosition(position)
         } else {
-            ToastHelper.showToast(requireContext(), "No entries found for this date")
+            ToastHelper.showToast(requireContext(), getString(R.string.journal_no_entries_date))
         }
     }
 

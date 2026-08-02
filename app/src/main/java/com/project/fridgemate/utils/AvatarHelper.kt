@@ -45,11 +45,9 @@ object AvatarHelper {
         val canvas = Canvas(bitmap)
         val paint = Paint(Paint.ANTI_ALIAS_FLAG)
 
-        // Draw background circle
         paint.color = getColorForName(context, name)
         canvas.drawCircle(sizePx / 2f, sizePx / 2f, sizePx / 2f, paint)
 
-        // Draw text
         paint.color = Color.WHITE
         paint.textSize = sizePx / 2.5f
         paint.textAlign = Paint.Align.CENTER

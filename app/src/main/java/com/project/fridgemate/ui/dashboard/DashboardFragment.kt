@@ -21,7 +21,6 @@ import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import com.google.android.material.badge.BadgeDrawable
 import com.google.android.material.badge.BadgeUtils
-import com.google.firebase.messaging.FirebaseMessaging
 import com.project.fridgemate.ui.dashboard.DashboardFragmentDirections
 import com.project.fridgemate.BuildConfig
 import com.project.fridgemate.MainActivity
@@ -79,14 +78,8 @@ class DashboardFragment : Fragment() {
             currentTabId = savedInstanceState.getInt("selected_tab_id", R.id.tab_feed)
         }
 
-        // Restore tab selection UI
         updateTabUI(currentTabId)
-
-        // Restore or initialize fragment
-        val currentFragment = childFragmentManager.findFragmentById(R.id.dashboard_nav_host)
-        if (currentFragment == null || isWrongFragment(currentFragment, currentTabId)) {
-            showFragmentForTab(currentTabId)
-        }
+        setupFragments()
 
         setupTabListeners()
         setupProfileMenu()
@@ -96,7 +89,6 @@ class DashboardFragment : Fragment() {
         observeNotifications()
         observeFridgeChat()
         observeFridgeState()
-        registerFcmToken()
 
         profileViewModel.loggedOut.observe(viewLifecycleOwner) { loggedOut ->
             if (loggedOut) {
@@ -107,14 +99,32 @@ class DashboardFragment : Fragment() {
         }
     }
 
-    private fun isWrongFragment(fragment: Fragment, tabId: Int): Boolean {
-        return when (tabId) {
-            R.id.tab_feed -> fragment !is FeedFragment
-            R.id.tab_recipes -> fragment !is RecipesFragment
-            R.id.tab_my_fridge -> fragment !is FridgeFragment
-            R.id.tab_journal -> fragment !is JournalFragment
-            else -> false
+    private fun setupFragments() {
+        val fm = childFragmentManager
+        val feed = fm.findFragmentByTag("feed") ?: FeedFragment()
+        val recipes = fm.findFragmentByTag("recipes") ?: RecipesFragment()
+        val fridge = fm.findFragmentByTag("fridge") ?: FridgeFragment()
+        val journal = fm.findFragmentByTag("journal") ?: JournalFragment()
+
+        val transaction = fm.beginTransaction()
+        
+        if (!feed.isAdded) transaction.add(R.id.dashboard_nav_host, feed, "feed")
+        if (!recipes.isAdded) transaction.add(R.id.dashboard_nav_host, recipes, "recipes")
+        if (!fridge.isAdded) transaction.add(R.id.dashboard_nav_host, fridge, "fridge")
+        if (!journal.isAdded) transaction.add(R.id.dashboard_nav_host, journal, "journal")
+
+        // Hide all first
+        transaction.hide(feed).hide(recipes).hide(fridge).hide(journal)
+
+        // Show selected one
+        val selected = when (currentTabId) {
+            R.id.tab_feed -> feed
+            R.id.tab_recipes -> recipes
+            R.id.tab_my_fridge -> fridge
+            R.id.tab_journal -> journal
+            else -> feed
         }
+        transaction.show(selected).commit()
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
@@ -124,9 +134,6 @@ class DashboardFragment : Fragment() {
 
     override fun onResume() {
         super.onResume()
-        // Resync chat badge and fridge items after coming back from any sub-destination
-        // (e.g. FridgeChatFragment, Settings). Cheap GET; safety net for
-        // any unread bump events missed while the socket was disconnected.
         fridgeViewModel.refreshUnreadCount()
         fridgeViewModel.loadItems()
     }
@@ -227,16 +234,28 @@ class DashboardFragment : Fragment() {
     }
 
     private fun showFragmentForTab(tabId: Int) {
-        val fragment = when (tabId) {
-            R.id.tab_feed -> FeedFragment()
-            R.id.tab_recipes -> RecipesFragment()
-            R.id.tab_my_fridge -> FridgeFragment()
-            R.id.tab_journal -> JournalFragment()
-            else -> FeedFragment()
+        val fm = childFragmentManager
+        val feed = fm.findFragmentByTag("feed")
+        val recipes = fm.findFragmentByTag("recipes")
+        val fridge = fm.findFragmentByTag("fridge")
+        val journal = fm.findFragmentByTag("journal")
+
+        val transaction = fm.beginTransaction()
+        
+        // Hide all
+        feed?.let { transaction.hide(it) }
+        recipes?.let { transaction.hide(it) }
+        fridge?.let { transaction.hide(it) }
+        journal?.let { transaction.hide(it) }
+
+        // Show targeted
+        when (tabId) {
+            R.id.tab_feed -> feed?.let { transaction.show(it) }
+            R.id.tab_recipes -> recipes?.let { transaction.show(it) }
+            R.id.tab_my_fridge -> fridge?.let { transaction.show(it) }
+            R.id.tab_journal -> journal?.let { transaction.show(it) }
         }
-        childFragmentManager.beginTransaction()
-            .replace(R.id.dashboard_nav_host, fragment)
-            .commit()
+        transaction.commit()
     }
 
     private fun setupProfileMenu() {
@@ -274,24 +293,14 @@ class DashboardFragment : Fragment() {
 
         popupWindow.elevation = 8f
 
-        // Measure the popup to calculate offset
         popupBinding.root.measure(View.MeasureSpec.UNSPECIFIED, View.MeasureSpec.UNSPECIFIED)
         val popupWidth = popupBinding.root.measuredWidth
 
-        // Calculate xOffset to align the right edge of the popup with the right edge of the anchor
         val xOffset = anchor.width - popupWidth
         val yOffset = resources.getDimensionPixelSize(R.dimen.margin_small)
 
         popupWindow.showAsDropDown(anchor, xOffset, yOffset)
     }
-    private fun registerFcmToken() {
-        FirebaseMessaging.getInstance().token.addOnSuccessListener { token ->
-            lifecycleScope.launch {
-                runCatching { UserRepository(requireContext()).registerFcmToken(token) }
-            }
-        }
-    }
-
     private fun setupNotificationsIcon() {
         binding.ivNotifications.setOnClickListener {
             val action = DashboardFragmentDirections.actionDashboardFragmentToNotificationsFragment()
@@ -372,7 +381,6 @@ class DashboardFragment : Fragment() {
                 updateTabUI(currentTabId)
                 showFragmentForTab(currentTabId)
             }
-            // FeedFragment observes pendingPostId and scrolls once posts are available
         }
 
         notificationViewModel.pendingFridgeChat.observe(viewLifecycleOwner) { pending ->

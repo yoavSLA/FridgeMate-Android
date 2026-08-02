@@ -16,9 +16,6 @@ object ApiClient {
 
     private const val TIMEOUT_SECONDS = 30L
 
-    // Temporary DNS overrides until public A-records exist. TLS still validates
-    // against the requested hostname, so cert coverage of *.cs.colman.ac.il works.
-    // Remove entries here once the academy adds the public DNS.
     private val hostOverrides = mapOf(
         "fridgemate.cs.colman.ac.il" to "193.106.55.84"
     )
@@ -30,7 +27,6 @@ object ApiClient {
         }
     }
 
-    // Bare OkHttp used as default for socket.io (needs same Dns; no interceptors).
     private val socketHttpClient: OkHttpClient = OkHttpClient.Builder()
         .dns(dns)
         .build()
@@ -42,7 +38,6 @@ object ApiClient {
     fun init(context: Context) {
         tokenManager = TokenManager(context.applicationContext)
 
-        // Make socket.io honour the same DNS overrides as Retrofit.
         IO.setDefaultOkHttpCallFactory(socketHttpClient)
         IO.setDefaultOkHttpWebSocketFactory(socketHttpClient)
 

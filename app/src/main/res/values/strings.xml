@@ -325,4 +325,18 @@
     <string name="delete_journal_entry">Delete Entry</string>
     <string name="delete_journal_entry_confirmation">Are you sure you want to delete this journal entry? This action cannot be undone.</string>
 
+    <!-- Additional Messages -->
+    <string name="error_scan_summary_not_found">Scan summary not found</string>
+    <string name="error_location_permission_required">Location permission is required to post with location</string>
+    <string name="error_enter_title_journal">Please enter a title</string>
+    <string name="error_navigation_generic">Navigation error: %1$s</string>
+    <string name="journal_no_entries_date">No entries found for this date</string>
+    <string name="camera_permission_denied_generic">Camera permission denied</string>
+    <string name="code_copied">Code copied!</string>
+    <string name="error_recipe_load_failed">Could not load recipe</string>
+    <string name="owner_assign_failed">Couldn\'t assign owner. Please try again.</string>
+    <string name="owner_assigned_format">Assigned to %1$s</string>
+    <string name="owner_removed">Owner removed</string>
+    <string name="error_user_not_found">User not found</string>
+
 </resources>

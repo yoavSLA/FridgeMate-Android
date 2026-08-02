@@ -18,7 +18,7 @@ import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.RequestBody.Companion.toRequestBody
 import org.json.JSONObject
 
-class InventoryItemRepository(context: Context) {
+class InventoryItemRepository(context: Context) : BaseRepository() {
 
     private val api = ApiClient.createApi(InventoryItemApi::class.java)
     private val dao = AppDatabase.getInstance(context).inventoryItemDao()
@@ -28,9 +28,6 @@ class InventoryItemRepository(context: Context) {
         return dao.getAll().map { it.toDto() }
     }
 
-    // mineOrUnowned = true excludes other members' items (used for recipe generation).
-    // That filtered result is never cached, so it can't clobber the full-fridge cache
-    // that the normal fridge screen relies on.
     suspend fun getItems(fridgeId: String, mineOrUnowned: Boolean = false): FridgeResult<List<InventoryItemDto>> {
         return try {
             val response = api.getItems(fridgeId, mineOrUnowned)
@@ -46,16 +43,8 @@ class InventoryItemRepository(context: Context) {
         }
     }
 
-    private fun networkErrorMessage(e: Exception): String {
-        return if (e is java.net.ConnectException || e is java.net.UnknownHostException) {
-            "Unable to connect to server. Please check your connection."
-        } else {
-            e.localizedMessage ?: "An unexpected error occurred."
-        }
-    }
 
-    // ownerId = null unassigns the item. Built as raw JSON (not a Gson @Body) so the
-    // explicit "ownerId": null survives — Gson's converter omits null fields by default.
+
     suspend fun assignOwner(fridgeId: String, itemId: String, ownerId: String?): Boolean {
         return try {
             val json = JSONObject().put("ownerId", ownerId ?: JSONObject.NULL).toString()
@@ -66,7 +55,6 @@ class InventoryItemRepository(context: Context) {
         }
     }
 
-    // Reuses the existing SocketManager — no new connection created
     fun observeOwnerChanges(): Flow<ItemOwnerChangedDto> = callbackFlow {
         val socket = SocketManager.connect()
 

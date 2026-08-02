@@ -18,7 +18,7 @@ import java.util.Date
 import java.util.Locale
 import java.util.TimeZone
 
-class JournalRepository(context: Context) {
+class JournalRepository(context: Context) : BaseRepository() {
 
     private val api: JournalApi = ApiClient.getJournalApi()
     private val dao = AppDatabase.getInstance(context).journalDao()
@@ -28,13 +28,10 @@ class JournalRepository(context: Context) {
     }
 
     suspend fun getJournals(): FridgeResult<JournalListResponse> {
-        android.util.Log.d("JournalRepository", "Fetching journals...")
         return try {
             val response = api.getJournals(1, 100) // fetch latest 100
-            android.util.Log.d("JournalRepository", "API Response: ${response.code()} ${response.message()}")
             if (response.isSuccessful) {
                 val data = response.body() ?: return FridgeResult.Error("Empty response from server")
-                android.util.Log.d("JournalRepository", "API Response Data: $data")
                 val entities = data.items?.mapNotNull { dto ->
                     try {
                         dto.toEntity()
@@ -44,7 +41,6 @@ class JournalRepository(context: Context) {
                     }
                 } ?: emptyList()
 
-                // Only clear and update cache if we managed to map something or it's a valid empty response
                 if (entities.isNotEmpty() || (data.items != null && data.items.isEmpty())) {
                     dao.clearAll()
                     dao.insertAll(entities)
@@ -206,21 +202,5 @@ class JournalRepository(context: Context) {
         )
     }
 
-    private fun parseError(errorBody: String?): String {
-        if (errorBody.isNullOrBlank()) return "Empty error from server"
-        return try {
-            val json = org.json.JSONObject(errorBody)
-            json.optString("message", errorBody)
-        } catch (_: Exception) {
-            errorBody ?: "Unknown error"
-        }
-    }
 
-    private fun networkErrorMessage(e: Exception): String {
-        return if (e is java.net.ConnectException || e is java.net.UnknownHostException) {
-            "Unable to connect to server. Please check your connection."
-        } else {
-            e.localizedMessage ?: "An unexpected error occurred."
-        }
-    }
 }

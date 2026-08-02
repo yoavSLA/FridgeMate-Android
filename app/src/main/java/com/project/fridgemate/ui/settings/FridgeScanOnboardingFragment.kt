@@ -41,7 +41,7 @@ class FridgeScanOnboardingFragment : Fragment() {
     private val requestCameraPermission =
         registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted ->
             if (isGranted) takePictureLauncher.launch(null)
-            else ToastHelper.showToast(requireContext(), "Camera permission denied")
+            else ToastHelper.showToast(requireContext(), getString(R.string.camera_permission_denied_generic))
         }
 
     override fun onCreateView(
@@ -131,9 +131,12 @@ class FridgeScanOnboardingFragment : Fragment() {
     }
 
     private fun showImageSourceDialog() {
-        val options = arrayOf("Camera", "Gallery")
+        val options = arrayOf(
+            getString(R.string.source_camera),
+            getString(R.string.source_gallery)
+        )
         AlertDialog.Builder(requireContext())
-            .setTitle("Choose image source")
+            .setTitle(getString(R.string.choose_image_source))
             .setItems(options) { _, which ->
                 when (which) {
                     0 -> requestCameraPermission.launch(Manifest.permission.CAMERA)

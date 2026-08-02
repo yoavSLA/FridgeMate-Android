@@ -34,7 +34,6 @@ class FridgeMateMessagingService : FirebaseMessagingService() {
         super.onNewToken(token)
         Log.d(TAG, "New FCM Token: $token")
 
-        // TODO: send to server token
         sendTokenToServer(token)
     }
 
@@ -68,7 +67,6 @@ class FridgeMateMessagingService : FirebaseMessagingService() {
         val type = data["type"]
         val storage = ScanSummaryStorage(this)
         
-        // If it's a scan notification, try to save the summary if present in data
         if (type == "SCAN_COMPLETE") {
             Log.d(TAG, "Scan complete notification received. Data: $data")
             data["metadata"]?.let { metadataJson ->
@@ -134,14 +132,11 @@ class FridgeMateMessagingService : FirebaseMessagingService() {
                 this, android.Manifest.permission.POST_NOTIFICATIONS
             ) == android.content.pm.PackageManager.PERMISSION_GRANTED || Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU
         ) {
-            // Use just the ID without the tag to ensure it's treated as a fresh notification
-            // but with a unique ID every time.
             notificationManager.notify(notificationId, notificationBuilder.build())
         }
     }
 
     private fun createNotificationChannel() {
-        // Now handled in FridgeMateApp or lazily if needed
         NotificationHelper.createNotificationChannel(this)
     }
 }

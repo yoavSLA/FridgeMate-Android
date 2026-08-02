@@ -10,7 +10,7 @@ import com.project.fridgemate.data.remote.dto.GenerateRecipesRequest
 import com.project.fridgemate.data.remote.dto.RecipeIngredientDto
 import com.project.fridgemate.data.remote.dto.ServerRecipeDto
 
-class RecipeRepository(private val recipeDao: RecipeDao) {
+class RecipeRepository(private val recipeDao: RecipeDao) : BaseRepository() {
 
     private val recipeApi: RecipeApi = ApiClient.createApi(RecipeApi::class.java)
     private val gson = Gson()
@@ -59,10 +59,7 @@ class RecipeRepository(private val recipeDao: RecipeDao) {
                 recipeDao.insertAll(entities)
                 Result.success(Unit)
             } else {
-                val rawError = response.errorBody()?.string()
-                val error = try {
-                    org.json.JSONObject(rawError ?: "").optString("message", "Failed to generate recipes")
-                } catch (_: Exception) { rawError ?: "Failed to generate recipes" }
+                val error = parseError(response.errorBody()?.string())
                 Result.failure(Exception(error))
             }
         } catch (e: Exception) {
