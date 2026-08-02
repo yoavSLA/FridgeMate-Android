@@ -179,7 +179,7 @@ class AddJournalEntryFragment : Fragment() {
         val macros = buildMacrosString()
 
         if (title.isEmpty()) {
-            ToastHelper.showToast(requireContext(), "Please enter a title")
+            ToastHelper.showToast(requireContext(), getString(R.string.error_enter_title_journal))
             return
         }
 
@@ -202,7 +202,7 @@ class AddJournalEntryFragment : Fragment() {
                     }
                 } catch (e: Exception) {
                     binding.loadingOverlay.visibility = View.GONE
-                    ToastHelper.showToast(requireContext(), "Failed to upload image")
+                    ToastHelper.showToast(requireContext(), getString(R.string.error_upload_image))
                     return@launch
                 }
             }

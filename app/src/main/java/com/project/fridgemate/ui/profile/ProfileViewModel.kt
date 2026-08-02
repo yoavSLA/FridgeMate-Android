@@ -77,7 +77,6 @@ class ProfileViewModel(application: Application) : AndroidViewModel(application)
             try {
                 when (val result = userRepository.getUserById(userId)) {
                     is com.project.fridgemate.data.repository.FridgeResult.Success -> {
-                        // Artificial delay if the request was too fast
                         val elapsed = System.currentTimeMillis() - startTime
                         if (elapsed < 1500) kotlinx.coroutines.delay(1500 - elapsed)
                         applyUser(result.data)

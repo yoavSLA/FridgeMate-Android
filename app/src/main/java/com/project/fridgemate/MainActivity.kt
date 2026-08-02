@@ -25,7 +25,6 @@ import androidx.core.view.updatePadding
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
-import com.google.firebase.messaging.FirebaseMessaging
 import com.project.fridgemate.data.local.ScanSummaryStorage
 import com.project.fridgemate.data.model.Notification
 import com.project.fridgemate.data.remote.ApiClient
@@ -65,12 +64,10 @@ class MainActivity : AppCompatActivity() {
         handleNotificationIntent(intent)
         observeNotifications()
 
-        // Ensure status bar icons are white and navigation bar icons are dark
         val controller = WindowCompat.getInsetsController(window, window.decorView)
         controller.isAppearanceLightStatusBars = false
         controller.isAppearanceLightNavigationBars = true
 
-        // Handle system bars insets: only pad the top for the status bar
         ViewCompat.setOnApplyWindowInsetsListener(binding.root) { v, insets ->
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
             v.updatePadding(
@@ -80,30 +77,7 @@ class MainActivity : AppCompatActivity() {
         }
 
         userRepository = UserRepository(applicationContext)
-
-        // Get FCM Token and send to server
-        FirebaseMessaging.getInstance().token.addOnCompleteListener { task ->
-            if (task.isSuccessful) {
-                val token = task.result
-                Log.d("FCM_TOKEN", "Device FCM Token: $token")
-
-                // Send to server
-                lifecycleScope.launch {
-                    if (ApiClient.getTokenManager().isLoggedIn) {
-                        val result = userRepository.registerFcmToken(token)
-                        if (result.isSuccess) {
-                            Log.d("FCM_TOKEN", "Token registered successfully")
-                        } else {
-                            Log.e("FCM_TOKEN", "Failed to register token: ${result.exceptionOrNull()?.message}")
-                        }
-                    } else {
-                        Log.d("FCM_TOKEN", "User not logged in, skipping FCM registration for now")
-                    }
-                }
-            } else {
-                Log.e("FCM_TOKEN", "Failed to get FCM token: ${task.exception?.message}")
-            }
-        }
+        userRepository.syncFcmToken()
     }
 
     override fun onNewIntent(intent: Intent) {
@@ -242,7 +216,6 @@ class MainActivity : AppCompatActivity() {
 
     private fun handleNotificationIntent(intent: Intent?) {
         val type = intent?.getStringExtra("type") ?: return
-        Log.d("NotificationHandling", "Handling notification of type: $type")
         if (!ApiClient.getTokenManager().isLoggedIn) return
 
         val metadataJson = intent.getStringExtra("metadata")
@@ -257,7 +230,6 @@ class MainActivity : AppCompatActivity() {
                 notificationViewModel.requestNavToFridgeChat(fridgeId, fridgeName)
             }
             "SCAN_COMPLETE" -> {
-                Log.d("NotificationHandling", "Showing scan summary popup")
                 showScanSummaryPopup()
             }
         }
@@ -279,7 +251,7 @@ class MainActivity : AppCompatActivity() {
                 .show(supportFragmentManager, ScanSummaryDialog.TAG)
         } else {
             Log.w("NotificationHandling", "Cannot show popup: missing summary or createdAt in storage")
-            ToastHelper.showToast(this, "Scan summary not found")
+            ToastHelper.showToast(this, getString(R.string.error_scan_summary_not_found))
         }
     }
 

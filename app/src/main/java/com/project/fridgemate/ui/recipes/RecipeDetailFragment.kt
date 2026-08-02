@@ -70,7 +70,7 @@ class RecipeDetailFragment : Fragment() {
 
             viewModel.detailLoading.observe(viewLifecycleOwner) { loading ->
                 if (!loading && viewModel.error.value != null) {
-                    ToastHelper.showToast(requireContext(), "Could not load recipe")
+                    ToastHelper.showToast(requireContext(), getString(R.string.error_recipe_load_failed))
                     findNavController().navigateUp()
                 }
             }

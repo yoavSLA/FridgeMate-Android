@@ -25,7 +25,7 @@ data class PostStatChange(
     val commentsCount: Int?,
 )
 
-class PostRepository(context: Context) {
+class PostRepository(context: Context) : BaseRepository() {
 
     private val postApi: PostApi = ApiClient.createApi(PostApi::class.java)
     private val postDao = AppDatabase.getInstance(context).postDao()
@@ -60,11 +60,9 @@ class PostRepository(context: Context) {
         scope: String? = null
     ): FridgeResult<PostListResponse> {
         return try {
-            Log.d("PostRepository", "Loading page=$page limit=$limit scope=$scope")
             val response = postApi.getPosts(page, limit, scope)
             if (response.isSuccessful) {
                 val data = response.body()!!
-                // Only cache the unfiltered global feed; "following" scope is a transient view.
                 if (scope.isNullOrEmpty() || scope == "all") {
                     cachePosts(data.items)
                 }
@@ -255,7 +253,6 @@ class PostRepository(context: Context) {
     private suspend fun cachePosts(posts: List<PostDto>) {
         try {
             val entities = posts.map { it.toEntity() }
-            // Delete only non-owner posts to keep "My Shares" cached for offline
             postDao.clearNonOwnerPosts()
             postDao.insertAll(entities)
         } catch (_: Exception) { }
@@ -273,7 +270,6 @@ class PostRepository(context: Context) {
         val loc = location
         val authorAddr = authorUserId.address
         
-        // Priority: Post's specific coordinates, then Author's registered coordinates
         val hasPostCoords = loc?.coordinates != null && loc.coordinates.size >= 2
         val lng = if (hasPostCoords) loc?.coordinates!![0] else authorAddr?.lng ?: 0.0
         val lat = if (hasPostCoords) loc?.coordinates!![1] else authorAddr?.lat ?: 0.0
@@ -339,21 +335,5 @@ class PostRepository(context: Context) {
         )
     }
 
-    private fun parseError(errorBody: String?): String {
-        if (errorBody.isNullOrBlank()) return "Something went wrong. Please try again."
-        return try {
-            val json = org.json.JSONObject(errorBody)
-            json.optString("message", "Something went wrong. Please try again.")
-        } catch (_: Exception) {
-            errorBody
-        }
-    }
 
-    private fun networkErrorMessage(e: Exception): String {
-        return if (e is java.net.ConnectException || e is java.net.UnknownHostException) {
-            "Unable to connect to server. Please check your connection."
-        } else {
-            e.localizedMessage ?: "An unexpected error occurred."
-        }
-    }
 }

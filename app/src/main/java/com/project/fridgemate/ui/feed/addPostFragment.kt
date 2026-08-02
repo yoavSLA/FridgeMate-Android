@@ -82,7 +82,7 @@ class AddPostFragment : Fragment() {
             ) {
                 submitPost()
             } else {
-                ToastHelper.showToast(requireContext(), "Location permission is required to post with location")
+                ToastHelper.showToast(requireContext(), getString(R.string.error_location_permission_required))
                 submitPost() // Still submit without location if denied? Or maybe just submit.
             }
         }

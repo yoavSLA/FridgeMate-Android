@@ -5,6 +5,7 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
+import com.project.fridgemate.R
 import com.project.fridgemate.data.remote.ApiClient
 import com.project.fridgemate.data.remote.dto.FridgeMemberDetailDto
 import com.project.fridgemate.data.remote.dto.InventoryItemDto
@@ -96,9 +97,9 @@ class FridgeViewModel(application: Application) : AndroidViewModel(application) 
         viewModelScope.launch {
             val success = itemRepository.assignOwner(fridgeId, itemId, newOwnerId)
             _ownerAssignMessage.value = when {
-                !success -> "Couldn't assign owner. Please try again."
-                newOwnerName != null -> "Assigned to $newOwnerName"
-                else -> "Owner removed"
+                !success -> getApplication<Application>().getString(R.string.owner_assign_failed)
+                newOwnerName != null -> getApplication<Application>().getString(R.string.owner_assigned_format, newOwnerName)
+                else -> getApplication<Application>().getString(R.string.owner_removed)
             }
             if (success) loadItems()
         }
@@ -171,7 +172,6 @@ class FridgeViewModel(application: Application) : AndroidViewModel(application) 
             // Refresh from network in background
             val fridgeResult = fridgeRepository.getMyFridge()
             
-            // Artificial delay if the request was too fast (e.g. instant network error)
             val elapsed = System.currentTimeMillis() - startTime
             if (elapsed < 1500) delay(1500 - elapsed)
 

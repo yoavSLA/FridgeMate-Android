@@ -68,7 +68,7 @@ class FeedFragment : Fragment() {
     }
 
     private fun setupErrorState() {
-        binding.root.findViewById<View>(R.id.error_state_feed)?.findViewById<View>(R.id.btn_retry)?.setOnClickListener {
+        binding.errorStateFeed.btnRetry.setOnClickListener {
             viewModel.loadPosts(refresh = true)
         }
     }
@@ -173,21 +173,19 @@ class FeedFragment : Fragment() {
 
     override fun onResume() {
         super.onResume()
-        // Refresh on resume to catch offline state or sync new data
         viewModel.loadPosts(refresh = true)
     }
 
     private fun updateEmptyState(posts: List<Post>) {
         val isLoading = viewModel.isLoading.value == true
         val error = viewModel.error.value
-        val errorContainer = binding.root.findViewById<View>(R.id.error_state_feed)
         
         val hasData = posts.isNotEmpty()
         val hasError = error != null
 
         if (isLoading) {
             binding.emptyStateFeed.visibility = View.GONE
-            errorContainer?.visibility = View.GONE
+            binding.errorStateFeed.errorStateContainer.visibility = View.GONE
             if (!hasData) {
                 binding.rvPosts.visibility = View.GONE
                 binding.progressBar.visibility = View.VISIBLE
@@ -207,26 +205,25 @@ class FeedFragment : Fragment() {
         if (hasError && !hasData) {
             binding.rvPosts.visibility = View.GONE
             binding.emptyStateFeed.visibility = View.GONE
-            errorContainer?.visibility = View.VISIBLE
+            binding.errorStateFeed.errorStateContainer.visibility = View.VISIBLE
             binding.swipeRefresh.visibility = View.GONE
             binding.fabAddPost.visibility = View.GONE
-            binding.root.findViewById<TextView>(R.id.tv_error_desc)?.text = 
+            binding.errorStateFeed.tvErrorDesc.text = 
                 ErrorMapper.mapToUserFriendly(requireContext(), error)
         } else if (!hasData) {
             binding.rvPosts.visibility = View.GONE
             binding.emptyStateFeed.visibility = View.VISIBLE
-            errorContainer?.visibility = View.GONE
+            binding.errorStateFeed.errorStateContainer.visibility = View.GONE
             binding.swipeRefresh.visibility = View.VISIBLE
             binding.fabAddPost.visibility = View.VISIBLE
         } else {
             binding.rvPosts.visibility = View.VISIBLE
             binding.emptyStateFeed.visibility = View.GONE
-            errorContainer?.visibility = View.GONE
+            binding.errorStateFeed.errorStateContainer.visibility = View.GONE
             binding.swipeRefresh.visibility = View.VISIBLE
             binding.fabAddPost.visibility = View.VISIBLE
             
             if (hasError) {
-                // If we have data and error, it must be a background refresh failure
                 val userFriendly = ErrorMapper.mapToUserFriendly(requireContext(), error)
                 if (!ErrorMapper.isGeneric(requireContext(), userFriendly)) {
                     ToastHelper.showToast(requireContext(), userFriendly)
