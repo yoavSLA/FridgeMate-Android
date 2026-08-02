@@ -3,13 +3,10 @@ package com.project.fridgemate.data.remote
 import android.content.Context
 import com.project.fridgemate.BuildConfig
 import com.project.fridgemate.data.remote.api.AuthApi
-import io.socket.client.IO
-import okhttp3.Dns
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
-import java.net.InetAddress
 import java.util.concurrent.TimeUnit
 
 object ApiClient {
@@ -49,14 +46,12 @@ object ApiClient {
         }
 
         val publicClient = OkHttpClient.Builder()
-            .dns(dns)
             .addInterceptor(loggingInterceptor)
             .connectTimeout(TIMEOUT_SECONDS, TimeUnit.SECONDS)
             .readTimeout(TIMEOUT_SECONDS, TimeUnit.SECONDS)
             .build()
 
         val authenticatedClient = OkHttpClient.Builder()
-            .dns(dns)
             .addInterceptor(AuthInterceptor(tokenManager))
             .addInterceptor(loggingInterceptor)
             .authenticator(TokenAuthenticator(tokenManager))
