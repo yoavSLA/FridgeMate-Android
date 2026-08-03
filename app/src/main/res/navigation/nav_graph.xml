@@ -40,9 +40,6 @@
             android:id="@+id/action_dashboardFragment_to_addPostFragment"
             app:destination="@id/addPostFragment" />
         <action
-            android:id="@+id/action_dashboardFragment_to_mapViewFragment"
-            app:destination="@id/mapViewFragment" />
-        <action
             android:id="@+id/action_dashboardFragment_to_editPostFragment"
             app:destination="@id/editPostFragment" />
         <action
@@ -110,9 +107,6 @@
             android:id="@+id/action_userProfileFragment_to_recipeDetailFragment"
             app:destination="@id/recipeDetailFragment" />
         <action
-            android:id="@+id/action_userProfileFragment_to_mapViewFragment"
-            app:destination="@id/mapViewFragment" />
-        <action
             android:id="@+id/action_userProfileFragment_to_editPostFragment"
             app:destination="@id/editPostFragment" />
         <!-- Self-action so the screen can navigate to another user's profile -->
@@ -143,9 +137,6 @@
         android:name="com.project.fridgemate.ui.profile.MyProfileFragment"
         android:label="MyProfileFragment"
         tools:layout="@layout/fragment_my_profile">
-        <action
-            android:id="@+id/action_myProfileFragment_to_mapViewFragment"
-            app:destination="@id/mapViewFragment" />
     </fragment>
     <fragment
         android:id="@+id/settingsFragment"
@@ -202,26 +193,6 @@
             android:name="prefillRecipeDifficulty"
             app:argType="string"
             android:defaultValue="" />
-    </fragment>
-    <fragment
-        android:id="@+id/mapViewFragment"
-        android:name="com.project.fridgemate.ui.feed.MapViewFragment"
-        android:label="MapViewFragment"
-        tools:layout="@layout/fragment_map_view">
-        <argument
-            android:name="focusPostId"
-            app:argType="string"
-            android:defaultValue="" />
-        <argument
-            android:name="focusLocation"
-            app:argType="string"
-            android:defaultValue="" />
-        <action
-            android:id="@+id/action_mapViewFragment_to_recipeDetailFragment"
-            app:destination="@id/recipeDetailFragment" />
-        <action
-            android:id="@+id/action_mapViewFragment_to_userProfileFragment"
-            app:destination="@id/userProfileFragment" />
     </fragment>
     <fragment
         android:id="@+id/editPostFragment"

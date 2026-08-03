@@ -6,13 +6,18 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_marginBottom="10dp"
+    android:clipChildren="false"
+    android:clipToPadding="false"
     app:cardBackgroundColor="@color/white"
     app:cardCornerRadius="14dp"
-    app:cardElevation="2dp">
+    app:cardElevation="2dp"
+    app:cardPreventCornerOverlap="false">
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:clipChildren="false"
+        android:clipToPadding="false"
         android:padding="12dp">
 
         <com.google.android.material.imageview.ShapeableImageView
@@ -28,24 +33,22 @@
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnFollow"
-            style="@style/Widget.MaterialComponents.Button.UnelevatedButton"
-            android:layout_width="20dp"
-            android:layout_height="20dp"
-            android:insetTop="0dp"
-            android:insetBottom="0dp"
-            android:insetLeft="0dp"
-            android:insetRight="0dp"
+            style="@style/Widget.Material3.Button.IconButton"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
             android:padding="0dp"
+            android:minWidth="0dp"
+            android:minHeight="0dp"
             android:visibility="gone"
-            app:cornerRadius="10dp"
+            app:cornerRadius="12dp"
             app:elevation="2dp"
             app:iconGravity="textStart"
             app:iconPadding="0dp"
-            app:iconSize="12dp"
+            app:iconSize="14dp"
             app:layout_constraintBottom_toBottomOf="@id/ivAvatar"
             app:layout_constraintEnd_toEndOf="@id/ivAvatar"
-            android:layout_marginEnd="-4dp"
-            android:layout_marginBottom="-4dp"
+            android:layout_marginEnd="-2dp"
+            android:layout_marginBottom="-2dp"
             tools:icon="@drawable/ic_plus_small"
             tools:visibility="visible" />
 

@@ -68,8 +68,10 @@ class MainActivity : AppCompatActivity() {
         ViewCompat.setOnApplyWindowInsetsListener(binding.root) { v, insets ->
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
             v.updatePadding(
-                top = systemBars.top
+                top = systemBars.top,
+                bottom = systemBars.bottom
             )
+            // Ensure we also handle the IME (keyboard) if needed, but for now system bars are priority
             insets
         }
 

@@ -17,11 +17,14 @@ import com.project.fridgemate.BuildConfig
 import com.project.fridgemate.R
 import com.project.fridgemate.databinding.FragmentUserProfileBinding
 import com.project.fridgemate.ui.feed.PostAdapter
+import com.project.fridgemate.ui.feed.FeedViewModel
+import com.project.fridgemate.ui.feed.FeedViewMode
 import com.project.fridgemate.utils.AvatarHelper
 import com.project.fridgemate.utils.ErrorMapper
 import com.project.fridgemate.utils.ToastHelper
 import android.widget.TextView
 import com.squareup.picasso.Picasso
+import androidx.fragment.app.activityViewModels
 
 class UserProfileFragment : Fragment() {
 
@@ -30,6 +33,7 @@ class UserProfileFragment : Fragment() {
 
     private val args: UserProfileFragmentArgs by navArgs()
     private val viewModel: UserProfileViewModel by viewModels()
+    private val feedViewModel: FeedViewModel by activityViewModels()
     private lateinit var postAdapter: PostAdapter
 
     private var resolvedUserId: String? = null
@@ -108,9 +112,10 @@ class UserProfileFragment : Fragment() {
                 )
             },
             onLocationClick = { post ->
-                findNavController().navigate(
-                    UserProfileFragmentDirections.actionUserProfileFragmentToMapViewFragment(focusPostId = post.id)
-                )
+                feedViewModel.setViewMode(FeedViewMode.MAP)
+                // Set initial focus for map if we want, but since we are navigating away, 
+                // it might be better to just let the user see the whole map or handle focus via VM.
+                findNavController().popBackStack(R.id.dashboardFragment, false)
             },
             onAuthorClick = { post ->
                 // No-op when already on that user's profile
@@ -167,8 +172,8 @@ class UserProfileFragment : Fragment() {
         binding.layoutLocationHeader.setOnClickListener {
             val locationText = binding.tvLocation.text.toString()
             if (locationText.isNotEmpty()) {
-                val action = UserProfileFragmentDirections.actionUserProfileFragmentToMapViewFragment(focusLocation = locationText)
-                findNavController().navigate(action)
+                feedViewModel.setViewMode(FeedViewMode.MAP)
+                findNavController().popBackStack(R.id.dashboardFragment, false)
             }
         }
     }

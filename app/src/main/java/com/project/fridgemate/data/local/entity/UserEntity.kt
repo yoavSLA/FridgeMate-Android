@@ -15,5 +15,7 @@ data class UserEntity(
     val allergiesJson: String = "[]",
     val dietPreference: String,
     val activeFridgeId: String?,
-    val addressJson: String? = null
+    val addressJson: String? = null,
+    val followersCount: Int = 0,
+    val followingCount: Int = 0
 )

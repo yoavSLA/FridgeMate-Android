@@ -41,6 +41,10 @@ import com.project.fridgemate.ui.feed.FeedViewModel
 import com.project.fridgemate.ui.journal.JournalFragment
 import kotlinx.coroutines.launch
 
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.updatePadding
+
 class DashboardFragment : Fragment() {
 
     private var _binding: FragmentDashboardBinding? = null
@@ -166,20 +170,28 @@ class DashboardFragment : Fragment() {
 
     private fun setupTabListeners() {
         binding.tabMyFridge.setOnClickListener {
-            if (currentTabId != it.id) {
+            if (currentTabId == it.id) {
+                // Re-selected: trigger silent refresh
+                fridgeViewModel.loadItems()
+            } else {
                 currentTabId = it.id
                 updateTabUI(currentTabId)
                 showFragmentForTab(currentTabId)
             }
         }
         binding.tabFeed.setOnClickListener {
-            if (currentTabId != it.id) {
+            if (currentTabId == it.id) {
+                // Re-selected: trigger silent refresh and scroll to top
+                feedViewModel.loadPosts(refresh = true, silent = true)
+            } else {
                 currentTabId = it.id
                 updateTabUI(currentTabId)
                 showFragmentForTab(currentTabId)
             }
         }
         binding.tabRecipes.setOnClickListener {
+            // Recipes might not have a public refresh method easily accessible here, 
+            // but we can add one if needed.
             if (currentTabId != it.id) {
                 currentTabId = it.id
                 updateTabUI(currentTabId)
