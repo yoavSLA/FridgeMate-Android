@@ -35,8 +35,7 @@ class JournalRepository(context: Context) : BaseRepository() {
                 val entities = data.items?.mapNotNull { dto ->
                     try {
                         dto.toEntity()
-                    } catch (e: Exception) {
-                        android.util.Log.e("JournalRepository", "Failed to map entry ${dto.id ?: "unknown"}", e)
+                    } catch (_: Exception) {
                         null
                     }
                 } ?: emptyList()
@@ -48,14 +47,10 @@ class JournalRepository(context: Context) : BaseRepository() {
                 
                 FridgeResult.Success(data)
             } else {
-                val errorBody = response.errorBody()?.string()
-                val errorMsg = parseError(errorBody)
-                android.util.Log.e("JournalRepository", "API Error ${response.code()}: $errorMsg | Body: $errorBody")
-                FridgeResult.Error(errorMsg)
+                FridgeResult.Error(parseError(response.errorBody()?.string()))
             }
-        } catch (e: Exception) {
-            android.util.Log.e("JournalRepository", "Network/Parsing Exception", e)
-            FridgeResult.Error(networkErrorMessage(e))
+        } catch (_: Exception) {
+            FridgeResult.Error(networkErrorMessage(Exception()))
         }
     }
 
@@ -75,14 +70,10 @@ class JournalRepository(context: Context) : BaseRepository() {
                 dao.insert(entry.toEntity())
                 FridgeResult.Success(entry)
             } else {
-                val errorBody = response.errorBody()?.string()
-                val errorMsg = parseError(errorBody)
-                android.util.Log.e("JournalRepository", "Create Journal API Error ${response.code()}: $errorMsg")
-                FridgeResult.Error(errorMsg)
+                FridgeResult.Error(parseError(response.errorBody()?.string()))
             }
-        } catch (e: Exception) {
-            android.util.Log.e("JournalRepository", "Create Journal Exception", e)
-            FridgeResult.Error(networkErrorMessage(e))
+        } catch (_: Exception) {
+            FridgeResult.Error(networkErrorMessage(Exception()))
         }
     }
 
@@ -94,14 +85,10 @@ class JournalRepository(context: Context) : BaseRepository() {
                 dao.insert(entry.toEntity())
                 FridgeResult.Success(entry)
             } else {
-                val errorBody = response.errorBody()?.string()
-                val errorMsg = parseError(errorBody)
-                android.util.Log.e("JournalRepository", "Update Journal API Error ${response.code()}: $errorMsg")
-                FridgeResult.Error(errorMsg)
+                FridgeResult.Error(parseError(response.errorBody()?.string()))
             }
-        } catch (e: Exception) {
-            android.util.Log.e("JournalRepository", "Update Journal Exception", e)
-            FridgeResult.Error(networkErrorMessage(e))
+        } catch (_: Exception) {
+            FridgeResult.Error(networkErrorMessage(Exception()))
         }
     }
 
@@ -112,14 +99,10 @@ class JournalRepository(context: Context) : BaseRepository() {
                 dao.deleteById(id)
                 FridgeResult.Success(Unit)
             } else {
-                val errorBody = response.errorBody()?.string()
-                val errorMsg = parseError(errorBody)
-                android.util.Log.e("JournalRepository", "Delete Journal API Error ${response.code()}: $errorMsg")
-                FridgeResult.Error(errorMsg)
+                FridgeResult.Error(parseError(response.errorBody()?.string()))
             }
-        } catch (e: Exception) {
-            android.util.Log.e("JournalRepository", "Delete Journal Exception", e)
-            FridgeResult.Error(networkErrorMessage(e))
+        } catch (_: Exception) {
+            FridgeResult.Error(networkErrorMessage(Exception()))
         }
     }
 
@@ -137,14 +120,10 @@ class JournalRepository(context: Context) : BaseRepository() {
             if (response.isSuccessful) {
                 FridgeResult.Success(response.body()!!.data.imageUrl)
             } else {
-                val errorBody = response.errorBody()?.string()
-                val errorMsg = parseError(errorBody)
-                android.util.Log.e("JournalRepository", "Upload Image API Error ${response.code()}: $errorMsg")
-                FridgeResult.Error(errorMsg)
+                FridgeResult.Error(parseError(response.errorBody()?.string()))
             }
-        } catch (e: Exception) {
-            android.util.Log.e("JournalRepository", "Upload Image Exception", e)
-            FridgeResult.Error(networkErrorMessage(e))
+        } catch (_: Exception) {
+            FridgeResult.Error(networkErrorMessage(Exception()))
         }
     }
 

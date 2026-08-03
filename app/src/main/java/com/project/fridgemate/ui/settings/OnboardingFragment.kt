@@ -51,7 +51,7 @@ class OnboardingFragment : Fragment() {
         binding.btnCreate.setOnClickListener {
             val name = binding.etFridgeName.text.toString().trim()
             if (name.isEmpty()) {
-                binding.etFridgeName.error = "Please enter a fridge name"
+                binding.etFridgeName.error = getString(R.string.error_enter_fridge_name)
                 return@setOnClickListener
             }
             viewModel.createFridge(name)
@@ -60,7 +60,7 @@ class OnboardingFragment : Fragment() {
         binding.btnJoin.setOnClickListener {
             val code = binding.etInviteCode.text.toString().trim()
             if (code.isEmpty()) {
-                binding.etInviteCode.error = "Please enter an invite code"
+                binding.etInviteCode.error = getString(R.string.error_enter_invite_code)
                 return@setOnClickListener
             }
             viewModel.joinFridge(code)

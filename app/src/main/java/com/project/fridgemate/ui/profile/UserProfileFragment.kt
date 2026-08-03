@@ -23,15 +23,6 @@ import com.project.fridgemate.utils.ToastHelper
 import android.widget.TextView
 import com.squareup.picasso.Picasso
 
-/**
- * Profile view for the current user (when no [userId] is passed) or another user.
- *
- * - "Self" mode: shows an "Edit Profile" button that navigates to the existing
- *   [MyProfileFragment] settings/edit screen, plus this user's posts.
- * - "Other" mode: shows a Follow/Following toggle and that user's posts.
- *
- * Posts are rendered using the existing [PostAdapter] for visual consistency.
- */
 class UserProfileFragment : Fragment() {
 
     private var _binding: FragmentUserProfileBinding? = null
@@ -71,7 +62,7 @@ class UserProfileFragment : Fragment() {
             else binding.swipeRefresh.isRefreshing = false
         }
 
-        binding.root.findViewById<View>(R.id.error_state)?.findViewById<View>(R.id.btn_retry)?.setOnClickListener {
+        binding.errorState.btnRetry.setOnClickListener {
             resolvedUserId?.let { viewModel.load(it) }
         }
 
@@ -256,11 +247,11 @@ class UserProfileFragment : Fragment() {
             if (!loading) {
                 if (hasData) {
                     binding.swipeRefresh.visibility = View.VISIBLE
-                    binding.root.findViewById<View>(R.id.error_state)?.visibility = View.GONE
+                    binding.errorState.errorStateContainer.visibility = View.GONE
                 }
             } else if (!hasData) {
                 binding.swipeRefresh.visibility = View.GONE
-                binding.root.findViewById<View>(R.id.error_state)?.visibility = View.GONE
+                binding.errorState.errorStateContainer.visibility = View.GONE
             }
             updateEmptyState()
         }
@@ -275,7 +266,6 @@ class UserProfileFragment : Fragment() {
         }
 
         viewModel.error.observe(viewLifecycleOwner) { err ->
-            val errorView = binding.root.findViewById<View>(R.id.error_state)
             if (err != null) {
                 val userFriendly = ErrorMapper.mapToUserFriendly(requireContext(), err)
                 if (viewModel.user.value != null) {
@@ -284,12 +274,12 @@ class UserProfileFragment : Fragment() {
                     }
                     viewModel.clearError()
                     binding.swipeRefresh.visibility = View.VISIBLE
-                    errorView?.visibility = View.GONE
+                    binding.errorState.errorStateContainer.visibility = View.GONE
                 } else {
                     showError(userFriendly)
                 }
             } else {
-                errorView?.visibility = View.GONE
+                binding.errorState.errorStateContainer.visibility = View.GONE
                 if (viewModel.user.value != null) {
                     binding.swipeRefresh.visibility = View.VISIBLE
                 }
@@ -301,9 +291,8 @@ class UserProfileFragment : Fragment() {
     private fun showError(message: String) {
         binding.swipeRefresh.visibility = View.GONE
         binding.progressBar.visibility = View.GONE
-        val errorView = binding.root.findViewById<View>(R.id.error_state)
-        errorView?.visibility = View.VISIBLE
-        errorView?.findViewById<TextView>(R.id.tv_error_desc)?.text = message
+        binding.errorState.errorStateContainer.visibility = View.VISIBLE
+        binding.errorState.tvErrorDesc.text = message
     }
 
     private fun updateEmptyState() {

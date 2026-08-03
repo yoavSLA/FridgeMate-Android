@@ -132,11 +132,9 @@ class JournalFragment : Fragment() {
             
             if (errorMsg != null) {
                 val userFriendly = ErrorMapper.mapToUserFriendly(requireContext(), errorMsg)
-                android.util.Log.d("JournalFragment", "Error observed: $errorMsg -> $userFriendly (hasEntries=$hasEntries, generic=${ErrorMapper.isGeneric(requireContext(), userFriendly)})")
                 val isGeneric = ErrorMapper.isGeneric(requireContext(), userFriendly)
 
                 if (hasEntries) {
-                    // Only show toast for non-generic errors if they happen in the background.
                     if (!isGeneric || binding.swipeRefresh.isRefreshing) {
                         ToastHelper.showToast(requireContext(), userFriendly)
                     }
@@ -145,7 +143,7 @@ class JournalFragment : Fragment() {
                     binding.fabAddEntry.visibility = View.VISIBLE
                     binding.headerContainer.visibility = View.VISIBLE
                     binding.chipsScroll.visibility = View.VISIBLE
-                    viewModel.resetActionState() // This clears the error
+                    viewModel.resetActionState()
                 } else if (!isLoading) {
                     binding.swipeRefresh.visibility = View.GONE
                     binding.emptyState.visibility = View.GONE
@@ -156,7 +154,6 @@ class JournalFragment : Fragment() {
                     binding.chipsScroll.visibility = View.GONE
                 }
             } else {
-                // If error is null, ensure error view is hidden if we are not loading or have entries
                 if (!isLoading || hasEntries) {
                     binding.errorState.errorStateContainer.visibility = View.GONE
                 }

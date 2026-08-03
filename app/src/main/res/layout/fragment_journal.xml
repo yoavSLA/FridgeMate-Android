@@ -207,7 +207,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="6dp"
             android:gravity="center"
-            android:text="Track your meals and nutritional intake here."
+            android:text="@string/journal_desc"
             android:textColor="@color/gray_text"
             android:textSize="14sp" />
     </LinearLayout>

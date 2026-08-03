@@ -36,10 +36,10 @@ class RegisterFragment : Fragment() {
 
     private fun setupObservers() {
         viewModel.validationResult.observe(viewLifecycleOwner) { result ->
-            binding.tilFullName.error = result.nameError
-            binding.tilEmail.error = result.emailError
-            binding.tilPassword.error = result.passwordError
-            binding.tilConfirmPassword.error = result.confirmPasswordError
+            binding.tilFullName.error = result.nameErrorRes?.let { getString(it) }
+            binding.tilEmail.error = result.emailErrorRes?.let { getString(it) }
+            binding.tilPassword.error = result.passwordErrorRes?.let { getString(it) }
+            binding.tilConfirmPassword.error = result.confirmPasswordErrorRes?.let { getString(it) }
         }
 
         viewModel.registerResult.observe(viewLifecycleOwner) { result ->

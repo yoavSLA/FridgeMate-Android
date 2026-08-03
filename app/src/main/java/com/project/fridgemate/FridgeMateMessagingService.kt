@@ -1,12 +1,9 @@
 package com.project.fridgemate
 
-import android.app.NotificationManager
 import android.app.PendingIntent
-import android.content.Context
 import android.content.Intent
 import android.media.RingtoneManager
 import android.os.Build
-import android.util.Log
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import com.google.firebase.messaging.FirebaseMessagingService
@@ -25,22 +22,17 @@ import java.util.concurrent.atomic.AtomicInteger
 class FridgeMateMessagingService : FirebaseMessagingService() {
 
     companion object {
-        private const val TAG = "FCM_Service"
         const val CHANNEL_ID = "fridgemate_notifications"
         private val notificationCounter = AtomicInteger((System.currentTimeMillis() % 100000).toInt())
     }
 
     override fun onNewToken(token: String) {
         super.onNewToken(token)
-        Log.d(TAG, "New FCM Token: $token")
-
         sendTokenToServer(token)
     }
 
     override fun onMessageReceived(message: RemoteMessage) {
         super.onMessageReceived(message)
-
-        Log.d(TAG, "Message received: ${message.data}")
 
         val title = message.notification?.title ?: message.data["title"]
         val body = message.notification?.body ?: message.data["body"]
@@ -62,41 +54,28 @@ class FridgeMateMessagingService : FirebaseMessagingService() {
         body: String?,
         data: Map<String, String> = emptyMap()
     ) {
-        createNotificationChannel()
+        NotificationHelper.createNotificationChannel(this)
 
         val type = data["type"]
         val storage = ScanSummaryStorage(this)
         
         if (type == "SCAN_COMPLETE") {
-            Log.d(TAG, "Scan complete notification received. Data: $data")
             data["metadata"]?.let { metadataJson ->
                 try {
                     val metadata = JSONObject(metadataJson)
                     val createdAt = metadata.optString("createdAt")
-                    if (metadata.has("changes")) {
-                        val changes = try {
-                            val obj = metadata.optJSONObject("changes")
-                            if (obj != null) {
-                                Gson().fromJson(obj.toString(), ScanChangesDto::class.java)
-                            } else {
-                                val str = metadata.optString("changes")
-                                Gson().fromJson(str, ScanChangesDto::class.java)
-                            }
-                        } catch (e: Exception) {
-                            Log.e(TAG, "Failed to parse changes from metadata", e)
-                            null
-                        }
-
-                        if (changes != null && createdAt.isNotBlank()) {
-                            storage.saveLastScanSummary(changes, createdAt)
-                            Log.d(TAG, "Successfully saved scan summary from FCM")
-                        }
+                    val changesObj = metadata.optJSONObject("changes")
+                    val changes = if (changesObj != null) {
+                        Gson().fromJson(changesObj.toString(), ScanChangesDto::class.java)
                     } else {
-                        Log.w(TAG, "Scan complete notification missing 'changes' in metadata.")
+                        val str = metadata.optString("changes")
+                        Gson().fromJson(str, ScanChangesDto::class.java)
                     }
-                } catch (e: Exception) {
-                    Log.e(TAG, "Failed to parse scan summary from FCM data", e)
-                }
+
+                    if (changes != null && createdAt.isNotBlank()) {
+                        storage.saveLastScanSummary(changes, createdAt)
+                    }
+                } catch (_: Exception) { }
             }
         }
 
@@ -120,10 +99,7 @@ class FridgeMateMessagingService : FirebaseMessagingService() {
             .setCategory(NotificationCompat.CATEGORY_MESSAGE)
             .setSound(soundUri)
             .setDefaults(NotificationCompat.DEFAULT_ALL)
-            .setOnlyAlertOnce(false)
             .setAutoCancel(true)
-            .setNumber(1)
-            .setBadgeIconType(NotificationCompat.BADGE_ICON_SMALL)
             .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
             .setContentIntent(pendingIntent)
 
@@ -134,9 +110,5 @@ class FridgeMateMessagingService : FirebaseMessagingService() {
         ) {
             notificationManager.notify(notificationId, notificationBuilder.build())
         }
-    }
-
-    private fun createNotificationChannel() {
-        NotificationHelper.createNotificationChannel(this)
     }
 }

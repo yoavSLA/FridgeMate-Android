@@ -5,7 +5,6 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.PopupWindow
-import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -14,7 +13,6 @@ import com.project.fridgemate.databinding.FragmentFridgeBinding
 import com.project.fridgemate.databinding.PopupAssignOwnerBinding
 import com.project.fridgemate.utils.ErrorMapper
 import com.project.fridgemate.utils.ToastHelper
-import android.widget.TextView
 
 class FridgeFragment : Fragment() {
 
@@ -68,8 +66,6 @@ class FridgeFragment : Fragment() {
         viewModel.error.observe(viewLifecycleOwner) { error ->
             error?.let {
                 val userFriendly = ErrorMapper.mapToUserFriendly(requireContext(), it)
-                // Only show toast if we are NOT showing the full-screen error state
-                // (i.e., we already have some items or members cached/loaded)
                 if (currentItems.isNotEmpty() || viewModel.members.value?.isNotEmpty() == true) {
                     if (!ErrorMapper.isGeneric(requireContext(), userFriendly)) {
                         ToastHelper.showToast(requireContext(), userFriendly)

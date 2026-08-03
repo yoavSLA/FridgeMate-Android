@@ -45,7 +45,7 @@ class CommentAdapter(
         with(holder.binding) {
             tvCommentUserName.text = comment.userName
             tvCommentText.text = comment.text
-            val timeAgo = TimeAgo.format(comment.createdAt)
+            val timeAgo = TimeAgo.format(holder.itemView.context, comment.createdAt)
             tvCommentTime.text = timeAgo
             tvCommentTime.visibility = if (timeAgo.isEmpty()) View.GONE else View.VISIBLE
             

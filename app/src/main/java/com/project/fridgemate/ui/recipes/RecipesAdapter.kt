@@ -1,7 +1,6 @@
 package com.project.fridgemate.ui.recipes
 
 import android.content.res.ColorStateList
-import android.graphics.Color
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import android.view.animation.OvershootInterpolator
@@ -105,7 +104,7 @@ class RecipeAdapter(
     private fun updateFavoriteIcon(btn: ImageButton, isFavorite: Boolean, animate: Boolean) {
         if (isFavorite) {
             btn.setImageResource(R.drawable.ic_star_filled)
-            btn.imageTintList = ColorStateList.valueOf(Color.parseColor("#FFD700")) // Gold
+            btn.imageTintList = ColorStateList.valueOf(btn.context.getColor(R.color.favorite_gold))
             if (animate) animateStar(btn)
         } else {
             btn.setImageResource(R.drawable.ic_star_outline)

@@ -44,7 +44,7 @@ class ScanSummaryAdapter(
                 holder.binding.ivTypeIcon.setImageResource(R.drawable.ic_edit)
                 holder.binding.ivTypeIcon.setColorFilter(ContextCompat.getColor(context, R.color.macro_carbs))
                 holder.binding.tvItemName.text = item.name
-                holder.binding.tvItemQuantity.text = "${item.oldQuantity} → ${item.newQuantity}"
+                holder.binding.tvItemQuantity.text = context.getString(R.string.quantity_change_format, item.oldQuantity, item.newQuantity)
                 holder.binding.root.setCardBackgroundColor(ContextCompat.getColor(context, R.color.warning_yellow_bg))
             }
             is ScanSummaryItem.Removed -> {

@@ -9,7 +9,6 @@ fun PostDto.toPost(): Post {
     val loc = location
     val authorAddr = authorUserId.address
 
-    // Priority: Post's specific location, then Author's registered location
     val lat = loc?.coordinates?.getOrNull(1) ?: authorAddr?.lat ?: 0.0
     val lng = loc?.coordinates?.getOrNull(0) ?: authorAddr?.lng ?: 0.0
 

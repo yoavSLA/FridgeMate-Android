@@ -128,7 +128,7 @@ class FridgeChatFragment : Fragment() {
     }
 
     private fun setupErrorState() {
-        binding.root.findViewById<View>(R.id.error_state)?.findViewById<View>(R.id.btn_retry)?.setOnClickListener {
+        binding.errorState.btnRetry.setOnClickListener {
             viewModel.start(args.fridgeId)
         }
     }
@@ -180,14 +180,12 @@ class FridgeChatFragment : Fragment() {
         
         val isEmpty = messages.isEmpty()
         val hasError = error != null
-        val errorView = binding.root.findViewById<View>(R.id.error_state)
 
-        // Reset visibility
         binding.loadingInitial.isVisible = isLoading
         
         if (isLoading) {
             binding.emptyState.isVisible = false
-            errorView?.isVisible = false
+            binding.errorState.errorStateContainer.isVisible = false
             if (isEmpty) {
                 binding.rvMessages.isVisible = false
                 binding.inputBar.isVisible = false
@@ -208,22 +206,22 @@ class FridgeChatFragment : Fragment() {
                 binding.inputBar.isVisible = false
                 binding.inputDivider.isVisible = false
                 
-                errorView?.isVisible = true
-                errorView?.findViewById<TextView>(R.id.tv_error_desc)?.text = userFriendly
+                binding.errorState.errorStateContainer.isVisible = true
+                binding.errorState.tvErrorDesc.text = userFriendly
             } else {
                 ToastHelper.showToast(requireContext(), userFriendly)
                 viewModel.consumeError()
                 
                 binding.rvMessages.isVisible = true
                 binding.emptyState.isVisible = false
-                errorView?.isVisible = false
+                binding.errorState.errorStateContainer.isVisible = false
                 binding.inputBar.isVisible = true
                 binding.inputDivider.isVisible = true
             }
         } else {
             binding.rvMessages.isVisible = !isEmpty
             binding.emptyState.isVisible = isEmpty
-            errorView?.isVisible = false
+            binding.errorState.errorStateContainer.isVisible = false
             binding.inputBar.isVisible = true
             binding.inputDivider.isVisible = true
         }

@@ -115,7 +115,7 @@ class SettingsFragment : Fragment() {
         }
 
         viewModel.members.observe(viewLifecycleOwner) { members ->
-            binding.tvMembersCount.text = "${members.size} members"
+            binding.tvMembersCount.text = getString(R.string.members_count, members.size)
             binding.rvMembers.layoutManager = LinearLayoutManager(requireContext())
             binding.rvMembers.adapter = MemberAdapter(members)
         }
@@ -148,7 +148,7 @@ class SettingsFragment : Fragment() {
         viewModel.scanResult.observe(viewLifecycleOwner) { items ->
             if (items != null && items.isNotEmpty()) {
                 binding.scanResultsLayout.visibility = View.VISIBLE
-                binding.tvScanResultTitle.text = "Detected Items (${items.size})"
+                binding.tvScanResultTitle.text = getString(R.string.detected_items, items.size)
                 binding.rvScanResults.layoutManager = LinearLayoutManager(requireContext())
                 binding.rvScanResults.adapter = DetectedItemAdapter(items)
             } else {
@@ -205,8 +205,8 @@ class SettingsFragment : Fragment() {
         val dialogBinding = DialogLeaveFridgeBinding.inflate(layoutInflater)
         dialog.setContentView(dialogBinding.root)
 
-        val fridgeName = viewModel.fridgeName.value ?: "this fridge"
-        dialogBinding.tvMessage.text = "Are you sure you want to leave $fridgeName?"
+        val fridgeName = viewModel.fridgeName.value ?: getString(R.string.shared_fridge)
+        dialogBinding.tvMessage.text = getString(R.string.leave_fridge_confirmation, fridgeName)
 
         dialogBinding.btnConfirmLeave.setOnClickListener {
             viewModel.leaveFridge()

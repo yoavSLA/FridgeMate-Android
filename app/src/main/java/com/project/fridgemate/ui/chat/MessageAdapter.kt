@@ -2,7 +2,6 @@ package com.project.fridgemate.ui.chat
 
 import android.content.Context
 import android.net.Uri
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -125,12 +124,7 @@ class MessageAdapter(
                     .load(resolved)
                     .placeholder(placeholder)
                     .error(placeholder)
-                    .into(b.ivAvatar, object : Callback {
-                        override fun onSuccess() {}
-                        override fun onError(e: Exception?) {
-                            Log.w("MessageAdapter", "Avatar load failed url=$resolved", e)
-                        }
-                    })
+                    .into(b.ivAvatar)
             } else {
                 b.ivAvatar.setImageDrawable(placeholder)
             }
@@ -268,14 +262,6 @@ class MessageAdapter(
 
         private fun parseIso(iso: String): Date? = runCatching { isoParser.parse(iso) }.getOrNull()
 
-        // Returns a fully-qualified URL Picasso can load, or null if there's
-        // nothing usable. Handles three cases:
-        //  - relative path "/uploads/x.jpg"      -> prefix with BASE_URL host
-        //  - bad absolute "http://localhost/x"   -> rewrite host to BASE_URL host
-        //    (the upload route hardcodes whatever req.get("host") was, which on
-        //    the dev server is often localhost / 127.0.0.1 / a LAN IP that the
-        //    emulator can't resolve to your dev box)
-        //  - usable absolute "https://lh3..."    -> return as-is
         internal fun resolveAvatarUrl(raw: String?): String? {
             if (raw.isNullOrBlank()) return null
             val baseHost = runCatching { Uri.parse(BuildConfig.BASE_URL).host }.getOrNull()
@@ -302,8 +288,6 @@ class MessageAdapter(
             }
         }
 
-        // Builds a flat list interleaving date headers between messages whenever
-        // the calendar day changes. `messages` is expected in chronological order.
         fun buildItems(context: Context, messages: List<ChatMessageDto>): List<ChatItem> {
             if (messages.isEmpty()) return emptyList()
             val today = Calendar.getInstance()

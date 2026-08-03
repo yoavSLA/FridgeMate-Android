@@ -9,6 +9,7 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.viewpager2.adapter.FragmentStateAdapter
 import com.google.android.material.tabs.TabLayoutMediator
+import com.project.fridgemate.R
 import com.project.fridgemate.databinding.FragmentRecipesBinding
 import com.project.fridgemate.utils.ErrorMapper
 import com.project.fridgemate.utils.ToastHelper
@@ -49,8 +50,8 @@ class RecipesFragment : Fragment() {
 
         TabLayoutMediator(binding.tabLayout, binding.viewPager) { tab, position ->
             tab.text = when (position) {
-                0 -> "Recommended"
-                else -> "Favorites"
+                0 -> getString(R.string.recommended)
+                else -> getString(R.string.favorites)
             }
         }.attach()
     }

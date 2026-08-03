@@ -131,8 +131,6 @@ class FridgeViewModel(application: Application) : AndroidViewModel(application) 
                 itemRepository.observeOwnerChanges().collect { event ->
                     if (event.fridgeId == _activeFridgeId.value) loadItems()
                 }
-                // Flow closed because the socket disconnected (e.g. token refresh caused
-                // SocketManager to replace the socket) — wait briefly then resubscribe.
                 if (isActive) delay(2000)
             }
         }
@@ -165,11 +163,9 @@ class FridgeViewModel(application: Application) : AndroidViewModel(application) 
             if (cached.isNotEmpty()) {
                 _state.value = State.Items(buildFridgeItemList(cached))
             } else {
-                // No cache yet — show spinner on first load
                 _state.value = State.Loading
             }
 
-            // Refresh from network in background
             val fridgeResult = fridgeRepository.getMyFridge()
             
             val elapsed = System.currentTimeMillis() - startTime
@@ -189,7 +185,6 @@ class FridgeViewModel(application: Application) : AndroidViewModel(application) 
                     if (cached.isEmpty()) {
                         _state.value = State.Error(fridgeResult.message)
                     }
-                    // Even on error, try to populate active fridge info from cache if missing
                     if (_activeFridgeId.value == null) {
                         fridgeRepository.getCachedFridge()?.let { 
                             _activeFridgeId.value = it.id

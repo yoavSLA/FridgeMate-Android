@@ -18,10 +18,10 @@ object NotificationHelper {
 
             val channel = NotificationChannel(
                 FridgeMateMessagingService.CHANNEL_ID,
-                "FridgeMate Notifications",
+                context.getString(R.string.notification_channel_name),
                 NotificationManager.IMPORTANCE_HIGH
             ).apply {
-                description = "Notifications for likes, comments, and messages"
+                description = context.getString(R.string.notification_channel_desc)
                 enableLights(true)
                 enableVibration(true)
                 setShowBadge(true)

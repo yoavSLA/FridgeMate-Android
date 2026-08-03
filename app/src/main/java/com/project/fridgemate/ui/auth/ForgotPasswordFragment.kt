@@ -43,10 +43,10 @@ class ForgotPasswordFragment : Fragment() {
         }
 
         viewModel.validationResult.observe(viewLifecycleOwner) { result ->
-            binding.tilEmail.error = result.emailError
-            binding.tilCode.error = result.nameError
-            binding.tilNewPassword.error = result.passwordError
-            binding.tilConfirmPassword.error = result.confirmPasswordError
+            binding.tilEmail.error = result.emailErrorRes?.let { getString(it) }
+            binding.tilCode.error = result.nameErrorRes?.let { getString(it) }
+            binding.tilNewPassword.error = result.passwordErrorRes?.let { getString(it) }
+            binding.tilConfirmPassword.error = result.confirmPasswordErrorRes?.let { getString(it) }
         }
 
         viewModel.sendCodeResult.observe(viewLifecycleOwner) { result ->

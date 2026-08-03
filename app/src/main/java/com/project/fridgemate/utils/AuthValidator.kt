@@ -1,6 +1,7 @@
 package com.project.fridgemate.utils
 
 import android.util.Patterns
+import com.project.fridgemate.R
 
 object AuthValidator {
 
@@ -8,20 +9,20 @@ object AuthValidator {
 
     data class ValidationResult(
         val isValid: Boolean,
-        val emailError: String? = null,
-        val passwordError: String? = null,
-        val confirmPasswordError: String? = null,
-        val nameError: String? = null
+        val emailErrorRes: Int? = null,
+        val passwordErrorRes: Int? = null,
+        val confirmPasswordErrorRes: Int? = null,
+        val nameErrorRes: Int? = null
     )
 
     fun validateLogin(email: String, password: String): ValidationResult {
         val emailErr = validateEmail(email)
-        val passwordErr = if (password.isBlank()) "Please enter your password" else null
+        val passwordErr = if (password.isBlank()) R.string.error_enter_password else null
 
         return ValidationResult(
             isValid = emailErr == null && passwordErr == null,
-            emailError = emailErr,
-            passwordError = passwordErr
+            emailErrorRes = emailErr,
+            passwordErrorRes = passwordErr
         )
     }
 
@@ -31,21 +32,21 @@ object AuthValidator {
         password: String,
         confirmPassword: String
     ): ValidationResult {
-        val nameErr = if (name.isBlank()) "Please enter your full name" else null
+        val nameErr = if (name.isBlank()) R.string.error_enter_full_name else null
         val emailErr = validateEmail(email)
         val passwordErr = validatePassword(password)
         val confirmErr = when {
-            confirmPassword.isBlank() -> "Please confirm your password"
-            password != confirmPassword -> "Passwords do not match"
+            confirmPassword.isBlank() -> R.string.error_confirm_password
+            password != confirmPassword -> R.string.error_passwords_dont_match
             else -> null
         }
 
         return ValidationResult(
             isValid = nameErr == null && emailErr == null && passwordErr == null && confirmErr == null,
-            nameError = nameErr,
-            emailError = emailErr,
-            passwordError = passwordErr,
-            confirmPasswordError = confirmErr
+            nameErrorRes = nameErr,
+            emailErrorRes = emailErr,
+            passwordErrorRes = passwordErr,
+            confirmPasswordErrorRes = confirmErr
         )
     }
 
@@ -53,40 +54,40 @@ object AuthValidator {
         val emailErr = validateEmail(email)
         return ValidationResult(
             isValid = emailErr == null,
-            emailError = emailErr
+            emailErrorRes = emailErr
         )
     }
 
     fun validateResetPassword(code: String, password: String, confirmPassword: String): ValidationResult {
         val passwordErr = validatePassword(password)
         val confirmErr = when {
-            confirmPassword.isBlank() -> "Please confirm your password"
-            password != confirmPassword -> "Passwords do not match"
+            confirmPassword.isBlank() -> R.string.error_confirm_password
+            password != confirmPassword -> R.string.error_passwords_dont_match
             else -> null
         }
         val codeErr = when {
-            code.isBlank() -> "Please enter the reset code"
-            code.length != 6 || !code.all { it.isDigit() } -> "Code must be 6 digits"
+            code.isBlank() -> R.string.error_enter_reset_code
+            code.length != 6 || !code.all { it.isDigit() } -> R.string.error_invalid_reset_code
             else -> null
         }
 
         return ValidationResult(
             isValid = codeErr == null && passwordErr == null && confirmErr == null,
-            nameError = codeErr,
-            passwordError = passwordErr,
-            confirmPasswordError = confirmErr
+            nameErrorRes = codeErr,
+            passwordErrorRes = passwordErr,
+            confirmPasswordErrorRes = confirmErr
         )
     }
 
-    private fun validateEmail(email: String): String? = when {
-        email.isBlank() -> "Please enter your email"
-        !Patterns.EMAIL_ADDRESS.matcher(email).matches() -> "Please enter a valid email"
+    private fun validateEmail(email: String): Int? = when {
+        email.isBlank() -> R.string.error_enter_email
+        !Patterns.EMAIL_ADDRESS.matcher(email).matches() -> R.string.error_invalid_email
         else -> null
     }
 
-    private fun validatePassword(password: String): String? = when {
-        password.isBlank() -> "Please enter a password"
-        password.length < MIN_PASSWORD_LENGTH -> "Password must be at least $MIN_PASSWORD_LENGTH characters"
+    private fun validatePassword(password: String): Int? = when {
+        password.isBlank() -> R.string.error_enter_password
+        password.length < MIN_PASSWORD_LENGTH -> R.string.error_password_too_short
         else -> null
     }
 }

@@ -9,11 +9,9 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
-import com.project.fridgemate.R
 import com.project.fridgemate.databinding.FragmentNotificationsBinding
 import com.project.fridgemate.utils.ErrorMapper
 import com.project.fridgemate.utils.ToastHelper
-import android.widget.TextView
 
 class NotificationsFragment : Fragment() {
 
@@ -53,7 +51,7 @@ class NotificationsFragment : Fragment() {
             binding.progressBar.visibility = if (isLoading && isEmpty) View.VISIBLE else View.GONE
             if (isLoading) {
                 binding.emptyState.visibility = View.GONE
-                binding.root.findViewById<View>(R.id.error_state)?.visibility = View.GONE
+                binding.errorState.errorStateContainer.visibility = View.GONE
             } else {
                 updateUIState()
             }
@@ -75,7 +73,7 @@ class NotificationsFragment : Fragment() {
             }
         }
 
-        binding.root.findViewById<View>(R.id.error_state)?.findViewById<View>(R.id.btn_retry)?.setOnClickListener {
+        binding.errorState.btnRetry.setOnClickListener {
             viewModel.loadAndMarkAllAsRead()
         }
 
@@ -99,7 +97,7 @@ class NotificationsFragment : Fragment() {
         } else {
             binding.rvNotifications.visibility = if (isEmpty) View.GONE else View.VISIBLE
             binding.emptyState.visibility = if (isEmpty) View.VISIBLE else View.GONE
-            binding.root.findViewById<View>(R.id.error_state)?.visibility = View.GONE
+            binding.errorState.errorStateContainer.visibility = View.GONE
         }
     }
 
@@ -107,9 +105,8 @@ class NotificationsFragment : Fragment() {
         binding.rvNotifications.visibility = View.GONE
         binding.emptyState.visibility = View.GONE
         binding.progressBar.visibility = View.GONE
-        val errorView = binding.root.findViewById<View>(R.id.error_state)
-        errorView?.visibility = View.VISIBLE
-        errorView?.findViewById<TextView>(R.id.tv_error_desc)?.text = message
+        binding.errorState.errorStateContainer.visibility = View.VISIBLE
+        binding.errorState.tvErrorDesc.text = message
     }
 
     override fun onResume() {

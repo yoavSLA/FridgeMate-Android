@@ -1,7 +1,6 @@
 package com.project.fridgemate.ui.feed
 
 import android.content.res.ColorStateList
-import android.graphics.Color
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -68,7 +67,7 @@ class PostAdapter(
         with(holder.binding) {
 
             tvUserName.text = post.userName
-            val timeAgo = TimeAgo.format(post.createdAt)
+            val timeAgo = TimeAgo.format(holder.binding.root.context, post.createdAt)
             tvPostTime.text = if (timeAgo.isEmpty()) "" else "· $timeAgo"
             tvPostTime.visibility = if (timeAgo.isEmpty()) View.GONE else View.VISIBLE
             tvUserLocation.text = post.userLocation
@@ -288,13 +287,14 @@ class PostAdapter(
     }
 
     private fun updateLikeButton(btn: ImageButton, isLiked: Boolean, animate: Boolean) {
+        val context = btn.context
         if (isLiked) {
             btn.setImageResource(R.drawable.ic_heart_filled)
-            btn.imageTintList = ColorStateList.valueOf(Color.parseColor("#E53935"))
+            btn.imageTintList = ColorStateList.valueOf(context.getColor(R.color.like_red))
             if (animate) viewScalePop(btn, 1.2f)
         } else {
             btn.setImageResource(R.drawable.ic_heart_outline)
-            btn.imageTintList = ColorStateList.valueOf(Color.parseColor("#9E9E9E"))
+            btn.imageTintList = ColorStateList.valueOf(context.getColor(R.color.gray_medium))
             if (animate) viewScalePop(btn, 0.9f)
         }
     }

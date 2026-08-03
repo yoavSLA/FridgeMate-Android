@@ -32,8 +32,8 @@ class MemberAdapter(
         val isCurrentUser = member.userId == currentUserId
         with(holder.binding) {
             val suffix = when {
-                member.userId == selectedUserId -> " (Current owner)"
-                isCurrentUser -> " (You)"
+                member.userId == selectedUserId -> root.context.getString(R.string.current_owner_suffix)
+                isCurrentUser -> root.context.getString(R.string.you_suffix)
                 else -> ""
             }
             tvMemberName.text = "${member.displayName}$suffix"

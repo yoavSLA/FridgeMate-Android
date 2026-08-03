@@ -29,7 +29,7 @@ class MemberDropdownAdapter(
     override fun onBindViewHolder(holder: MemberViewHolder, position: Int) {
         val member = members[position]
         with(holder.binding) {
-            val suffix = if (member.userId == selectedUserId) " (Owner)" else ""
+            val suffix = if (member.userId == selectedUserId) root.context.getString(R.string.owner_suffix) else ""
             tvMemberName.text = "${member.displayName}$suffix"
             root.setOnClickListener { onMemberClick(member) }
             

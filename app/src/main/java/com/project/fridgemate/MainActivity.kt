@@ -9,7 +9,6 @@ import android.os.Build
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
-import android.util.Log
 import android.view.MotionEvent
 import android.view.View
 import android.view.ViewConfiguration
@@ -50,9 +49,7 @@ class MainActivity : AppCompatActivity() {
 
     private val requestNotificationPermission = registerForActivityResult(
         ActivityResultContracts.RequestPermission()
-    ) { granted ->
-        Log.d("Permissions", "POST_NOTIFICATIONS granted=$granted")
-    }
+    ) { _ -> }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         enableEdgeToEdge()
@@ -244,13 +241,10 @@ class MainActivity : AppCompatActivity() {
         val summary = storage.getLastScanSummary()
         val createdAt = storage.getLastScanCreatedAt()
 
-        Log.d("NotificationHandling", "Summary present: ${summary != null}, CreatedAt present: ${createdAt != null}")
-
         if (summary != null && createdAt != null) {
             ScanSummaryDialog.newInstance(summary, createdAt)
                 .show(supportFragmentManager, ScanSummaryDialog.TAG)
         } else {
-            Log.w("NotificationHandling", "Cannot show popup: missing summary or createdAt in storage")
             ToastHelper.showToast(this, getString(R.string.error_scan_summary_not_found))
         }
     }
