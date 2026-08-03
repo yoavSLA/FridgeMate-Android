@@ -71,6 +71,8 @@
     <string name="error_prepare_image_failed">Failed to prepare image for upload</string>
     <string name="error_scan_failed">Scan failed. Please try again.</string>
     <string name="error_no_active_fridge">No active fridge. Please create or join a fridge first.</string>
+    <string name="error_enter_fridge_name">Please enter a fridge name</string>
+    <string name="error_enter_invite_code">Please enter an invite code</string>
 
     <!-- Dashboard & Navigation -->
     <string name="greeting_format">Hello, %1$s! 👋</string>
@@ -119,6 +121,8 @@
     <string name="recommended_empty_title">No recommendations yet</string>
     <string name="recipes_no_results_desc">We couldn\'t generate recipes with your current ingredients. Try adding more items to your fridge!</string>
     <string name="recipe_default_desc">A delicious recipe just for you.</string>
+
+    <string name="share_your_creation">Share your creation</string>
 
     <!-- Feed & Profile -->
     <string name="feed_title">Feed</string>
