@@ -23,7 +23,6 @@ object PicassoCache {
             .downloader(OkHttp3Downloader(okHttpClient))
             .build()
 
-        // picasso.setIndicatorsEnabled(true) // cache indicators
         Picasso.setSingletonInstance(picasso)
     }
 }

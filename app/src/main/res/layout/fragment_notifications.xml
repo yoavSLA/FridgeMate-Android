@@ -38,7 +38,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="8dp"
-                android:text="Notifications"
+                android:text="@string/notifications_title"
                 android:textColor="@color/white"
                 android:textSize="20sp"
                 android:textStyle="bold" />
@@ -100,7 +100,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="20dp"
-            android:text="No notifications yet"
+            android:text="@string/no_notifications_title"
             android:textColor="@color/accent_green_dark"
             android:textSize="18sp"
             android:textStyle="bold" />
@@ -110,7 +110,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
             android:gravity="center"
-            android:text="When you get notifications, they'll show up here"
+            android:text="@string/no_notifications_desc"
             android:textColor="@color/gray_text"
             android:textSize="14sp" />
 

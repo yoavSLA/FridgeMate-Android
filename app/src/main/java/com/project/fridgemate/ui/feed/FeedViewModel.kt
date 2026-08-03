@@ -152,7 +152,6 @@ class FeedViewModel(application: Application) : AndroidViewModel(application) {
             if (refresh) {
                 currentPage = 1
                 isLastPage = false
-                // Don't clear immediately to avoid flicker, just set loading
                 _isLoading.value = true
             }
 
@@ -188,14 +187,12 @@ class FeedViewModel(application: Application) : AndroidViewModel(application) {
                     }
                 }
                 is FridgeResult.Error -> {
-                    // Load from cache FIRST if network fails and we have no data
                     if (_posts.value.isNullOrEmpty()) {
                         val cached = repository.getCachedPosts()
                         if (cached.isNotEmpty()) {
                             _posts.value = cached.map { it.toPost() }
                         }
                     }
-                    // THEN set error to trigger the toast/UI
                     _error.value = result.message
                 }
                 else -> {}

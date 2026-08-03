@@ -243,7 +243,7 @@ class MapViewFragment : Fragment() {
                     marker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_CENTER)
                     marker.icon = markerDrawable
                     marker.title = if (postsAtLocation.size > 1) 
-                        "${postsAtLocation.size} posts here" 
+                        getString(R.string.posts_at_location, postsAtLocation.size)
                     else postsAtLocation[0].postTitle
                     
                     marker.setOnMarkerClickListener { _, _ ->

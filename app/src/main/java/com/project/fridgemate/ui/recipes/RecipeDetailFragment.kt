@@ -1,12 +1,10 @@
 package com.project.fridgemate.ui.recipes
 
 import android.content.res.ColorStateList
-import android.graphics.Color
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Toast
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
@@ -93,7 +91,7 @@ class RecipeDetailFragment : Fragment() {
 
     private fun bindRecipe(recipe: RecipeEntity) {
         binding.tvTitle.text = recipe.title
-        binding.tvDescription.text = recipe.description.ifBlank { "A delicious recipe just for you." }
+        binding.tvDescription.text = recipe.description.ifBlank { getString(R.string.recipe_default_desc) }
         binding.tvRecipeTime.text = recipe.cookingTime.ifBlank { "—" }
         binding.tvRecipeDifficulty.text = recipe.difficulty
 
@@ -234,7 +232,9 @@ class RecipeDetailFragment : Fragment() {
     private fun updateFavoriteIcon(isFavorite: Boolean) {
         if (isFavorite) {
             binding.btnFavorite.setImageResource(R.drawable.ic_star_filled)
-            binding.btnFavorite.imageTintList = ColorStateList.valueOf(Color.parseColor("#FFD700"))
+            binding.btnFavorite.imageTintList = ColorStateList.valueOf(
+                ContextCompat.getColor(requireContext(), R.color.favorite_gold)
+            )
         } else {
             binding.btnFavorite.setImageResource(R.drawable.ic_star_outline)
             binding.btnFavorite.imageTintList = ColorStateList.valueOf(

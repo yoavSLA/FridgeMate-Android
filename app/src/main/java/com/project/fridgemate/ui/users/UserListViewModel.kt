@@ -13,7 +13,6 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
-/** Lists used by [UserListFragment]: followers, following, or search results. */
 enum class UserListMode { FOLLOWERS, FOLLOWING, SEARCH }
 
 class UserListViewModel(application: Application) : AndroidViewModel(application) {
@@ -56,7 +55,6 @@ class UserListViewModel(application: Application) : AndroidViewModel(application
 
             val result = userRepository.searchUsers(query)
             
-            // Artificial delay for professional feel
             val elapsed = System.currentTimeMillis() - startTime
             if (elapsed < 1500) delay(1500 - elapsed)
 
@@ -89,7 +87,6 @@ class UserListViewModel(application: Application) : AndroidViewModel(application
         }
     }
 
-    /** Toggles follow + updates the local list optimistically. */
     fun toggleFollow(user: UserListItemDto) {
         val originalList = _users.value ?: return
         val updatedList = originalList.map {

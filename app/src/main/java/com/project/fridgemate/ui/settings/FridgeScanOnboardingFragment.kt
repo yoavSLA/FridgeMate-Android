@@ -97,7 +97,7 @@ class FridgeScanOnboardingFragment : Fragment() {
         viewModel.scanResult.observe(viewLifecycleOwner) { items ->
             if (items != null && items.isNotEmpty()) {
                 binding.scanResultsLayout.visibility = View.VISIBLE
-                binding.tvScanResultTitle.text = "Detected Items (${items.size})"
+                binding.tvScanResultTitle.text = getString(R.string.detected_items, items.size)
                 binding.rvScanResults.layoutManager = LinearLayoutManager(requireContext())
                 binding.rvScanResults.adapter = DetectedItemAdapter(items)
                 

@@ -5,7 +5,6 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
-import com.project.fridgemate.R
 import com.project.fridgemate.data.local.AppDatabase
 import com.project.fridgemate.data.local.entity.RecipeEntity
 import com.project.fridgemate.data.repository.FridgeRepository
@@ -15,9 +14,6 @@ import com.project.fridgemate.data.repository.LastKnownFridge
 import com.project.fridgemate.data.repository.RecipeRepository
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
-import java.net.ConnectException
-import java.net.SocketTimeoutException
-import java.net.UnknownHostException
 
 class RecipesViewModel(application: Application) : AndroidViewModel(application) {
 
@@ -98,7 +94,6 @@ class RecipesViewModel(application: Application) : AndroidViewModel(application)
 
                 val ingredients = fetchFridgeIngredients()
                 if (ingredients == null) {
-                    // friendlyError already set _error in fetchFridgeIngredients
                     return@launch
                 }
                 
@@ -114,7 +109,6 @@ class RecipesViewModel(application: Application) : AndroidViewModel(application)
                     _error.value = friendlyError(result.exceptionOrNull())
                 }
             } finally {
-                // Artificial delay if the request was too fast (e.g. instant network error)
                 val elapsed = System.currentTimeMillis() - startTime
                 if (elapsed < 1500) kotlinx.coroutines.delay(1500 - elapsed)
                 _isLoading.value = false
@@ -169,26 +163,10 @@ class RecipesViewModel(application: Application) : AndroidViewModel(application)
     }
 
     private fun friendlyError(e: Throwable?): String {
-        val ctx = getApplication<Application>()
-        val msg = e?.message?.lowercase() ?: ""
-        
-        return when {
-            e is UnknownHostException || e is ConnectException || 
-            msg.contains("connect") || msg.contains("unknownhost") || 
-            msg.contains("offline") || msg.contains("network") ||
-            msg.contains("unable to reach") ->
-                ctx.getString(R.string.error_no_connection)
-            e is SocketTimeoutException || msg.contains("timeout") ->
-                ctx.getString(R.string.error_timeout)
-            msg.contains("500") || msg.contains("502") || msg.contains("503") || msg.contains("server") || msg.contains("kitchen") ->
-                ctx.getString(R.string.error_server)
-            msg.contains("401") || msg.contains("403") || msg.contains("expired") || msg.contains("unauthorized") || msg.contains("session") ->
-                ctx.getString(R.string.error_auth_expired)
-            msg.contains("429") || msg.contains("too many") || msg.contains("slow down") ->
-                ctx.getString(R.string.error_rate_limit)
-            else ->
-                ctx.getString(R.string.error_generic)
-        }
+        return com.project.fridgemate.utils.ErrorMapper.mapToUserFriendly(
+            getApplication(),
+            e?.message
+        )
     }
 
     fun toggleFavorite(recipe: RecipeEntity) {

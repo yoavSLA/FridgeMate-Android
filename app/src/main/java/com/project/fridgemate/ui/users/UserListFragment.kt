@@ -16,10 +16,6 @@ import com.project.fridgemate.databinding.FragmentUserListBinding
 import com.project.fridgemate.utils.ErrorMapper
 import com.project.fridgemate.utils.ToastHelper
 
-/**
- * Generic list screen for [UserListMode] = followers / following / search.
- * Mode is selected by the `type` nav argument.
- */
 class UserListFragment : Fragment() {
 
     private var _binding: FragmentUserListBinding? = null

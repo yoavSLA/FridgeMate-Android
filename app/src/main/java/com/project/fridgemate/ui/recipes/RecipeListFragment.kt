@@ -18,7 +18,6 @@ import com.project.fridgemate.ui.dashboard.DashboardFragmentDirections
 import com.project.fridgemate.ui.journal.JournalViewModel
 import com.project.fridgemate.utils.ErrorMapper
 import com.project.fridgemate.utils.ToastHelper
-import android.widget.TextView
 
 class RecipeListFragment : Fragment() {
 
@@ -97,7 +96,7 @@ class RecipeListFragment : Fragment() {
         binding.rvRecipes.layoutManager = LinearLayoutManager(requireContext())
         binding.rvRecipes.adapter = adapter
 
-        binding.root.findViewById<View>(R.id.error_state)?.findViewById<View>(R.id.btn_retry)?.setOnClickListener {
+        binding.errorState.btnRetry.setOnClickListener {
             viewModel.loadRecommended()
         }
 
@@ -151,14 +150,13 @@ class RecipeListFragment : Fragment() {
             binding.rvRecipes.visibility = View.GONE
             binding.emptyState.visibility = View.GONE
             binding.btnGenerate.visibility = View.GONE
-            val errorView = binding.root.findViewById<View>(R.id.error_state)
-            errorView?.visibility = View.VISIBLE
-            errorView?.findViewById<TextView>(R.id.tv_error_desc)?.text = userFriendly
+            binding.errorState.errorStateContainer.visibility = View.VISIBLE
+            binding.errorState.tvErrorDesc.text = userFriendly
         } else {
             binding.rvRecipes.visibility = View.VISIBLE
             binding.emptyState.visibility = View.GONE
             binding.btnGenerate.visibility = View.VISIBLE
-            binding.root.findViewById<View>(R.id.error_state)?.visibility = View.GONE
+            binding.errorState.errorStateContainer.visibility = View.GONE
             if (!ErrorMapper.isGeneric(requireContext(), userFriendly)) {
                 ToastHelper.showToast(requireContext(), userFriendly, Toast.LENGTH_LONG)
             }
@@ -170,7 +168,7 @@ class RecipeListFragment : Fragment() {
         if (type == TYPE_RECOMMENDED && viewModel.isLoading.value == true) return
 
         binding.loadingOverlay.visibility = View.GONE
-        binding.root.findViewById<View>(R.id.error_state)?.visibility = View.GONE
+        binding.errorState.errorStateContainer.visibility = View.GONE
 
         if (isEmpty) {
             if (type == TYPE_FAVORITES) {
@@ -221,7 +219,7 @@ class RecipeListFragment : Fragment() {
         binding.rvRecipes.visibility = View.GONE
         binding.btnGenerate.visibility = View.GONE
         binding.emptyState.visibility = View.GONE
-        binding.root.findViewById<View>(R.id.error_state)?.visibility = View.GONE
+        binding.errorState.errorStateContainer.visibility = View.GONE
         tipIndex = (0 until cookingTips.size).random()
         binding.tvLoadingTip.text = cookingTips[tipIndex]
         tipHandler.postDelayed(tipRunnable, 4000)

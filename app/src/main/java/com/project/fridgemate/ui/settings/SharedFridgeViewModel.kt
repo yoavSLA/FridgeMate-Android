@@ -97,6 +97,7 @@ class SharedFridgeViewModel(application: Application) : AndroidViewModel(applica
         viewModelScope.launch {
             when (val result = repository.createFridge(name)) {
                 is FridgeResult.Success -> {
+                    _actionSuccess.value = getApplication<Application>().getString(R.string.fridge_created_success)
                     loadFridge()
                 }
                 is FridgeResult.Error -> {
@@ -117,6 +118,7 @@ class SharedFridgeViewModel(application: Application) : AndroidViewModel(applica
         viewModelScope.launch {
             when (val result = repository.joinFridge(inviteCode)) {
                 is FridgeResult.Success -> {
+                    _actionSuccess.value = getApplication<Application>().getString(R.string.fridge_joined_success)
                     loadFridge()
                 }
                 is FridgeResult.Error -> {
@@ -178,7 +180,7 @@ class SharedFridgeViewModel(application: Application) : AndroidViewModel(applica
 
         viewModelScope.launch {
             val file = saveImageToTempFile(imageBytes) ?: run {
-                _error.value = "Failed to prepare image for upload"
+                _error.value = getApplication<Application>().getString(R.string.error_prepare_image_failed)
                 _isScanning.value = false
                 return@launch
             }
@@ -222,7 +224,8 @@ class SharedFridgeViewModel(application: Application) : AndroidViewModel(applica
                 _activeScanId.value = null
             }
             WorkInfo.State.FAILED -> {
-                _error.value = workInfo.outputData.getString(ScanUploadWorker.KEY_ERROR) ?: "Scan failed"
+                _error.value = workInfo.outputData.getString(ScanUploadWorker.KEY_ERROR) 
+                    ?: getApplication<Application>().getString(R.string.error_scan_failed)
                 _isScanning.value = false
                 _activeScanId.value = null
             }

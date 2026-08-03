@@ -87,7 +87,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center_horizontal"
-                android:text="Daily Summary"
+                android:text="@string/daily_summary"
                 android:textColor="@color/accent_green_dark"
                 android:textSize="13sp"
                 android:textStyle="bold"
@@ -117,7 +117,7 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Total kcal"
+                        android:text="@string/total_kcal"
                         android:textColor="@color/gray_text"
                         android:textSize="10sp" />
                 </LinearLayout>
@@ -140,7 +140,7 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Protein"
+                        android:text="@string/protein"
                         android:textColor="@color/gray_text"
                         android:textSize="10sp" />
                 </LinearLayout>
@@ -163,7 +163,7 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Carbs"
+                        android:text="@string/carbs"
                         android:textColor="@color/gray_text"
                         android:textSize="10sp" />
                 </LinearLayout>
@@ -186,7 +186,7 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Fat"
+                        android:text="@string/fat"
                         android:textColor="@color/gray_text"
                         android:textSize="10sp" />
                 </LinearLayout>

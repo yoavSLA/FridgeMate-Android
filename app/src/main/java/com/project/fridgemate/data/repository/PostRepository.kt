@@ -1,7 +1,6 @@
 package com.project.fridgemate.data.repository
 
 import android.content.Context
-import android.util.Log
 import com.project.fridgemate.data.local.AppDatabase
 import com.project.fridgemate.data.local.entity.PostEntity
 import com.project.fridgemate.data.remote.ApiClient

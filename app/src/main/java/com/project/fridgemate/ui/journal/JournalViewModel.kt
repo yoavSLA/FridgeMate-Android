@@ -5,6 +5,7 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
+import com.project.fridgemate.R
 import com.project.fridgemate.data.model.JournalEntry
 import com.project.fridgemate.data.remote.dto.CreateJournalRequest
 import com.project.fridgemate.data.remote.dto.JournalEntryDto
@@ -59,7 +60,6 @@ class JournalViewModel(application: Application) : AndroidViewModel(application)
                 _isLoading.value = true
                 _error.value = null
                 
-                // If it's first load, try to show cache immediately
                 if (isFirstLoad) {
                     val cached = repository.getCachedJournals()
                     if (cached.isNotEmpty()) {
@@ -69,7 +69,6 @@ class JournalViewModel(application: Application) : AndroidViewModel(application)
 
                 val result = repository.getJournals()
                 
-                // Artificial delay if the request was too fast (e.g. instant network error)
                 val elapsed = System.currentTimeMillis() - startTime
                 if (elapsed < 1000) kotlinx.coroutines.delay(1000 - elapsed)
 
@@ -79,19 +78,16 @@ class JournalViewModel(application: Application) : AndroidViewModel(application)
                         isFirstLoad = false
                     }
                     is FridgeResult.Error -> {
-                        // Refresh from cache again if network fails, just in case
                         val cached = repository.getCachedJournals()
                         if (cached.isNotEmpty()) {
                             _entries.value = cached.mapNotNull { it.toJournalEntry() }
                         }
-                        // THEN set error to trigger the toast or error state
                         _error.value = result.message
                     }
                     else -> {}
                 }
             } catch (e: Exception) {
-                android.util.Log.e("JournalViewModel", "Load Entries Failed", e)
-                _error.value = e.localizedMessage ?: "Sync failed"
+                _error.value = e.localizedMessage ?: getApplication<Application>().getString(R.string.error_generic)
             } finally {
                 _isLoading.value = false
             }
@@ -128,7 +124,7 @@ class JournalViewModel(application: Application) : AndroidViewModel(application)
                         _entries.value = currentList
                         _actionSuccess.value = true
                     } else {
-                        _error.value = "Failed to parse new entry"
+                        _error.value = getApplication<Application>().getString(R.string.error_journal_parse_failed)
                         _actionSuccess.value = false
                     }
                 }
@@ -175,7 +171,7 @@ class JournalViewModel(application: Application) : AndroidViewModel(application)
                         }
                         _actionSuccess.value = true
                     } else {
-                        _error.value = "Failed to parse updated entry"
+                        _error.value = getApplication<Application>().getString(R.string.error_journal_parse_failed)
                         _actionSuccess.value = false
                     }
                 }
@@ -198,7 +194,6 @@ class JournalViewModel(application: Application) : AndroidViewModel(application)
                     currentList.removeAll { it.id == id }
                     _entries.value = currentList
                     _actionSuccess.value = true
-                    // Refresh from server to ensure sync
                     loadEntries()
                 }
                 is FridgeResult.Error -> {
@@ -285,8 +280,7 @@ class JournalViewModel(application: Application) : AndroidViewModel(application)
                     else it.toString() 
                 }
             )
-        } catch (e: Exception) {
-            android.util.Log.e("JournalViewModel", "Failed to parse DTO: ${e.message}")
+        } catch (_: Exception) {
             null
         }
     }

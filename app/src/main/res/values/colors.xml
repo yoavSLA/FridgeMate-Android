@@ -50,6 +50,10 @@
     <color name="gray_dark">#757575</color>
     <color name="gray_medium">#9E9E9E</color>
 
+    <!-- Specific icons -->
+    <color name="like_red">#E53935</color>
+    <color name="favorite_gold">#FFD700</color>
+
 
 
 

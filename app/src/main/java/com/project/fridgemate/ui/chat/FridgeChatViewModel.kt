@@ -74,7 +74,6 @@ class FridgeChatViewModel : ViewModel() {
                     }
                 }
             } finally {
-                // Artificial delay for professional feel
                 val elapsed = System.currentTimeMillis() - startTime
                 if (elapsed < 1500) kotlinx.coroutines.delay(1500 - elapsed)
                 _initialLoading.value = false

@@ -1,7 +1,6 @@
 package com.project.fridgemate.ui.login
 
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -35,7 +34,6 @@ class LoginFragment : Fragment() {
     private lateinit var credentialManager: CredentialManager
 
     companion object {
-        private const val TAG = "LoginFragment"
         private const val ARG_EMAIL = "email"
 
         fun newInstance(email: String? = null): LoginFragment {
@@ -68,8 +66,8 @@ class LoginFragment : Fragment() {
 
     private fun setupObservers() {
         viewModel.validationResult.observe(viewLifecycleOwner) { result ->
-            binding.tilEmail.error = result.emailError
-            binding.tilPassword.error = result.passwordError
+            binding.tilEmail.error = result.emailErrorRes?.let { getString(it) }
+            binding.tilPassword.error = result.passwordErrorRes?.let { getString(it) }
         }
 
         viewModel.loginResult.observe(viewLifecycleOwner) { result ->
@@ -142,10 +140,8 @@ class LoginFragment : Fragment() {
             try {
                 val response = credentialManager.getCredential(requireContext(), request)
                 handleGoogleCredential(response)
-            } catch (e: GetCredentialCancellationException) {
-                Log.d(TAG, "Google sign-in cancelled by user: ${e.message}")
+            } catch (_: GetCredentialCancellationException) {
             } catch (e: GetCredentialException) {
-                Log.e(TAG, "Google sign-in failed: type=${e.type} msg=${e.message}", e)
                 val base = getString(R.string.google_sign_in_failed)
                 val message = if (BuildConfig.DEBUG) {
                     "$base (${e::class.java.simpleName}: ${e.message ?: e.type})"
@@ -165,12 +161,10 @@ class LoginFragment : Fragment() {
             try {
                 val googleCredential = GoogleIdTokenCredential.createFrom(credential.data)
                 viewModel.loginWithGoogle(googleCredential.idToken)
-            } catch (e: GoogleIdTokenParsingException) {
-                Log.e(TAG, "Failed to parse Google ID token", e)
+            } catch (_: GoogleIdTokenParsingException) {
                 viewModel.reportGoogleError(getString(R.string.google_sign_in_failed))
             }
         } else {
-            Log.w(TAG, "Unexpected credential type: ${credential::class.java.name}")
             viewModel.reportGoogleError(getString(R.string.google_sign_in_failed))
         }
     }

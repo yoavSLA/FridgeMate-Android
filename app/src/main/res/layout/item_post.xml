@@ -351,7 +351,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginStart="12dp"
                 android:layout_marginTop="12dp"
-                android:text="Comments"
+                android:text="@string/comments_title"
                 android:textSize="12sp"
                 android:textStyle="bold"
                 android:textColor="@color/gray_text"

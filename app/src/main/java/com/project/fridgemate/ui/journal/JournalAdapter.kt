@@ -35,14 +35,17 @@ class JournalAdapter(
         
         fun bind(group: JournalDayGroup) {
             binding.tvDateHeader.text = group.dateLabel
-            binding.tvEntryCount.text = "${group.entries.size} ${if (group.entries.size == 1) "entry" else "entries"}"
+            binding.tvEntryCount.text = binding.root.context.resources.getQuantityString(
+                R.plurals.journal_entries_count,
+                group.entries.size,
+                group.entries.size
+            )
             
             binding.tvTotalCalories.text = String.format(Locale.getDefault(), "%,d", group.totalCalories)
             binding.tvTotalProtein.text = "${group.totalProtein}g"
             binding.tvTotalCarbs.text = "${group.totalCarbs}g"
             binding.tvTotalFat.text = "${group.totalFat}g"
 
-            // Clear and repopulate entries
             binding.entriesContainer.removeAllViews()
             val inflater = LayoutInflater.from(binding.root.context)
 

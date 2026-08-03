@@ -76,7 +76,6 @@ class NotificationViewModel : ViewModel() {
             _error.value = null
             val loadedResult = repo.getNotifications()
             
-            // Artificial delay if the request was too fast
             val elapsed = System.currentTimeMillis() - startTime
             if (elapsed < 1500) delay(1500 - elapsed)
 
@@ -150,11 +149,6 @@ class NotificationViewModel : ViewModel() {
         _pendingScanSummaryOpen.value = null
     }
 
-    /**
-     * Single source of truth for what tapping a notification does, used by both the
-     * notification list and the real-time Dashboard banner. Returns true if it navigated
-     * somewhere, so callers can decide whether to also dismiss their own UI.
-     */
     fun handleNotificationClick(notification: Notification): Boolean {
         val handled = when (notification.type) {
             NotificationType.POST_LIKE, NotificationType.POST_COMMENT -> {
@@ -213,9 +207,6 @@ class NotificationViewModel : ViewModel() {
                     }
                     _incomingNotificationFlow.tryEmit(notification)
                 }
-                // Flow closed because the socket disconnected (e.g. token refresh
-                // caused SocketManager to replace the socket). Wait briefly so the
-                // new socket has time to connect, then re-attach the listener.
                 if (isActive) delay(2000)
             }
         }

@@ -93,7 +93,7 @@ class AddJournalEntryFragment : Fragment() {
         }
 
         if (entryId.isNotEmpty()) {
-            binding.toolbar.title = "Edit Journal Entry"
+            binding.toolbar.title = getString(R.string.edit_journal_entry)
             binding.toolbar.inflateMenu(R.menu.menu_edit_journal)
             binding.toolbar.setOnMenuItemClickListener { item ->
                 if (item.itemId == R.id.action_delete) {
@@ -115,11 +115,11 @@ class AddJournalEntryFragment : Fragment() {
     }
 
     private fun setupDropdowns() {
-        val mealTypes = listOf("Breakfast", "Lunch", "Dinner", "Snack")
+        val mealTypes = resources.getStringArray(R.array.meal_types)
         val mealAdapter = ArrayAdapter(requireContext(), R.layout.item_dropdown, mealTypes)
         binding.etMealType.setAdapter(mealAdapter)
 
-        val moods = listOf("😊 Happy", "😌 Relaxed", "😐 Neutral", "😔 Tired", "🤩 Energized", "😞 Sad", "🤢 Sick", "😤 Stressed")
+        val moods = resources.getStringArray(R.array.moods)
         val moodAdapter = ArrayAdapter(requireContext(), R.layout.item_dropdown, moods)
         binding.etMood.setAdapter(moodAdapter)
     }
@@ -133,7 +133,6 @@ class AddJournalEntryFragment : Fragment() {
         binding.etMood.setText(entry.mood, false)
         binding.etCalories.setText(entry.calories)
         
-        // Parse macros string into individual fields
         parseMacros(entry.macros)
         
         existingImageUrl = entry.imageUrl
@@ -150,7 +149,6 @@ class AddJournalEntryFragment : Fragment() {
 
     private fun parseMacros(macros: String) {
         if (macros.isBlank()) return
-        // Supports formats like: "20P / 50C / 10F" or "20g P / 50g C / 10g F"
         val regex = Regex("""(\d+)\s*g?\s*P""")
         val regexC = Regex("""(\d+)\s*g?\s*C""")
         val regexF = Regex("""(\d+)\s*g?\s*F""")
@@ -186,7 +184,6 @@ class AddJournalEntryFragment : Fragment() {
         viewLifecycleOwner.lifecycleScope.launch {
             var finalImageUrl = existingImageUrl
             
-            // Upload new image if selected
             if (selectedImageUri != null) {
                 try {
                     binding.loadingOverlay.visibility = View.VISIBLE
