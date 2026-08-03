@@ -48,6 +48,7 @@ data class InventoryItemDto(
     val ownerId: String?,
     val name: String,
     val quantity: String,
+    val category: String? = null,
     val ownership: String,
     val isRunningLow: Boolean
 )

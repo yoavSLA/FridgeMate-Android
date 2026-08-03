@@ -8,6 +8,7 @@ sealed class FridgeItem {
         val id: String,
         val name: String,
         val quantity: String,
+        val category: String?,
         val isLowStock: Boolean,
         val ownerId: String?
     ) : FridgeItem()

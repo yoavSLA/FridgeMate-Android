@@ -94,6 +94,7 @@ class InventoryItemRepository(context: Context) : BaseRepository() {
         ownerId = ownerId,
         name = name,
         quantity = quantity,
+        category = category,
         ownership = ownership,
         isRunningLow = isRunningLow
     )
@@ -104,6 +105,7 @@ class InventoryItemRepository(context: Context) : BaseRepository() {
         ownerId = ownerId,
         name = name,
         quantity = quantity,
+        category = category,
         ownership = ownership,
         isRunningLow = isRunningLow
     )

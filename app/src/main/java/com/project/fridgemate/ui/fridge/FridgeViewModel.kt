@@ -226,8 +226,24 @@ class FridgeViewModel(application: Application) : AndroidViewModel(application) 
         if (lowItems.isNotEmpty()) {
             result.add(FridgeItem.RunningLow(lowItems.map { Pair(it.name, it.quantity) }))
         }
-        result.add(FridgeItem.CategoryHeader("Items"))
-        items.forEach { result.add(FridgeItem.Product(it.id, it.name, it.quantity, it.isRunningLow, it.ownerId)) }
+
+        // Group by category, similar to web frontend
+        val grouped = items.groupBy { it.category ?: "Other" }
+        grouped.keys.sorted().forEach { category ->
+            result.add(FridgeItem.CategoryHeader(category))
+            grouped[category]?.forEach { item ->
+                result.add(
+                    FridgeItem.Product(
+                        item.id,
+                        item.name,
+                        item.quantity,
+                        item.category,
+                        item.isRunningLow,
+                        item.ownerId
+                    )
+                )
+            }
+        }
         return result
     }
 }
