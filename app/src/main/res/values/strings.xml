@@ -40,6 +40,7 @@
     <string name="sending">Sending…</string>
     <string name="resetting">Resetting…</string>
     <string name="registration_successful">Registration successful! Please log in.</string>
+    <string name="loading">Loading…</string>
 
     <!-- Validation & Error Messages -->
     <string name="error_fill_all_fields">Please fill all fields</string>
@@ -129,10 +130,14 @@
     <string name="no_posts_yet">No posts yet</string>
     <string name="be_first_to_post">Be the first one to share a post</string>
     <string name="my_posts">My Posts</string>
-    <string name="map_view">Map View</string>
+    <string name="map_view">Map</string>
     <string name="find_people">Find People</string>
     <string name="scope_all">All</string>
     <string name="scope_following">Following</string>
+    <string name="empty_following_no_people_title">No one followed yet</string>
+    <string name="empty_following_no_people_desc">Find people to follow and see their culinary creations here!</string>
+    <string name="empty_following_no_posts_title">Silence is golden…</string>
+    <string name="empty_following_no_posts_desc">Your circle hasn\'t posted anything yet.</string>
     <string name="profile_title">Profile</string>
     <string name="my_profile_title">My Profile</string>
     <string name="posts_label">Posts</string>
@@ -151,7 +156,7 @@
     <string name="no_users_found">No users found</string>
     <string name="no_users_found_desc">Try searching for a different name or username.</string>
     <string name="discover_people">Discover People</string>
-    <string name="search_users_hint">Search by name or username</string>
+    <string name="search_users_hint">Search by name</string>
     <string name="bio_label">Bio</string>
     <string name="bio_hint">Tell others about your cooking style…</string>
     <string name="new_post">New Post</string>

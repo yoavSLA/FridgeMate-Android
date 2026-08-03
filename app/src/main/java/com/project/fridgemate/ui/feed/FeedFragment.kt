@@ -17,6 +17,24 @@ import com.project.fridgemate.utils.ErrorMapper
 import com.project.fridgemate.utils.ToastHelper
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
+import android.animation.ValueAnimator
+import android.graphics.drawable.LayerDrawable
+import android.view.animation.AccelerateDecelerateInterpolator
+import androidx.core.content.ContextCompat
+import androidx.core.graphics.drawable.DrawableCompat
+import androidx.viewpager2.widget.ViewPager2
+import com.project.fridgemate.databinding.DialogCommentsViewerBinding
+import com.google.android.material.bottomsheet.BottomSheetDialog
+import com.google.android.material.tabs.TabLayoutMediator
+import org.osmdroid.config.Configuration
+import org.osmdroid.tileprovider.tilesource.TileSourceFactory
+import org.osmdroid.util.GeoPoint
+import org.osmdroid.views.overlay.Marker
+import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+
 class FeedFragment : Fragment() {
 
     private var _binding: FragmentFeedBinding? = null
@@ -25,11 +43,16 @@ class FeedFragment : Fragment() {
     private val viewModel: FeedViewModel by activityViewModels()
     private val notifViewModel: NotificationViewModel by activityViewModels()
 
+    private var tabLayoutMediator: TabLayoutMediator? = null
+    private var heightAnimator: ValueAnimator? = null
+    private var detailAdapter: MapPostDetailAdapter? = null
+
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
+        Configuration.getInstance().userAgentValue = requireContext().packageName
         _binding = FragmentFeedBinding.inflate(inflater, container, false)
         return binding.root
     }
@@ -40,11 +63,6 @@ class FeedFragment : Fragment() {
         binding.swipeRefresh.setColorSchemeResources(R.color.accent_green)
         binding.swipeRefresh.setOnRefreshListener {
             viewModel.loadPosts(refresh = true)
-        }
-
-        binding.btnMapView.setOnClickListener {
-            val action = DashboardFragmentDirections.actionDashboardFragmentToMapViewFragment()
-            requireParentFragment().findNavController().navigate(action)
         }
 
         binding.fabAddPost.setOnClickListener {
@@ -63,8 +81,19 @@ class FeedFragment : Fragment() {
         setupScopeToggle()
         setupPosts()
         setupErrorState()
+        setupMap()
+        setupMapListeners()
+        observeViewMode()
+        observeFollowingCount()
         observeLoading()
         observeErrors()
+        observeMapErrors()
+    }
+
+    private fun observeFollowingCount() {
+        viewModel.followingCount.observe(viewLifecycleOwner) { _ ->
+            updateEmptyState(viewModel.posts.value ?: emptyList())
+        }
     }
 
     private fun setupErrorState() {
@@ -74,14 +103,318 @@ class FeedFragment : Fragment() {
     }
 
     private fun setupScopeToggle() {
-        val initial = if (viewModel.scope == "following") binding.scopeFollowing.id else binding.scopeAll.id
-        binding.scopeToggle.check(initial)
+        val initialId = when (viewModel.viewMode.value) {
+            FeedViewMode.FOLLOWING -> binding.scopeFollowing.id
+            FeedViewMode.MAP -> binding.scopeMap.id
+            else -> binding.scopeAll.id
+        }
+        binding.scopeToggle.check(initialId)
+        binding.scopeToggle.post { animateToggle(initialId, animate = false) }
+
         binding.scopeToggle.addOnButtonCheckedListener { _, checkedId, isChecked ->
             if (!isChecked) return@addOnButtonCheckedListener
-            val newScope = if (checkedId == binding.scopeFollowing.id) "following" else null
-            viewModel.setScope(newScope)
+            val newMode = when (checkedId) {
+                binding.scopeFollowing.id -> FeedViewMode.FOLLOWING
+                binding.scopeMap.id -> FeedViewMode.MAP
+                else -> FeedViewMode.ALL
+            }
+            viewModel.setViewMode(newMode)
         }
     }
+
+    private fun animateToggle(checkedId: Int, animate: Boolean = true) {
+        val button = binding.scopeToggle.findViewById<View>(checkedId) ?: return
+        val slider = binding.toggleSlider
+
+        slider.visibility = View.VISIBLE
+        
+        val targetX = button.x
+        val targetWidth = button.width
+
+        if (!animate || slider.width == 0) {
+            slider.x = targetX
+            val params = slider.layoutParams
+            params.width = targetWidth
+            slider.layoutParams = params
+            return
+        }
+
+        slider.animate()
+            .x(targetX)
+            .setDuration(250)
+            .setInterpolator(AccelerateDecelerateInterpolator())
+            .start()
+
+        val widthAnimator = ValueAnimator.ofInt(slider.width, targetWidth)
+        widthAnimator.addUpdateListener { animator ->
+            val params = slider.layoutParams
+            params.width = animator.animatedValue as Int
+            slider.layoutParams = params
+        }
+        widthAnimator.duration = 250
+        widthAnimator.interpolator = AccelerateDecelerateInterpolator()
+        widthAnimator.start()
+    }
+
+    private var lastRenderedMode: FeedViewMode? = null
+    private var syncPending = false
+
+    private fun requestSyncUi() {
+        if (syncPending) return
+        syncPending = true
+        binding.root.post {
+            syncPending = false
+            if (_binding == null) return@post
+            
+            val posts = viewModel.posts.value ?: emptyList()
+            val mode = viewModel.viewMode.value ?: FeedViewMode.ALL
+            
+            val isMap = mode == FeedViewMode.MAP
+            val wasMap = lastRenderedMode == FeedViewMode.MAP
+            val modeChanged = mode != lastRenderedMode
+
+            // 1. Handle Map/Feed transition
+            if (modeChanged && isMap != wasMap) {
+                val transition = android.transition.TransitionSet().apply {
+                    ordering = android.transition.TransitionSet.ORDERING_TOGETHER
+                    addTransition(android.transition.Fade())
+                    addTransition(android.transition.ChangeBounds())
+                    duration = 350
+                    interpolator = AccelerateDecelerateInterpolator()
+                }
+                android.transition.TransitionManager.beginDelayedTransition(binding.root as ViewGroup, transition)
+            }
+
+            // 2. Temporarily disable item animator during scope switches to prevent "flashing"
+            // between different lists. We only want the whole container to cross-fade or sync.
+            if (modeChanged && !isMap && !wasMap) {
+                binding.rvPosts.itemAnimator = null
+            } else if (binding.rvPosts.itemAnimator == null) {
+                // Restore default animator for normal operations (likes, additions)
+                binding.rvPosts.itemAnimator = androidx.recyclerview.widget.DefaultItemAnimator()
+            }
+
+            // 3. Submit list and sync UI
+            postAdapter?.submitList(posts) {
+                if (_binding == null) return@submitList
+                
+                // Sync visibility based on mode
+                binding.swipeRefresh.visibility = if (isMap) View.GONE else View.VISIBLE
+                binding.clMapView.visibility = if (isMap) View.VISIBLE else View.GONE
+                binding.fabAddPost.visibility = if (mode == FeedViewMode.ALL) View.VISIBLE else View.GONE
+                
+                if (modeChanged) {
+                    lastRenderedMode = mode
+                    val checkedId = when (mode) {
+                        FeedViewMode.FOLLOWING -> binding.scopeFollowing.id
+                        FeedViewMode.MAP -> binding.scopeMap.id
+                        else -> binding.scopeAll.id
+                    }
+                    animateToggle(checkedId)
+                }
+
+                updateEmptyState(posts)
+            }
+            
+            updateMapMarkers(posts)
+        }
+    }
+
+    private fun observeViewMode() {
+        viewModel.viewMode.observe(viewLifecycleOwner) { _ ->
+            requestSyncUi()
+        }
+    }
+
+    private fun setupMap() {
+        binding.mapView.setTileSource(TileSourceFactory.MAPNIK)
+        binding.mapView.setMultiTouchControls(true)
+        binding.mapView.setBuiltInZoomControls(false)
+        
+        val mapController = binding.mapView.controller
+        mapController.setZoom(4.0)
+        val startPoint = GeoPoint(39.8283, -98.5795) // Center of US
+        mapController.setCenter(startPoint)
+    }
+
+    private fun setupMapListeners() {
+        binding.btnCloseDetail.setOnClickListener {
+            binding.cvPostDetail.visibility = View.GONE
+        }
+
+        binding.btnZoomIn.setOnClickListener {
+            binding.mapView.controller.zoomIn()
+        }
+
+        binding.btnZoomOut.setOnClickListener {
+            binding.mapView.controller.zoomOut()
+        }
+
+        binding.vpPostDetail.registerOnPageChangeCallback(object : ViewPager2.OnPageChangeCallback() {
+            override fun onPageSelected(position: Int) {
+                super.onPageSelected(position)
+                updateViewPagerHeight(position)
+            }
+
+            override fun onPageScrollStateChanged(state: Int) {
+                super.onPageScrollStateChanged(state)
+                if (state == ViewPager2.SCROLL_STATE_IDLE) {
+                    updateViewPagerHeight(binding.vpPostDetail.currentItem)
+                }
+            }
+        })
+    }
+
+    private fun updateViewPagerHeight(position: Int) {
+        val viewPager = binding.vpPostDetail
+        val recyclerView = viewPager.getChildAt(0) as? RecyclerView ?: return
+        val viewHolder = recyclerView.findViewHolderForAdapterPosition(position)
+        
+        if (viewHolder == null) {
+            viewPager.post {
+                val updatedViewHolder = recyclerView.findViewHolderForAdapterPosition(position)
+                if (updatedViewHolder != null) {
+                    measureAndSetHeight(updatedViewHolder.itemView)
+                }
+            }
+        } else {
+            measureAndSetHeight(viewHolder.itemView)
+        }
+    }
+
+    private fun measureAndSetHeight(itemView: View) {
+        val container = itemView.findViewById<View>(R.id.llItemContainer) ?: return
+        itemView.post {
+            val width = binding.vpPostDetail.width
+            if (width <= 0) return@post
+            val wMeasureSpec = View.MeasureSpec.makeMeasureSpec(width, View.MeasureSpec.EXACTLY)
+            val hMeasureSpec = View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED)
+            container.measure(wMeasureSpec, hMeasureSpec)
+            val targetHeight = container.measuredHeight
+            val currentHeight = binding.vpPostDetail.height
+            if (currentHeight != targetHeight && targetHeight > 0) {
+                heightAnimator?.cancel()
+                heightAnimator = ValueAnimator.ofInt(currentHeight, targetHeight).apply {
+                    addUpdateListener { animator ->
+                        val value = animator.animatedValue as Int
+                        val params = binding.vpPostDetail.layoutParams
+                        params.height = value
+                        binding.vpPostDetail.layoutParams = params
+                    }
+                    duration = 100
+                    interpolator = AccelerateDecelerateInterpolator()
+                    start()
+                }
+            }
+        }
+    }
+
+    private fun updateMapMarkers(posts: List<Post>) {
+        if (viewModel.viewMode.value != FeedViewMode.MAP) return
+
+        val circleDrawable = ContextCompat.getDrawable(requireContext(), R.drawable.bg_marker_circle)
+        val pinDrawable = ContextCompat.getDrawable(requireContext(), R.drawable.ic_map_pin)
+        val markerDrawable = if (circleDrawable != null && pinDrawable != null) {
+            val tintedPin = DrawableCompat.wrap(pinDrawable).mutate()
+            DrawableCompat.setTint(tintedPin, ContextCompat.getColor(requireContext(), R.color.accent_green))
+            val layers = arrayOf(circleDrawable, tintedPin)
+            val layerDrawable = LayerDrawable(layers)
+            val padding = 24
+            layerDrawable.setLayerInset(1, padding, padding, padding, padding)
+            layerDrawable
+        } else pinDrawable
+
+        binding.mapView.overlays.clear()
+        val validPosts = posts.filter { it.latitude != 0.0 || it.longitude != 0.0 }
+        
+        if (validPosts.isEmpty()) {
+            binding.cvNoPosts.visibility = View.VISIBLE
+        } else {
+            binding.cvNoPosts.visibility = View.GONE
+            val groupedPosts = validPosts.groupBy { GeoPoint(it.latitude, it.longitude) }
+            groupedPosts.forEach { (point, postsAtLocation) ->
+                val marker = Marker(binding.mapView)
+                marker.position = point
+                marker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_CENTER)
+                marker.icon = markerDrawable
+                marker.title = if (postsAtLocation.size > 1) 
+                    getString(R.string.posts_at_location, postsAtLocation.size)
+                else postsAtLocation[0].postTitle
+                marker.setOnMarkerClickListener { _, _ ->
+                    showPostDetails(postsAtLocation)
+                    true
+                }
+                binding.mapView.overlays.add(marker)
+            }
+        }
+        binding.mapView.invalidate()
+    }
+
+    private fun showPostDetails(posts: List<Post>) {
+        binding.cvPostDetail.visibility = View.VISIBLE
+        tabLayoutMediator?.detach()
+        detailAdapter = MapPostDetailAdapter(
+            onRecipeClick = { linkedRecipe ->
+                val action = DashboardFragmentDirections.actionDashboardFragmentToRecipeDetailFragment(
+                    serverRecipeId = linkedRecipe.id
+                )
+                requireParentFragment().findNavController().navigate(action)
+            },
+            onLikeClick = { post -> viewModel.toggleLike(post) },
+            onCommentClick = { post -> showCommentsDialog(post) }
+        )
+        binding.vpPostDetail.adapter = detailAdapter
+        detailAdapter?.submitList(posts)
+        binding.vpPostDetail.post { updateViewPagerHeight(0) }
+        if (posts.size > 1) {
+            binding.tlDots.visibility = View.VISIBLE
+            tabLayoutMediator = TabLayoutMediator(binding.tlDots, binding.vpPostDetail) { _, _ -> }
+            tabLayoutMediator?.attach()
+        } else {
+            binding.tlDots.visibility = View.GONE
+        }
+    }
+
+    private fun showCommentsDialog(post: Post) {
+        val dialog = BottomSheetDialog(requireContext())
+        val dialogBinding = DialogCommentsViewerBinding.inflate(layoutInflater)
+        dialog.setContentView(dialogBinding.root)
+        val commentAdapter = CommentAdapter(
+            onDeleteComment = { comment -> viewModel.deleteComment(post.id, comment.id) },
+            onEditComment = { comment, newText -> viewModel.editComment(post.id, comment.id, newText) },
+            onAuthorClick = { comment ->
+                if (comment.authorId.isNotEmpty()) {
+                    dialog.dismiss()
+                    val action = DashboardFragmentDirections.actionDashboardFragmentToUserProfileFragment(comment.authorId)
+                    requireParentFragment().findNavController().navigate(action)
+                }
+            },
+            showOptions = true
+        )
+        dialogBinding.rvComments.layoutManager = LinearLayoutManager(requireContext())
+        dialogBinding.rvComments.adapter = commentAdapter
+        viewModel.loadComments(post.id)
+        viewModel.posts.observe(viewLifecycleOwner) { posts ->
+            val updatedPost = posts.find { it.id == post.id }
+            if (updatedPost != null) {
+                commentAdapter.submitList(updatedPost.comments)
+                dialogBinding.layoutEmptyComments.visibility = if (updatedPost.comments.isEmpty()) View.VISIBLE else View.GONE
+            }
+        }
+        dialogBinding.btnSendComment.setOnClickListener {
+            val text = dialogBinding.etComment.text.toString().trim()
+            if (text.isNotEmpty()) {
+                viewModel.addComment(post.id, text)
+                dialogBinding.etComment.text?.clear()
+            }
+        }
+        dialog.show()
+    }
+
+    private fun observeMapErrors() {
+        // Map errors are mostly handled by the main error observer, but we can add specific ones if needed
+    }
+
 
     private var postAdapter: PostAdapter? = null
 
@@ -115,9 +448,11 @@ class FeedFragment : Fragment() {
                 requireParentFragment().findNavController().navigate(action)
             },
             onLocationClick = { post ->
-                val action = DashboardFragmentDirections
-                    .actionDashboardFragmentToMapViewFragment(focusPostId = post.id)
-                requireParentFragment().findNavController().navigate(action)
+                viewModel.setViewMode(FeedViewMode.MAP)
+                binding.scopeToggle.check(binding.scopeMap.id)
+                binding.mapView.controller.setZoom(15.0)
+                binding.mapView.controller.setCenter(GeoPoint(post.latitude, post.longitude))
+                showPostDetails(listOf(post))
             },
             onAuthorClick = { post ->
                 if (post.authorId.isNotEmpty()) {
@@ -149,8 +484,8 @@ class FeedFragment : Fragment() {
             }
         })
         viewModel.posts.observe(viewLifecycleOwner) { posts ->
-            postAdapter?.submitList(posts)
-            updateEmptyState(posts)
+            requestSyncUi()
+            
             notifViewModel.pendingPostId.value?.let { postId ->
                 val idx = posts.indexOfFirst { it.id == postId }
                 if (idx >= 0) {
@@ -173,28 +508,39 @@ class FeedFragment : Fragment() {
 
     override fun onResume() {
         super.onResume()
-        viewModel.loadPosts(refresh = true)
+        binding.mapView.onResume()
+        if (!isHidden) {
+            viewModel.loadPosts(refresh = true, silent = true)
+        }
+    }
+
+    override fun onHiddenChanged(hidden: Boolean) {
+        super.onHiddenChanged(hidden)
+        if (!hidden) {
+            viewModel.loadPosts(refresh = true, silent = true)
+        }
+    }
+
+    override fun onPause() {
+        super.onPause()
+        binding.mapView.onPause()
     }
 
     private fun updateEmptyState(posts: List<Post>) {
         val isLoading = viewModel.isLoading.value == true
         val error = viewModel.error.value
+        val mode = viewModel.viewMode.value ?: FeedViewMode.ALL
         
         val hasData = posts.isNotEmpty()
         val hasError = error != null
+        val isMap = mode == FeedViewMode.MAP
 
-        if (isLoading) {
+        if (isLoading && !binding.swipeRefresh.isRefreshing) {
             binding.emptyStateFeed.visibility = View.GONE
             binding.errorStateFeed.errorStateContainer.visibility = View.GONE
-            if (!hasData) {
+            if (!hasData && !isMap) {
                 binding.rvPosts.visibility = View.GONE
                 binding.progressBar.visibility = View.VISIBLE
-                binding.swipeRefresh.visibility = View.GONE
-            } else {
-                binding.rvPosts.visibility = View.VISIBLE
-                binding.progressBar.visibility = View.GONE
-                binding.swipeRefresh.visibility = View.VISIBLE
-                binding.swipeRefresh.isRefreshing = true
             }
             return
         }
@@ -202,11 +548,17 @@ class FeedFragment : Fragment() {
         binding.progressBar.visibility = View.GONE
         binding.swipeRefresh.isRefreshing = false
 
+        if (isMap) {
+            binding.rvPosts.visibility = View.GONE
+            binding.emptyStateFeed.visibility = View.GONE
+            binding.errorStateFeed.errorStateContainer.visibility = View.GONE
+            return
+        }
+
         if (hasError && !hasData) {
             binding.rvPosts.visibility = View.GONE
             binding.emptyStateFeed.visibility = View.GONE
             binding.errorStateFeed.errorStateContainer.visibility = View.VISIBLE
-            binding.swipeRefresh.visibility = View.GONE
             binding.fabAddPost.visibility = View.GONE
             binding.errorStateFeed.tvErrorDesc.text = 
                 ErrorMapper.mapToUserFriendly(requireContext(), error)
@@ -214,14 +566,32 @@ class FeedFragment : Fragment() {
             binding.rvPosts.visibility = View.GONE
             binding.emptyStateFeed.visibility = View.VISIBLE
             binding.errorStateFeed.errorStateContainer.visibility = View.GONE
-            binding.swipeRefresh.visibility = View.VISIBLE
-            binding.fabAddPost.visibility = View.VISIBLE
+            binding.fabAddPost.visibility = if (mode == FeedViewMode.ALL) View.VISIBLE else View.GONE
+            
+            if (viewModel.viewMode.value == FeedViewMode.FOLLOWING) {
+                val fCount = viewModel.followingCount.value
+                if (fCount == null) {
+                    // Still loading count, show a generic message or wait
+                    binding.tvEmptyTitleFeed.text = getString(R.string.loading)
+                    binding.tvEmptyDescFeed.text = ""
+                } else if (fCount == 0) {
+                    binding.tvEmptyTitleFeed.text = getString(R.string.empty_following_no_people_title)
+                    binding.tvEmptyDescFeed.text = getString(R.string.empty_following_no_people_desc)
+                } else {
+                    binding.tvEmptyTitleFeed.text = getString(R.string.empty_following_no_posts_title)
+                    binding.tvEmptyDescFeed.text = getString(R.string.empty_following_no_posts_desc)
+                }
+                binding.ivEmptyIconFeed.setImageResource(R.drawable.ic_group)
+            } else {
+                binding.tvEmptyTitleFeed.text = getString(R.string.no_posts_yet)
+                binding.tvEmptyDescFeed.text = getString(R.string.be_first_to_post)
+                binding.ivEmptyIconFeed.setImageResource(R.drawable.ic_feed)
+            }
         } else {
             binding.rvPosts.visibility = View.VISIBLE
             binding.emptyStateFeed.visibility = View.GONE
             binding.errorStateFeed.errorStateContainer.visibility = View.GONE
-            binding.swipeRefresh.visibility = View.VISIBLE
-            binding.fabAddPost.visibility = View.VISIBLE
+            binding.fabAddPost.visibility = if (mode == FeedViewMode.ALL) View.VISIBLE else View.GONE
             
             if (hasError) {
                 val userFriendly = ErrorMapper.mapToUserFriendly(requireContext(), error)
@@ -235,19 +605,24 @@ class FeedFragment : Fragment() {
 
     private fun observeLoading() {
         viewModel.isLoading.observe(viewLifecycleOwner) { _ ->
-            updateEmptyState(viewModel.posts.value ?: emptyList())
+            requestSyncUi()
         }
     }
 
     private fun observeErrors() {
         viewModel.error.observe(viewLifecycleOwner) { _ ->
-            updateEmptyState(viewModel.posts.value ?: emptyList())
+            requestSyncUi()
         }
     }
 
 
     override fun onDestroyView() {
         super.onDestroyView()
+        tabLayoutMediator?.detach()
+        tabLayoutMediator = null
+        heightAnimator?.cancel()
+        heightAnimator = null
+        detailAdapter = null
         _binding = null
         postAdapter = null
     }

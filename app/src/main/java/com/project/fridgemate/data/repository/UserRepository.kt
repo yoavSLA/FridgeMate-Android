@@ -148,7 +148,9 @@ class UserRepository(context: Context) : BaseRepository() {
         allergiesJson = gson.toJson(allergies),
         dietPreference = dietPreference,
         activeFridgeId = activeFridgeId,
-        addressJson = if (address != null) gson.toJson(address) else null
+        addressJson = if (address != null) gson.toJson(address) else null,
+        followersCount = followersCount,
+        followingCount = followingCount
     )
 
     private fun UserEntity.toDto(): UserDto {
@@ -169,7 +171,9 @@ class UserRepository(context: Context) : BaseRepository() {
             allergies = allergiesList,
             dietPreference = dietPreference,
             activeFridgeId = activeFridgeId,
-            address = addressDto
+            address = addressDto,
+            followersCount = followersCount,
+            followingCount = followingCount
         )
     }
     suspend fun registerFcmToken(token: String): Result<Unit> {

@@ -27,6 +27,8 @@ import com.google.android.gms.location.Priority
 import com.project.fridgemate.BuildConfig
 import com.project.fridgemate.R
 import com.project.fridgemate.databinding.FragmentMyProfileBinding
+import com.project.fridgemate.ui.feed.FeedViewMode
+import com.project.fridgemate.ui.feed.FeedViewModel
 import com.project.fridgemate.utils.AvatarHelper
 import com.project.fridgemate.utils.ErrorMapper
 import com.project.fridgemate.utils.ToastHelper
@@ -40,6 +42,7 @@ class MyProfileFragment : Fragment() {
 
     private lateinit var allergyAdapter: AllergyAdapter
     private val profileViewModel: ProfileViewModel by activityViewModels()
+    private val feedViewModel: FeedViewModel by activityViewModels()
 
     private lateinit var fusedClient: FusedLocationProviderClient
     private var locationCallback: LocationCallback? = null
@@ -177,8 +180,8 @@ class MyProfileFragment : Fragment() {
         binding.locationRow.setOnClickListener {
             val location = profileViewModel.locationDisplay.value
             if (!location.isNullOrEmpty()) {
-                val action = MyProfileFragmentDirections.actionMyProfileFragmentToMapViewFragment(focusLocation = location)
-                findNavController().navigate(action)
+                feedViewModel.setViewMode(FeedViewMode.MAP)
+                findNavController().popBackStack(R.id.dashboardFragment, false)
             }
         }
     }
