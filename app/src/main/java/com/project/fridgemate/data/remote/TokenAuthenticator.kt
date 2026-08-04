@@ -59,7 +59,7 @@ class TokenAuthenticator(private val tokenManager: TokenManager) : Authenticator
             } else {
                 null
             }
-        } catch (e: Exception) {
+        } catch (_: Exception) {
             null
         }
     }

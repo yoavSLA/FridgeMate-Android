@@ -1,12 +1,10 @@
 package com.project.fridgemate.ui.feed
 
 import android.app.Application
-import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
-import com.project.fridgemate.data.remote.dto.CommentDto
 import com.project.fridgemate.data.remote.dto.CreatePostRequest
 import com.project.fridgemate.data.remote.dto.PostLocationRequest
 import com.project.fridgemate.data.remote.dto.UpdatePostRequest
@@ -18,6 +16,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+
 data class LinkedRecipe(
     val id: String,
     val title: String,
@@ -88,12 +87,6 @@ class FeedViewModel(application: Application) : AndroidViewModel(application) {
     private val _error = MutableLiveData<String?>(null)
     val error: LiveData<String?> = _error
 
-    private val _myPosts = MutableLiveData<List<Post>>(emptyList())
-    val myPosts: LiveData<List<Post>> = _myPosts
-
-    private val _isMyPostsLoading = MutableLiveData(false)
-    val isMyPostsLoading: LiveData<Boolean> = _isMyPostsLoading
-
     private val _updateSuccess = MutableLiveData<Boolean?>(null)
     val updateSuccess: LiveData<Boolean?> = _updateSuccess
 
@@ -107,13 +100,12 @@ class FeedViewModel(application: Application) : AndroidViewModel(application) {
     private val _viewMode = MutableLiveData(FeedViewMode.ALL)
     val viewMode: LiveData<FeedViewMode> = _viewMode
 
-    /** Active feed scope: null/empty = all posts, "following" = only people I follow. */
     var scope: String? = null
         private set
 
     companion object {
         private const val PAGE_SIZE = 10
-        private const val REFRESH_INTERVAL_MS = 2 * 60 * 1000L // 2 minutes
+        private const val REFRESH_INTERVAL_MS = 2 * 60 * 1000L
     }
 
     private var postStatJob: Job? = null
@@ -121,9 +113,8 @@ class FeedViewModel(application: Application) : AndroidViewModel(application) {
 
     init {
         loadPosts(refresh = true)
-        // Preload following feed
         viewModelScope.launch {
-            delay(500) // Small delay to prioritize the main "All" feed
+            delay(500)
             loadPosts(refresh = true, silent = true, forceScope = "following")
         }
         startPostStatListener()
@@ -134,14 +125,12 @@ class FeedViewModel(application: Application) : AndroidViewModel(application) {
     private fun fetchFollowingCount() {
         val userId = ApiClient.getTokenManager().userId ?: return
         viewModelScope.launch {
-            // Only use cache if the current count is null (first load)
             if (_followingCount.value == null) {
                 userRepository.getCachedUser(userId)?.let { cached ->
                     _followingCount.value = cached.followingCount
                 }
             }
 
-            // Always refresh from network
             when (val result = userRepository.getUserById(userId)) {
                 is FridgeResult.Success -> {
                     _followingCount.value = result.data.followingCount
@@ -176,9 +165,7 @@ class FeedViewModel(application: Application) : AndroidViewModel(application) {
                         )
                     }
                     _posts.value = _posts.value?.map(apply)
-                    _myPosts.value = _myPosts.value?.map(apply)
                     
-                    // Also update cache
                     val idxAll = _allPosts.indexOfFirst { it.id == change.postId }
                     if (idxAll >= 0) _allPosts[idxAll] = apply(_allPosts[idxAll])
                     
@@ -196,7 +183,6 @@ class FeedViewModel(application: Application) : AndroidViewModel(application) {
         autoRefreshJob?.cancel()
     }
 
-    /** Switch the feed between "all", "following" and "map" and reload from the top if stale. */
     fun setViewMode(newMode: FeedViewMode) {
         if (_viewMode.value == newMode) return
         
@@ -209,16 +195,13 @@ class FeedViewModel(application: Application) : AndroidViewModel(application) {
             val isFollowing = newMode == FeedViewMode.FOLLOWING
             if (isFollowing) fetchFollowingCount()
             
-            // If scope changed, or we are coming back from MAP, update posts from cache
             val cache = if (isFollowing) _followingPosts else _allPosts
             val loadedOnce = if (isFollowing) followingPostsLoadedOnce else allPostsLoadedOnce
             
             if (loadedOnce) {
-                // Synchronously update data from in-memory cache to avoid "blink"
                 _isLoading.value = false
                 _posts.value = cache.toList()
                 
-                // Always trigger a silent refresh when explicitly chosen to ensure data is fresh
                 scope = newScope
                 loadPosts(refresh = true, silent = true)
             } else {
@@ -226,19 +209,10 @@ class FeedViewModel(application: Application) : AndroidViewModel(application) {
                 loadPosts(refresh = true)
             }
         } else {
-            // Map mode
             scope = newScope
         }
 
-        // Emit ViewMode change last so observers see updated posts/loading state
         _viewMode.value = newMode
-    }
-
-    /** Switch the feed between "all" and "following" and reload from the top. */
-    @Deprecated("Use setViewMode instead", ReplaceWith("setViewMode(if (newScope == \"following\") FeedViewMode.FOLLOWING else FeedViewMode.ALL)"))
-    fun setScope(newScope: String?) {
-        val mode = if (newScope == "following") FeedViewMode.FOLLOWING else FeedViewMode.ALL
-        setViewMode(mode)
     }
 
     fun resetUpdateState() {
@@ -255,7 +229,7 @@ class FeedViewModel(application: Application) : AndroidViewModel(application) {
         
         if (refresh) {
             if (!silent && targetScope == "following") {
-                _followingCount.value = null // Clear count to avoid wrong empty state
+                _followingCount.value = null
             }
             fetchFollowingCount()
         }
@@ -263,7 +237,6 @@ class FeedViewModel(application: Application) : AndroidViewModel(application) {
         val job = viewModelScope.launch {
             val startTime = System.currentTimeMillis()
             
-            // Seamless UX: Load from persistent Room cache immediately if UI is empty
             if (refresh && (_posts.value.isNullOrEmpty())) {
                 val cached = if (targetScope == "following") emptyList() else repository.getCachedPosts()
                 if (cached.isNotEmpty()) {
@@ -274,7 +247,6 @@ class FeedViewModel(application: Application) : AndroidViewModel(application) {
             if (refresh && !silent) {
                 currentPage = 1
                 isLastPage = false
-                // Only show loading if we don't have cached data to show
                 if (_posts.value.isNullOrEmpty()) {
                     _isLoading.value = true
                 }
@@ -308,14 +280,11 @@ class FeedViewModel(application: Application) : AndroidViewModel(application) {
                             currentPage = 1
                             isLastPage = newPosts.size < PAGE_SIZE
                             
-                            // Seamless update: only push to LiveData if data actually changed.
-                            // This prevents unnecessary RecyclerView re-binds and "flashing".
                             if (_posts.value != newPosts) {
                                 _posts.value = newPosts
                             }
                         }
                         
-                        // Update cache and timestamp
                         if (targetScope == "following") {
                             _followingPosts.clear()
                             _followingPosts.addAll(newPosts)
@@ -337,7 +306,6 @@ class FeedViewModel(application: Application) : AndroidViewModel(application) {
                             }
                         }
                         
-                        // Update cache
                         if (targetScope == "following") {
                             val combined = _followingPosts + newPosts
                             _followingPosts.clear()
@@ -405,38 +373,6 @@ class FeedViewModel(application: Application) : AndroidViewModel(application) {
             _isLoadingMore.value = false
         }
     }
-    fun loadMyPosts() {
-        viewModelScope.launch {
-            _isMyPostsLoading.value = true
-            when (val result = repository.getMyPosts()) {
-                is FridgeResult.Success -> {
-                    val currentPostsMap = _myPosts.value?.associateBy { it.id } ?: emptyMap()
-                    val posts = result.data.items.map { dto ->
-                        val post = dto.toPost()
-                        val existing = currentPostsMap[post.id]
-                        if (existing != null) {
-                            post.copy(
-                                comments = existing.comments,
-                                isExpanded = existing.isExpanded
-                            )
-                        } else {
-                            post
-                        }
-                    }
-                    _myPosts.value = posts
-                }
-                is FridgeResult.Error -> {
-                    _error.value = result.message
-                    val cached = repository.getCachedMyPosts()
-                    if (cached.isNotEmpty()) {
-                        _myPosts.value = cached.map { it.toPost() }
-                    }
-                }
-                else -> {}
-            }
-            _isMyPostsLoading.value = false
-        }
-    }
 
     fun toggleLike(post: Post) {
         val optimistic: (Post) -> Post = {
@@ -446,7 +382,6 @@ class FeedViewModel(application: Application) : AndroidViewModel(application) {
             ) else it
         }
         _posts.value = _posts.value?.map(optimistic)
-        _myPosts.value = _myPosts.value?.map(optimistic)
 
         viewModelScope.launch {
             when (val result = repository.toggleLike(post.id)) {
@@ -458,7 +393,6 @@ class FeedViewModel(application: Application) : AndroidViewModel(application) {
                         ) else it
                     }
                     _posts.value = _posts.value?.map(update)
-                    _myPosts.value = _myPosts.value?.map(update)
                 }
                 is FridgeResult.Error -> {
                     val revert: (Post) -> Post = {
@@ -468,17 +402,12 @@ class FeedViewModel(application: Application) : AndroidViewModel(application) {
                         ) else it
                     }
                     _posts.value = _posts.value?.map(revert)
-                    _myPosts.value = _myPosts.value?.map(revert)
                 }
                 else -> {}
             }
         }
     }
 
-    /**
-     * Toggle follow on the post's author. Updates every post in the feed
-     * authored by that user so the button stays consistent across cards.
-     */
     fun toggleAuthorFollow(post: Post) {
         val authorId = post.authorId
         if (authorId.isEmpty() || post.isOwner) return
@@ -489,7 +418,6 @@ class FeedViewModel(application: Application) : AndroidViewModel(application) {
             if (it.authorId == authorId) it.copy(isFollowingAuthor = !previous) else it
         }
         _posts.value = _posts.value?.map(optimistic)
-        _myPosts.value = _myPosts.value?.map(optimistic)
 
         viewModelScope.launch {
             try {
@@ -499,7 +427,6 @@ class FeedViewModel(application: Application) : AndroidViewModel(application) {
                             if (it.authorId == authorId) it.copy(isFollowingAuthor = result.data.following) else it
                         }
                         _posts.value = _posts.value?.map(confirm)
-                        _myPosts.value = _myPosts.value?.map(confirm)
                         fetchFollowingCount()
                     }
                     is FridgeResult.Error -> {
@@ -507,7 +434,6 @@ class FeedViewModel(application: Application) : AndroidViewModel(application) {
                             if (it.authorId == authorId) it.copy(isFollowingAuthor = previous) else it
                         }
                         _posts.value = _posts.value?.map(revert)
-                        _myPosts.value = _myPosts.value?.map(revert)
                         _error.value = result.message
                     }
                     else -> {}
@@ -542,7 +468,6 @@ class FeedViewModel(application: Application) : AndroidViewModel(application) {
             when (val result = repository.createPost(request)) {
                 is FridgeResult.Success -> {
                     loadPosts(refresh = true)
-                    loadMyPosts()
                 }
                 is FridgeResult.Error -> {
                     _error.value = result.message
@@ -592,7 +517,6 @@ class FeedViewModel(application: Application) : AndroidViewModel(application) {
                         ) else it
                     }
                     _posts.value = _posts.value?.map(update)
-                    _myPosts.value = _myPosts.value?.map(update)
                     _updateSuccess.value = true
                     loadPosts(refresh = true)
                 }
@@ -607,14 +531,12 @@ class FeedViewModel(application: Application) : AndroidViewModel(application) {
 
     fun deletePost(postId: String) {
         _posts.value = _posts.value?.filter { it.id != postId }
-        _myPosts.value = _myPosts.value?.filter { it.id != postId }
 
         viewModelScope.launch {
             when (val result = repository.deletePost(postId)) {
                 is FridgeResult.Error -> {
                     _error.value = result.message
                     loadPosts()
-                    loadMyPosts()
                 }
                 else -> {}
             }
@@ -632,11 +554,10 @@ class FeedViewModel(application: Application) : AndroidViewModel(application) {
             } else it
         }
         _posts.value = _posts.value?.map(update)
-        _myPosts.value = _myPosts.value?.map(update)
     }
 
     fun loadComments(postId: String) {
-        val currentPost = _posts.value?.find { it.id == postId } ?: _myPosts.value?.find { it.id == postId }
+        val currentPost = _posts.value?.find { it.id == postId }
         if (currentPost != null && currentPost.comments.isNotEmpty() && currentPost.comments.size == currentPost.commentsCount) {
             return
         }
@@ -649,7 +570,6 @@ class FeedViewModel(application: Application) : AndroidViewModel(application) {
                         if (it.id == postId) it.copy(comments = comments) else it
                     }
                     _posts.value = _posts.value?.map(update)
-                    _myPosts.value = _myPosts.value?.map(update)
                 }
                 else -> {}
             }
@@ -670,7 +590,6 @@ class FeedViewModel(application: Application) : AndroidViewModel(application) {
                         } else it
                     }
                     _posts.value = _posts.value?.map(update)
-                    _myPosts.value = _myPosts.value?.map(update)
                 }
                 is FridgeResult.Error -> {
                     _error.value = result.message
@@ -693,7 +612,6 @@ class FeedViewModel(application: Application) : AndroidViewModel(application) {
                         ) else it
                     }
                     _posts.value = _posts.value?.map(update)
-                    _myPosts.value = _myPosts.value?.map(update)
                 }
                 is FridgeResult.Error -> {
                     _error.value = result.message
@@ -711,7 +629,6 @@ class FeedViewModel(application: Application) : AndroidViewModel(application) {
             ) else it
         }
         _posts.value = _posts.value?.map(optimistic)
-        _myPosts.value = _myPosts.value?.map(optimistic)
 
         viewModelScope.launch {
             when (val result = repository.deleteComment(postId, commentId)) {

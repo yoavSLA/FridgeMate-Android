@@ -253,7 +253,7 @@ class RecipeDetailFragment : Fragment() {
         for (ingredient in ingredients) {
             val itemBinding = ItemDetailIngredientBinding.inflate(layoutInflater, binding.llIngredients, false)
             itemBinding.tvIngredientText.text = if (ingredient.amount.isNotBlank()) {
-                "${ingredient.name}  \u2014  ${ingredient.amount}"
+                getString(R.string.ingredient_amount_format, ingredient.name, ingredient.amount)
             } else {
                 ingredient.name
             }

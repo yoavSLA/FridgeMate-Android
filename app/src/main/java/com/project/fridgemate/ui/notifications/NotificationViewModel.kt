@@ -81,7 +81,6 @@ class NotificationViewModel : ViewModel() {
 
             when (val loaded = loadedResult.getOrNull()) {
                 null -> {
-                    // repo.getNotifications() failed or returned null
                     _error.value = "Unable to load notifications" 
                 }
                 else -> {

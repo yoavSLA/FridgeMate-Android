@@ -32,7 +32,6 @@ class ScanUploadWorker(
             is FridgeResult.Success -> {
                 val scan = result.data
                 if (scan.status == "completed") {
-                    // Save summary locally for notification popup
                     scan.changes?.let { changes ->
                         scanSummaryStorage.saveLastScanSummary(changes, scan.createdAt)
                     }
@@ -53,7 +52,6 @@ class ScanUploadWorker(
             }
         }
 
-        // Clean up temp file
         if (file.exists()) {
             file.delete()
         }

@@ -5,7 +5,7 @@ data class JournalEntryDto(
     val userId: String?,
     val title: String?,
     val content: String?,
-    val date: String?, // ISO String
+    val date: String?,
     val meals: List<JournalMealDto>?,
     val rating: Int?,
     val mood: String?,

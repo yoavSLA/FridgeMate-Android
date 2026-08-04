@@ -70,7 +70,6 @@ class OnboardingFragment : Fragment() {
     private fun setupObservers() {
         viewModel.hasFridge.observe(viewLifecycleOwner) { hasFridge ->
             if (hasFridge == true) {
-                // Successful join/create - now check if the fridge is empty
                 isJoining = true
                 fridgeViewModel.loadItems()
             }

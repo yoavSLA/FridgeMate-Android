@@ -185,12 +185,9 @@ class FeedFragment : Fragment() {
                 android.transition.TransitionManager.beginDelayedTransition(binding.root as ViewGroup, transition)
             }
 
-            // 2. Temporarily disable item animator during scope switches to prevent "flashing"
-            // between different lists. We only want the whole container to cross-fade or sync.
             if (modeChanged && !isMap && !wasMap) {
                 binding.rvPosts.itemAnimator = null
             } else if (binding.rvPosts.itemAnimator == null) {
-                // Restore default animator for normal operations (likes, additions)
                 binding.rvPosts.itemAnimator = androidx.recyclerview.widget.DefaultItemAnimator()
             }
 
@@ -198,7 +195,6 @@ class FeedFragment : Fragment() {
             postAdapter?.submitList(posts) {
                 if (_binding == null) return@submitList
                 
-                // Sync visibility based on mode
                 binding.swipeRefresh.visibility = if (isMap) View.GONE else View.VISIBLE
                 binding.clMapView.visibility = if (isMap) View.VISIBLE else View.GONE
                 binding.fabAddPost.visibility = if (mode == FeedViewMode.ALL) View.VISIBLE else View.GONE
@@ -571,7 +567,6 @@ class FeedFragment : Fragment() {
             if (viewModel.viewMode.value == FeedViewMode.FOLLOWING) {
                 val fCount = viewModel.followingCount.value
                 if (fCount == null) {
-                    // Still loading count, show a generic message or wait
                     binding.tvEmptyTitleFeed.text = getString(R.string.loading)
                     binding.tvEmptyDescFeed.text = ""
                 } else if (fCount == 0) {

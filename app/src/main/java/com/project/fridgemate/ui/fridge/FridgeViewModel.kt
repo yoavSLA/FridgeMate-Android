@@ -29,11 +29,11 @@ class FridgeViewModel(application: Application) : AndroidViewModel(application) 
     private val chatRepository = FridgeChatRepository()
 
     sealed class State {
-        object Loading : State()
+        data object Loading : State()
         data class Items(val items: List<FridgeItem>) : State()
-        object Empty : State()
-        object NoFridge : State()
-        object NotLoggedIn : State()
+        data object Empty : State()
+        data object NoFridge : State()
+        data object NotLoggedIn : State()
         data class Error(val message: String) : State()
     }
 
@@ -49,7 +49,7 @@ class FridgeViewModel(application: Application) : AndroidViewModel(application) 
     private val _activeFridgeName = MutableLiveData<String?>(null)
     val activeFridgeName: LiveData<String?> = _activeFridgeName
 
-    private val _unreadCount = MutableLiveData<Int>(0)
+    private val _unreadCount = MutableLiveData(0)
     val unreadCount: LiveData<Int> = _unreadCount
 
     private val _lastScannedAt = MutableLiveData<String?>(null)
@@ -62,7 +62,7 @@ class FridgeViewModel(application: Application) : AndroidViewModel(application) 
     private var currentRawItems: List<InventoryItemDto> = emptyList()
 
     private val unreadBumpListener = Emitter.Listener { args ->
-        val payload = args.firstOrNull() as? JSONObject ?: return@Listener
+        val payload = (args.firstOrNull() as? JSONObject) ?: return@Listener
         val incomingFridgeId = payload.optString("fridgeId")
         if (incomingFridgeId.isBlank()) return@Listener
         if (incomingFridgeId != _activeFridgeId.value) return@Listener
@@ -250,7 +250,6 @@ class FridgeViewModel(application: Application) : AndroidViewModel(application) 
             result.add(FridgeItem.RunningLow(lowItems.map { Pair(it.name, it.quantity) }))
         }
 
-        // Group by category, similar to web frontend
         val grouped = filteredItems.groupBy { it.category ?: "Other" }
         grouped.keys.sorted().forEach { category ->
             result.add(FridgeItem.CategoryHeader(category))

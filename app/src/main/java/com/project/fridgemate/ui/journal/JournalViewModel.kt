@@ -223,9 +223,7 @@ class JournalViewModel(application: Application) : AndroidViewModel(application)
 
     fun addRecipeToJournal(recipe: com.project.fridgemate.data.local.entity.RecipeEntity, timestamp: Long) {
         val calendar = Calendar.getInstance().apply { timeInMillis = timestamp }
-        val hour = calendar.get(Calendar.HOUR_OF_DAY)
-
-        val mealType = when (hour) {
+        val mealType = when (calendar[Calendar.HOUR_OF_DAY]) {
             in 5..10 -> "Breakfast"
             in 11..15 -> "Lunch"
             in 16..21 -> "Dinner"

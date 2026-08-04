@@ -27,7 +27,7 @@ class ProfileViewModel(application: Application) : AndroidViewModel(application)
     private val _user = MutableLiveData<UserDto?>()
     val user: LiveData<UserDto?> = _user
 
-    private val _loading = MutableLiveData<Boolean>(false)
+    private val _loading = MutableLiveData(false)
     val loading: LiveData<Boolean> = _loading
 
     private val _saveSuccess = MutableLiveData<Boolean>(false)
@@ -64,16 +64,13 @@ class ProfileViewModel(application: Application) : AndroidViewModel(application)
         val userId = ApiClient.getTokenManager().userId ?: return
         viewModelScope.launch {
             val startTime = System.currentTimeMillis()
-            // Show cached data immediately — no spinner needed
             val cached = userRepository.getCachedUser(userId)
             if (cached != null) {
                 applyUser(cached)
             } else {
-                // No cache yet — show spinner while doing first load
                 _loading.value = true
             }
 
-            // Refresh from network in background
             try {
                 when (val result = userRepository.getUserById(userId)) {
                     is com.project.fridgemate.data.repository.FridgeResult.Success -> {
@@ -107,7 +104,6 @@ class ProfileViewModel(application: Application) : AndroidViewModel(application)
         _selectedPreference.value = user.dietPreference.takeIf { it.isNotEmpty() } ?: "NONE"
     }
 
-    /** Reverse-geocodes device coordinates, updates display and persists to API. */
     fun updateLocation(lat: Double, lng: Double) {
         val userId = ApiClient.getTokenManager().userId ?: return
         viewModelScope.launch {

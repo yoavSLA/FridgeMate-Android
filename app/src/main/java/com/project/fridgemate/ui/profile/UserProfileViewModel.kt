@@ -15,13 +15,6 @@ import com.project.fridgemate.ui.feed.toComment
 import com.project.fridgemate.ui.feed.toPost
 import kotlinx.coroutines.launch
 
-/**
- * Drives a profile screen for either the current user (when [userId] is null/blank
- * or equals the logged-in user's id) or for another user.
- *
- * Owns its own state; does NOT touch the shared [ProfileViewModel] used by the
- * edit form / dashboard greeting, so visiting other profiles doesn't pollute "me".
- */
 class UserProfileViewModel(application: Application) : AndroidViewModel(application) {
 
     private val userRepository = UserRepository(application.applicationContext)
@@ -49,7 +42,6 @@ class UserProfileViewModel(application: Application) : AndroidViewModel(applicat
 
     val meId: String? get() = ApiClient.getTokenManager().userId
 
-    /** Returns the resolved target user id (own id when [arg] is null/blank). */
     fun resolveTargetId(arg: String?): String? {
         val mine = meId
         return if (arg.isNullOrBlank()) mine else arg
@@ -57,14 +49,13 @@ class UserProfileViewModel(application: Application) : AndroidViewModel(applicat
 
     fun load(targetUserId: String) {
         if (loadedUserId == targetUserId && _user.value != null) {
-            // Refresh in background only
             refresh(targetUserId)
             return
         }
         loadedUserId = targetUserId
         viewModelScope.launch {
             _isLoading.value = true
-            _error.value = null // Clear previous errors
+            _error.value = null
             try {
                 when (val result = userRepository.getUserById(targetUserId)) {
                     is FridgeResult.Success -> {
@@ -94,7 +85,7 @@ class UserProfileViewModel(application: Application) : AndroidViewModel(applicat
                     is FridgeResult.Success -> {
                         _user.value = result.data
                         loadPostsFor(targetUserId)
-                        if (!showIndicator) _error.value = null // Success clears error if silent
+                        if (!showIndicator) _error.value = null
                     }
                     is FridgeResult.Error -> {
                         if (showIndicator) _error.value = result.message
@@ -121,7 +112,6 @@ class UserProfileViewModel(application: Application) : AndroidViewModel(applicat
         }
     }
 
-    /** Toggle follow on the currently loaded user. No-op when viewing self. */
     fun toggleFollow() {
         val current = _user.value ?: return
         val mine = meId ?: return
@@ -129,7 +119,6 @@ class UserProfileViewModel(application: Application) : AndroidViewModel(applicat
         if (_followBusy.value == true) return
 
         val wasFollowing = current.isFollowing
-        // Optimistic update — header + every post card from this author
         _user.value = current.copy(
             isFollowing = !wasFollowing,
             followersCount = current.followersCount + if (wasFollowing) -1 else 1
@@ -156,11 +145,6 @@ class UserProfileViewModel(application: Application) : AndroidViewModel(applicat
         }
     }
 
-    /**
-     * Toggle follow triggered from a post's inline Follow button. On the
-     * profile screen all posts share the same author, so this just delegates
-     * to [toggleFollow] which keeps the header and post cards in sync.
-     */
     fun toggleAuthorFollow(@Suppress("UNUSED_PARAMETER") post: Post) {
         toggleFollow()
     }
@@ -173,10 +157,7 @@ class UserProfileViewModel(application: Application) : AndroidViewModel(applicat
 
     fun clearError() { _error.value = null }
 
-    // ── Post interactions ────────────────────────────────────────────────
-
     fun toggleLike(post: Post) {
-        // Optimistic flip
         _posts.value = _posts.value?.map {
             if (it.id == post.id) it.copy(
                 isLiked = !it.isLiked,
@@ -195,7 +176,6 @@ class UserProfileViewModel(application: Application) : AndroidViewModel(applicat
                     }
                 }
                 is FridgeResult.Error -> {
-                    // Revert to original
                     _posts.value = _posts.value?.map {
                         if (it.id == post.id) it.copy(
                             isLiked = post.isLiked,
@@ -241,10 +221,12 @@ class UserProfileViewModel(application: Application) : AndroidViewModel(applicat
                 is FridgeResult.Success -> {
                     val newComment = result.data.toComment()
                     _posts.value = _posts.value?.map {
-                        if (it.id == postId) it.copy(
-                            comments = it.comments + newComment,
-                            commentsCount = it.commentsCount + 1
-                        ) else it
+                        if (it.id == postId) {
+                            it.copy(
+                                comments = it.comments + newComment,
+                                commentsCount = it.commentsCount + 1
+                            )
+                        } else it
                     }
                 }
                 is FridgeResult.Error -> _error.value = result.message
@@ -299,7 +281,6 @@ class UserProfileViewModel(application: Application) : AndroidViewModel(applicat
                     _error.value = result.message
                 }
                 else -> {
-                    // Refresh counts/header
                     loadedUserId?.let { refresh(it) }
                 }
             }

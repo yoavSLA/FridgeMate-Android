@@ -87,7 +87,6 @@ class SettingsFragment : Fragment() {
                     binding.cardSharedFridge.visibility = View.GONE
                     binding.cardFridgeScanner.visibility = View.GONE
                     clearRecipeCache()
-                    // Redirect to onboarding
                     val navController = findNavController()
                     if (navController.currentDestination?.id == R.id.settingsFragment) {
                         navController.navigate(R.id.onboardingFragment)
@@ -203,7 +202,6 @@ class SettingsFragment : Fragment() {
 
         dialogBinding.btnConfirmLeave.setOnClickListener {
             viewModel.leaveFridge()
-            // Clear fridge items state immediately
             fridgeViewModel.loadItems()
             dialog.dismiss()
         }

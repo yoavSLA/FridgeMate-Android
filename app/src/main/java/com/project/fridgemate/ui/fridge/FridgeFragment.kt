@@ -100,7 +100,6 @@ class FridgeFragment : Fragment() {
         viewModel.lastScannedAt.observe(viewLifecycleOwner) { timestamp ->
             if (!timestamp.isNullOrBlank()) {
                 binding.llLastScanned.visibility = View.VISIBLE
-                // Remove seconds if present (format assumed: "dd/MM/yyyy HH:mm:ss" or similar)
                 val timeWithoutSeconds = if (timestamp.count { it == ':' } == 2) {
                     timestamp.substringBeforeLast(':')
                 } else {

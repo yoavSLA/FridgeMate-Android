@@ -1,6 +1,5 @@
 package com.project.fridgemate.data.remote.socket
 
-import android.util.Log
 import com.project.fridgemate.BuildConfig
 import com.project.fridgemate.data.remote.ApiClient
 import io.socket.client.IO
@@ -8,8 +7,6 @@ import io.socket.client.Socket
 import java.net.URI
 
 object SocketManager {
-
-    private const val TAG = "SocketManager"
 
     @Volatile
     private var socket: Socket? = null
@@ -22,7 +19,7 @@ object SocketManager {
         val currentToken = ApiClient.getTokenManager().accessToken
         val existing = socket
 
-        if (existing != null && currentToken == lastTokenUsed) {
+        if ((existing != null) && (currentToken == lastTokenUsed)) {
             return existing
         }
 
@@ -41,9 +38,7 @@ object SocketManager {
             .build()
 
         val newSocket = IO.socket(baseUrl, opts)
-        newSocket.on(Socket.EVENT_CONNECT_ERROR) { args ->
-            Log.w(TAG, "Socket connect error: ${args.firstOrNull()}")
-        }
+        newSocket.on(Socket.EVENT_CONNECT_ERROR) { }
         socket = newSocket
         lastTokenUsed = currentToken
         return newSocket

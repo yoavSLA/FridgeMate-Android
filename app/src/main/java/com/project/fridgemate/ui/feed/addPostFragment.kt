@@ -83,7 +83,7 @@ class AddPostFragment : Fragment() {
                 submitPost()
             } else {
                 ToastHelper.showToast(requireContext(), getString(R.string.error_location_permission_required))
-                submitPost() // Still submit without location if denied? Or maybe just submit.
+                submitPost()
             }
         }
 
@@ -205,7 +205,6 @@ class AddPostFragment : Fragment() {
                     shortAddress = getShortAddress(location.latitude, location.longitude)
                 }
             } catch (e: Exception) {
-                // Silently continue without location
             }
 
             val recipeId = args.prefillRecipeId.ifEmpty { null }

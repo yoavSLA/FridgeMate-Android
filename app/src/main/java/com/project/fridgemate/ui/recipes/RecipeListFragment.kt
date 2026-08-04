@@ -137,8 +137,6 @@ class RecipeListFragment : Fragment() {
 
     override fun onResume() {
         super.onResume()
-        // Removed unconditional loadRecommended() to favor caching.
-        // loadRecommendedIfNeeded() is already called by the parent RecipesFragment.
     }
 
     fun showError(error: String) {

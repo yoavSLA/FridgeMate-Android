@@ -1,9 +1,11 @@
 package com.project.fridgemate.data.remote.api
 
+import com.project.fridgemate.data.remote.dto.ApiOkResponse
 import com.project.fridgemate.data.remote.dto.CreateJournalRequest
 import com.project.fridgemate.data.remote.dto.JournalListResponse
 import com.project.fridgemate.data.remote.dto.JournalResponse
 import com.project.fridgemate.data.remote.dto.UpdateJournalRequest
+import com.project.fridgemate.data.remote.dto.UploadImageResponse
 import okhttp3.MultipartBody
 import retrofit2.Response
 import retrofit2.http.Body
@@ -22,7 +24,7 @@ interface JournalApi {
     suspend fun getJournals(
         @Query("page") page: Int = 1,
         @Query("limit") limit: Int = 20
-    ): Response<com.project.fridgemate.data.remote.dto.JournalListResponse>
+    ): Response<JournalListResponse>
 
     @GET("journal/{id}")
     suspend fun getJournalById(@Path("id") id: String): Response<JournalResponse>
@@ -41,5 +43,5 @@ interface JournalApi {
 
     @Multipart
     @POST("upload")
-    suspend fun uploadImage(@Part image: MultipartBody.Part): Response<com.project.fridgemate.data.remote.dto.ApiOkResponse<com.project.fridgemate.data.remote.dto.UploadImageResponse>>
+    suspend fun uploadImage(@Part image: MultipartBody.Part): Response<ApiOkResponse<UploadImageResponse>>
 }

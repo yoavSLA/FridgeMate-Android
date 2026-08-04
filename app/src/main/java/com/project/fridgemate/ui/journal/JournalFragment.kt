@@ -306,8 +306,8 @@ class JournalFragment : Fragment() {
             }
 
             val label = when {
-                DateUtils.isToday(dayMillis) -> "Today"
-                DateUtils.isToday(dayMillis + DateUtils.DAY_IN_MILLIS) -> "Yesterday"
+                DateUtils.isToday(dayMillis) -> getString(R.string.chat_date_today)
+                DateUtils.isToday(dayMillis + DateUtils.DAY_IN_MILLIS) -> getString(R.string.chat_date_yesterday)
                 else -> SimpleDateFormat("EEEE, MMM d", Locale.getDefault()).format(Date(dayMillis))
             }
 

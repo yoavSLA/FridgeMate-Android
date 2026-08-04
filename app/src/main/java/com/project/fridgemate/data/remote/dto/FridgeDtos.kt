@@ -2,13 +2,9 @@ package com.project.fridgemate.data.remote.dto
 
 import com.google.gson.annotations.SerializedName
 
-// ── Requests ────────────────────────────────────────────────────────────────
-
 data class CreateFridgeRequest(val name: String)
 
 data class JoinFridgeRequest(val inviteCode: String)
-
-// ── Responses ───────────────────────────────────────────────────────────────
 
 data class ApiOkResponse<T>(val ok: Boolean, val data: T)
 

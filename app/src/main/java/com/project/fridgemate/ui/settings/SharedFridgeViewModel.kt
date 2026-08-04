@@ -175,7 +175,6 @@ class SharedFridgeViewModel(application: Application) : AndroidViewModel(applica
         _scanResult.value = null
         _scanSummary.value = null
 
-        // Cancel previous scan if any
         _activeScanId.value?.let { workManager.cancelWorkById(it) }
 
         viewModelScope.launch {

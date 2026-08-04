@@ -101,7 +101,6 @@ class FridgeScanOnboardingFragment : Fragment() {
                 binding.rvScanResults.layoutManager = LinearLayoutManager(requireContext())
                 binding.rvScanResults.adapter = DetectedItemAdapter(items)
                 
-                // Once scanned, hide the skip button and hint, encourage finishing
                 binding.btnSkipScan.visibility = View.GONE
                 binding.tvScanLaterHint.visibility = View.GONE
             } else {
@@ -160,7 +159,6 @@ class FridgeScanOnboardingFragment : Fragment() {
     }
 
     private fun finishOnboarding() {
-        // Go back to dashboard
         findNavController().popBackStack(R.id.dashboardFragment, false)
     }
 

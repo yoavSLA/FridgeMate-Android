@@ -142,14 +142,12 @@ class FridgeAdapter(
             binding.tvProductName.text = item.name
             binding.tvProductQuantity.text = item.quantity
             binding.ivLowStockWarning.visibility = if (item.isLowStock) View.VISIBLE else View.GONE
-            binding.divider.visibility = View.GONE // Stroke acts as divider now
 
             val accentColor = ContextCompat.getColor(context, colors.accentRes)
             
-            // Quantity Badge: White text on a slightly more vivid tinted background
             binding.tvProductQuantity.setTextColor(ContextCompat.getColor(context, R.color.white))
             binding.tvProductQuantity.backgroundTintList = android.content.res.ColorStateList.valueOf(
-                androidx.core.graphics.ColorUtils.setAlphaComponent(accentColor, 135) // Slightly more vivid alpha
+                androidx.core.graphics.ColorUtils.setAlphaComponent(accentColor, 135)
             )
 
             val isAssigned = item.ownerId != null
@@ -175,7 +173,6 @@ class FridgeAdapter(
             binding.ownerContainer.setOnClickListener { onOwnerIconClick(binding.ownerContainer, item) }
             binding.ivOwnerRemove.setOnClickListener { onOwnerRemoveClick(item) }
 
-            // Apply specific drawables with a very thin neutral stroke
             val rootDrawable = ContextCompat.getDrawable(context, when {
                 isFirstInGroup && isLastInGroup -> R.drawable.bg_product_item_all
                 isFirstInGroup -> R.drawable.bg_product_item_top
@@ -190,22 +187,18 @@ class FridgeAdapter(
             }
 
             bgDrawable?.let {
-                // Ultra-thin neutral border
                 val strokeWidth = (context.resources.displayMetrics.density * 0.8f).toInt().coerceAtLeast(1)
                 val strokeColor = ContextCompat.getColor(context, R.color.card_stroke_color)
                 it.setStroke(strokeWidth, strokeColor)
                 binding.root.background = rootDrawable
             }
             
-            // Add shadow and ensure it's not clipped
             binding.root.elevation = 2f * context.resources.displayMetrics.density
             binding.root.outlineProvider = android.view.ViewOutlineProvider.BACKGROUND
             
-            // Re-enable gray divider between items, but not for the last item in a group
             binding.divider.visibility = if (isLastInGroup) View.GONE else View.VISIBLE
             binding.divider.setBackgroundColor(ContextCompat.getColor(context, R.color.divider_color))
 
-            // Remove the background tint to keep the white/stroke look
             binding.root.backgroundTintList = null
         }
     }

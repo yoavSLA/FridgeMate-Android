@@ -7,7 +7,6 @@ import com.project.fridgemate.data.remote.ApiClient
 import com.project.fridgemate.data.remote.api.PostApi
 import com.project.fridgemate.data.remote.dto.*
 import com.project.fridgemate.data.remote.socket.SocketManager
-import com.project.fridgemate.ui.feed.Post
 import io.socket.client.Socket
 import io.socket.emitter.Emitter
 import kotlinx.coroutines.channels.awaitClose
@@ -96,30 +95,6 @@ class PostRepository(context: Context) : BaseRepository() {
             }
         } catch (e: Exception) {
             FridgeResult.Error(networkErrorMessage(e))
-        }
-    }
-
-    suspend fun getMyPosts(): FridgeResult<PostListResponse> {
-        return try {
-            val response = postApi.getMyPosts()
-            if (response.isSuccessful) {
-                val data = response.body()!!
-                val entities = data.items.map { it.toEntity() }
-                postDao.insertAll(entities)
-                FridgeResult.Success(data)
-            } else {
-                FridgeResult.Error(parseError(response.errorBody()?.string()))
-            }
-        } catch (e: Exception) {
-            FridgeResult.Error(networkErrorMessage(e))
-        }
-    }
-
-    suspend fun getCachedMyPosts(): List<PostDto> {
-        return try {
-            postDao.getMyPosts().map { it.toDto() }
-        } catch (_: Exception) {
-            emptyList()
         }
     }
 
@@ -257,21 +232,13 @@ class PostRepository(context: Context) : BaseRepository() {
         } catch (_: Exception) { }
     }
 
-    private suspend fun loadCachedPosts(): List<PostDto> {
-        return try {
-            postDao.getAll().map { it.toDto() }
-        } catch (_: Exception) {
-            emptyList()
-        }
-    }
-
     private fun PostDto.toEntity(): PostEntity {
         val loc = location
         val authorAddr = authorUserId.address
         
         val hasPostCoords = loc?.coordinates != null && loc.coordinates.size >= 2
-        val lng = if (hasPostCoords) loc?.coordinates!![0] else authorAddr?.lng ?: 0.0
-        val lat = if (hasPostCoords) loc?.coordinates!![1] else authorAddr?.lat ?: 0.0
+        val lng = if (hasPostCoords) loc.coordinates[0] else authorAddr?.lng ?: 0.0
+        val lat = if (hasPostCoords) loc.coordinates[1] else authorAddr?.lat ?: 0.0
         
         return PostEntity(
             id = id,

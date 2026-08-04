@@ -38,7 +38,7 @@ class RecipeAdapter(
         }
     }
 
-    inner class RecipeViewHolder(val binding: ItemRecipeBinding) :
+    class RecipeViewHolder(val binding: ItemRecipeBinding) :
         RecyclerView.ViewHolder(binding.root)
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecipeViewHolder {
@@ -52,7 +52,7 @@ class RecipeAdapter(
             tvRecipeName.text = recipe.title
             tvRecipeTime.text = recipe.cookingTime
             tvRecipeDifficulty.text = recipe.difficulty
-            tvCalories.text = recipe.calories.replace(Regex("[^\\d]"), "").ifEmpty { "-" }
+            tvCalories.text = recipe.calories.replace(Regex("\\D"), "").ifEmpty { "-" }
             tvFat.text = recipe.fat.ifEmpty { "-" }
             tvCarbs.text = recipe.carbs.ifEmpty { "-" }
             tvProtein.text = recipe.protein.ifEmpty { "-" }
@@ -77,7 +77,7 @@ class RecipeAdapter(
             updateFavoriteIcon(btnFavorite, recipe.isFavorite, animate = false)
             
             btnFavorite.setOnClickListener { 
-                val currentPos = holder.adapterPosition
+                val currentPos = holder.bindingAdapterPosition
                 if (currentPos != RecyclerView.NO_POSITION) {
                     onFavoriteClick(getItem(currentPos))
                 }

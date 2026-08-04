@@ -71,7 +71,6 @@ class MainActivity : AppCompatActivity() {
                 top = systemBars.top,
                 bottom = systemBars.bottom
             )
-            // Ensure we also handle the IME (keyboard) if needed, but for now system bars are priority
             insets
         }
 
@@ -243,7 +242,7 @@ class MainActivity : AppCompatActivity() {
         val summary = storage.getLastScanSummary()
         val createdAt = storage.getLastScanCreatedAt()
 
-        if (summary != null && createdAt != null) {
+        if ((summary != null) && (createdAt != null)) {
             ScanSummaryDialog.newInstance(summary, createdAt)
                 .show(supportFragmentManager, ScanSummaryDialog.TAG)
         } else {

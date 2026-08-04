@@ -18,7 +18,6 @@ import com.project.fridgemate.databinding.ItemMessageRecipeReceivedBinding
 import com.project.fridgemate.databinding.ItemMessageRecipeSentBinding
 import com.project.fridgemate.databinding.ItemMessageSentBinding
 import com.project.fridgemate.utils.AvatarHelper
-import com.squareup.picasso.Callback
 import com.squareup.picasso.Picasso
 import java.text.DateFormat
 import java.text.SimpleDateFormat
@@ -245,8 +244,8 @@ class MessageAdapter(
         private const val TYPE_RECEIVED_RECIPE = 5
 
         private val Diff = object : DiffUtil.ItemCallback<ChatItem>() {
-            override fun areItemsTheSame(old: ChatItem, new: ChatItem) = old.key == new.key
-            override fun areContentsTheSame(old: ChatItem, new: ChatItem) = old == new
+            override fun areItemsTheSame(oldItem: ChatItem, newItem: ChatItem) = oldItem.key == newItem.key
+            override fun areContentsTheSame(oldItem: ChatItem, newItem: ChatItem) = oldItem == newItem
         }
 
         private val timeFormat: DateFormat =
@@ -275,7 +274,6 @@ class MessageAdapter(
                     val isUnreachable = host == "localhost" ||
                         host == "127.0.0.1" ||
                         host == "0.0.0.0" ||
-                        // private LAN IPs that the emulator can't reach
                         host.startsWith("192.168.") ||
                         host.startsWith("10.") && host != "10.0.2.2"
                     if (isUnreachable) {
