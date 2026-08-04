@@ -36,9 +36,17 @@ class FridgeFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
         binding.rvFridge.layoutManager = LinearLayoutManager(requireContext())
 
+        setupFilterChips()
         observeViewModel()
         setupErrorState()
         viewModel.loadItems()
+    }
+
+    private fun setupFilterChips() {
+        binding.chipGroupFilter.setOnCheckedStateChangeListener { _, checkedIds ->
+            val showOnlyMy = checkedIds.contains(R.id.chip_my_items)
+            viewModel.setShowOnlyMyItems(showOnlyMy)
+        }
     }
 
     private fun setupErrorState() {
@@ -83,11 +91,32 @@ class FridgeFragment : Fragment() {
                 viewModel.consumeOwnerAssignMessage()
             }
         }
+        viewModel.showOnlyMyItems.observe(viewLifecycleOwner) { isOnlyMy ->
+            val chipId = if (isOnlyMy) R.id.chip_my_items else R.id.chip_all
+            if (binding.chipGroupFilter.checkedChipId != chipId) {
+                binding.chipGroupFilter.check(chipId)
+            }
+        }
+        viewModel.lastScannedAt.observe(viewLifecycleOwner) { timestamp ->
+            if (!timestamp.isNullOrBlank()) {
+                binding.llLastScanned.visibility = View.VISIBLE
+                // Remove seconds if present (format assumed: "dd/MM/yyyy HH:mm:ss" or similar)
+                val timeWithoutSeconds = if (timestamp.count { it == ':' } == 2) {
+                    timestamp.substringBeforeLast(':')
+                } else {
+                    timestamp
+                }
+                binding.tvLastScannedTime.text = timeWithoutSeconds
+            } else {
+                binding.llLastScanned.visibility = View.GONE
+            }
+        }
     }
 
     private fun showLoading() {
         binding.loadingOverlay.visibility = View.VISIBLE
         binding.rvFridge.visibility = View.GONE
+        binding.clFilterHeader.visibility = View.GONE
         binding.emptyState.visibility = View.GONE
         binding.errorState.errorStateContainer.visibility = View.GONE
     }
@@ -97,6 +126,7 @@ class FridgeFragment : Fragment() {
         binding.loadingOverlay.visibility = View.GONE
         bindAdapter()
         binding.rvFridge.visibility = View.VISIBLE
+        binding.clFilterHeader.visibility = View.VISIBLE
         binding.emptyState.visibility = View.GONE
     }
 
@@ -141,15 +171,21 @@ class FridgeFragment : Fragment() {
     private fun showEmptyState() {
         binding.loadingOverlay.visibility = View.GONE
         binding.rvFridge.visibility = View.GONE
+        binding.clFilterHeader.visibility = View.VISIBLE
         binding.emptyState.visibility = View.VISIBLE
         binding.errorState.errorStateContainer.visibility = View.GONE
         binding.tvEmptyTitle.text = getString(R.string.fridge_empty_title)
-        binding.tvEmptyDesc.text = getString(R.string.fridge_empty_desc)
+        binding.tvEmptyDesc.text = if (viewModel.showOnlyMyItems.value == true) {
+            getString(R.string.fridge_empty_owned_desc)
+        } else {
+            getString(R.string.fridge_empty_desc)
+        }
     }
 
     private fun showNoFridge() {
         binding.loadingOverlay.visibility = View.GONE
         binding.rvFridge.visibility = View.GONE
+        binding.clFilterHeader.visibility = View.GONE
         binding.emptyState.visibility = View.VISIBLE
         binding.errorState.errorStateContainer.visibility = View.GONE
         binding.tvEmptyTitle.text = getString(R.string.no_fridge_title)
@@ -159,6 +195,7 @@ class FridgeFragment : Fragment() {
     private fun showNotLoggedIn() {
         binding.loadingOverlay.visibility = View.GONE
         binding.rvFridge.visibility = View.GONE
+        binding.clFilterHeader.visibility = View.GONE
         binding.emptyState.visibility = View.VISIBLE
         binding.errorState.errorStateContainer.visibility = View.GONE
         binding.tvEmptyTitle.text = getString(R.string.fridge_not_logged_in_title)
@@ -168,6 +205,7 @@ class FridgeFragment : Fragment() {
     private fun showError(message: String) {
         binding.loadingOverlay.visibility = View.GONE
         binding.rvFridge.visibility = View.GONE
+        binding.clFilterHeader.visibility = View.GONE
         binding.emptyState.visibility = View.GONE
         binding.errorState.errorStateContainer.visibility = View.VISIBLE
         binding.errorState.tvErrorDesc.text = ErrorMapper.mapToUserFriendly(requireContext(), message)

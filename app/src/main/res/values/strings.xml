@@ -97,6 +97,9 @@
     <string name="owner_assign_failed">Couldn\'t assign owner. Please try again.</string>
     <string name="owner_assigned_format">Assigned to %1$s</string>
     <string name="owner_removed">Owner removed</string>
+    <string name="show_only_my_items">Show only my items</string>
+    <string name="filter_my_items">My Items</string>
+    <string name="fridge_empty_owned_desc">You don\'t have any items assigned to you.</string>
 
     <!-- Recipes Screen -->
     <string name="recipes_empty_title">Ready to cook?</string>

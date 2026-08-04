@@ -128,13 +128,6 @@ class SettingsFragment : Fragment() {
             }
         }
 
-        viewModel.actionSuccess.observe(viewLifecycleOwner) { message ->
-            message?.let {
-                ToastHelper.showToast(requireContext(), it)
-                viewModel.clearActionSuccess()
-            }
-        }
-
         viewModel.isLoading.observe(viewLifecycleOwner) { loading ->
             binding.loadingOverlay.visibility = if (loading) View.VISIBLE else View.GONE
             binding.btnLeaveFridge.isEnabled = !loading

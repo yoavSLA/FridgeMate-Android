@@ -105,13 +105,6 @@ class OnboardingFragment : Fragment() {
                 viewModel.clearError()
             }
         }
-
-        viewModel.actionSuccess.observe(viewLifecycleOwner) { message ->
-            message?.let {
-                ToastHelper.showToast(requireContext(), it)
-                viewModel.clearActionSuccess()
-            }
-        }
     }
 
     override fun onDestroyView() {

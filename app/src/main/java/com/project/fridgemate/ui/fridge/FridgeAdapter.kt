@@ -19,7 +19,6 @@ class FridgeAdapter(
 ) : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
 
     companion object {
-        private const val TYPE_LAST_SCANNED = -1
         private const val TYPE_RUNNING_LOW = 0
         private const val TYPE_CATEGORY_HEADER = 1
         private const val TYPE_PRODUCT = 2
@@ -27,7 +26,6 @@ class FridgeAdapter(
 
     override fun getItemViewType(position: Int): Int {
         return when (items[position]) {
-            is FridgeItem.LastScanned -> TYPE_LAST_SCANNED
             is FridgeItem.RunningLow -> TYPE_RUNNING_LOW
             is FridgeItem.CategoryHeader -> TYPE_CATEGORY_HEADER
             is FridgeItem.Product -> TYPE_PRODUCT
@@ -37,10 +35,6 @@ class FridgeAdapter(
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
         val inflater = LayoutInflater.from(parent.context)
         return when (viewType) {
-            TYPE_LAST_SCANNED -> {
-                val view = inflater.inflate(R.layout.item_last_scanned, parent, false)
-                LastScannedViewHolder(view)
-            }
             TYPE_RUNNING_LOW -> {
                 val binding = ItemRunningLowBinding.inflate(inflater, parent, false)
                 RunningLowViewHolder(binding)
@@ -59,7 +53,6 @@ class FridgeAdapter(
 
     override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
         when (val item = items[position]) {
-            is FridgeItem.LastScanned -> (holder as LastScannedViewHolder).bind(item)
             is FridgeItem.RunningLow -> (holder as RunningLowViewHolder).bind(item)
             is FridgeItem.CategoryHeader -> {
                 val colors = getCategoryColors(item.name)
@@ -107,13 +100,6 @@ class FridgeAdapter(
     }
 
     override fun getItemCount(): Int = items.size
-
-    class LastScannedViewHolder(view: View) : RecyclerView.ViewHolder(view) {
-        private val tvTime: android.widget.TextView = view.findViewById(R.id.tvLastScannedTime)
-        fun bind(item: FridgeItem.LastScanned) {
-            tvTime.text = item.timestamp
-        }
-    }
 
     class RunningLowViewHolder(private val binding: ItemRunningLowBinding) :
         RecyclerView.ViewHolder(binding.root) {
