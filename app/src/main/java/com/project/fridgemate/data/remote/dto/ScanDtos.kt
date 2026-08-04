@@ -2,12 +2,14 @@ package com.project.fridgemate.data.remote.dto
 
 data class DetectedItemDto(
     val name: String,
-    val quantity: String
+    val quantity: String,
+    val category: String? = null
 )
 
 data class InventoryChangeDto(
     val name: String,
-    val quantity: String
+    val quantity: String,
+    val category: String? = null
 )
 
 data class UpdatedItemDto(

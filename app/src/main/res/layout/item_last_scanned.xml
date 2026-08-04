@@ -2,25 +2,28 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:layout_width="match_parent"
+    android:layout_width="wrap_content"
     android:layout_height="wrap_content"
     android:layout_marginBottom="16dp"
+    android:layout_gravity="center_horizontal"
+    android:background="@drawable/bg_last_scanned_pill"
     android:gravity="center_vertical"
     android:orientation="horizontal"
-    android:paddingHorizontal="4dp">
+    android:paddingHorizontal="12dp"
+    android:paddingVertical="4dp">
 
     <ImageView
-        android:layout_width="14dp"
-        android:layout_height="14dp"
+        android:layout_width="12dp"
+        android:layout_height="12dp"
         android:src="@drawable/ic_time"
-        app:tint="@color/gray_text" />
+        app:tint="@color/accent_green_dark" />
 
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="6dp"
         android:text="@string/last_updated_label"
-        android:textColor="@color/gray_text"
+        android:textColor="@color/accent_green_dark"
         android:textSize="11sp"
         android:textStyle="bold" />
 
@@ -29,7 +32,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="4dp"
-        android:textColor="@color/gray_text"
+        android:textColor="@color/accent_green_dark"
         android:textSize="11sp"
         tools:text="14/06/2024 15:30:45" />
 

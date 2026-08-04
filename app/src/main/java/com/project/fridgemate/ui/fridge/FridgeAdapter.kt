@@ -61,14 +61,48 @@ class FridgeAdapter(
         when (val item = items[position]) {
             is FridgeItem.LastScanned -> (holder as LastScannedViewHolder).bind(item)
             is FridgeItem.RunningLow -> (holder as RunningLowViewHolder).bind(item)
-            is FridgeItem.CategoryHeader -> (holder as CategoryHeaderViewHolder).bind(item)
+            is FridgeItem.CategoryHeader -> {
+                val colors = getCategoryColors(item.name)
+                val isFirstCategory = items.indexOfFirst { it is FridgeItem.CategoryHeader } == position
+                (holder as CategoryHeaderViewHolder).bind(item, colors, isFirstCategory)
+            }
             is FridgeItem.Product -> {
                 val isFirstInGroup = position == 0 || items[position - 1] !is FridgeItem.Product
                 val isLastInGroup = position == items.size - 1 || items[position + 1] !is FridgeItem.Product
+                val colors = getCategoryColors(item.category ?: "Other")
                 (holder as ProductViewHolder).bind(
-                    item, isFirstInGroup, isLastInGroup, members[item.ownerId], onOwnerIconClick, onOwnerRemoveClick
+                    item, isFirstInGroup, isLastInGroup, colors, members[item.ownerId], onOwnerIconClick, onOwnerRemoveClick
                 )
             }
+        }
+    }
+
+    private val categoryColorMap = mutableMapOf<String, CategoryColors>()
+    
+    data class CategoryColors(val backgroundRes: Int, val accentRes: Int)
+
+    private val hueList = listOf(
+        CategoryColors(R.color.chat_bubble_user_6, R.color.chat_sender_user_6),  // Dark Blue
+        CategoryColors(R.color.chat_bubble_user_10, R.color.chat_sender_user_10), // Dark Green
+        CategoryColors(R.color.chat_bubble_user_1, R.color.chat_sender_user_1),  // Red
+        CategoryColors(R.color.chat_bubble_user_14, R.color.chat_sender_user_14), // Deep Orange
+        CategoryColors(R.color.chat_bubble_user_3, R.color.chat_sender_user_3),  // Purple
+        CategoryColors(R.color.chat_bubble_user_8, R.color.chat_sender_user_8),  // Teal
+        CategoryColors(R.color.chat_bubble_user_13, R.color.chat_sender_user_13), // Amber/Yellow
+        CategoryColors(R.color.chat_bubble_user_5, R.color.chat_sender_user_5),  // Indigo
+        CategoryColors(R.color.chat_bubble_user_15, R.color.chat_sender_user_15), // Burnt Orange
+        CategoryColors(R.color.chat_bubble_user_2, R.color.chat_sender_user_2),  // Deep Pink
+        CategoryColors(R.color.chat_bubble_user_11, R.color.chat_sender_user_11), // Lime Green
+        CategoryColors(R.color.chat_bubble_user_7, R.color.chat_sender_user_7),  // Sky Blue
+        CategoryColors(R.color.chat_bubble_user_4, R.color.chat_sender_user_4),  // Deep Lavender
+        CategoryColors(R.color.chat_bubble_user_12, R.color.chat_sender_user_12), // Olive
+        CategoryColors(R.color.chat_bubble_user_9, R.color.chat_sender_user_9)   // Dark Teal
+    )
+
+    private fun getCategoryColors(category: String): CategoryColors {
+        val normalized = category.lowercase().trim()
+        return categoryColorMap.getOrPut(normalized) {
+            hueList[categoryColorMap.size % hueList.size]
         }
     }
 
@@ -91,8 +125,19 @@ class FridgeAdapter(
 
     class CategoryHeaderViewHolder(private val binding: ItemCategoryHeaderBinding) :
         RecyclerView.ViewHolder(binding.root) {
-        fun bind(item: FridgeItem.CategoryHeader) {
+        fun bind(item: FridgeItem.CategoryHeader, colors: CategoryColors, isFirst: Boolean) {
             binding.tvCategoryName.text = item.name.uppercase()
+            val accentColor = ContextCompat.getColor(binding.root.context, colors.accentRes)
+            binding.vCategoryIndicator.setBackgroundColor(accentColor)
+            binding.tvCategoryName.setTextColor(accentColor)
+
+            val params = binding.root.layoutParams as ViewGroup.MarginLayoutParams
+            params.topMargin = if (isFirst) {
+                (binding.root.context.resources.displayMetrics.density * 8).toInt()
+            } else {
+                (binding.root.context.resources.displayMetrics.density * 32).toInt()
+            }
+            binding.root.layoutParams = params
         }
     }
 
@@ -102,6 +147,7 @@ class FridgeAdapter(
             item: FridgeItem.Product,
             isFirstInGroup: Boolean,
             isLastInGroup: Boolean,
+            colors: CategoryColors,
             owner: FridgeMemberDetailDto?,
             onOwnerIconClick: (View, FridgeItem.Product) -> Unit,
             onOwnerRemoveClick: (FridgeItem.Product) -> Unit
@@ -110,16 +156,30 @@ class FridgeAdapter(
             binding.tvProductName.text = item.name
             binding.tvProductQuantity.text = item.quantity
             binding.ivLowStockWarning.visibility = if (item.isLowStock) View.VISIBLE else View.GONE
-            binding.divider.visibility = if (isLastInGroup) View.GONE else View.VISIBLE
+            binding.divider.visibility = View.GONE // Stroke acts as divider now
+
+            val accentColor = ContextCompat.getColor(context, colors.accentRes)
+            
+            // Quantity Badge: White text on a slightly more vivid tinted background
+            binding.tvProductQuantity.setTextColor(ContextCompat.getColor(context, R.color.white))
+            binding.tvProductQuantity.backgroundTintList = android.content.res.ColorStateList.valueOf(
+                androidx.core.graphics.ColorUtils.setAlphaComponent(accentColor, 135) // Slightly more vivid alpha
+            )
 
             val isAssigned = item.ownerId != null
             if (isAssigned) {
                 binding.ownerContainer.setBackgroundResource(R.drawable.bg_owner_pill)
+                // Owner Badge: Keep it subtle with a tint and colored text
+                binding.ownerContainer.backgroundTintList = android.content.res.ColorStateList.valueOf(
+                    androidx.core.graphics.ColorUtils.setAlphaComponent(accentColor, 32)
+                )
                 binding.tvOwnerName.text = owner?.displayName
                     ?: context.getString(R.string.unassigned_owner)
                 binding.tvOwnerName.visibility = View.VISIBLE
                 binding.ivOwnerRemove.visibility = View.VISIBLE
-                binding.ivOwnerIcon.setColorFilter(ContextCompat.getColor(context, R.color.accent_green_dark))
+                binding.tvOwnerName.setTextColor(accentColor)
+                binding.ivOwnerIcon.setColorFilter(accentColor)
+                binding.ivOwnerRemove.setColorFilter(accentColor)
             } else {
                 binding.ownerContainer.background = null
                 binding.tvOwnerName.visibility = View.GONE
@@ -129,19 +189,38 @@ class FridgeAdapter(
             binding.ownerContainer.setOnClickListener { onOwnerIconClick(binding.ownerContainer, item) }
             binding.ivOwnerRemove.setOnClickListener { onOwnerRemoveClick(item) }
 
-            if (isFirstInGroup && isLastInGroup) {
-                // Single item in group - rounded top and bottom
-                binding.root.setBackgroundResource(R.drawable.bg_product_item_all)
-            } else if (isFirstInGroup) {
-                // First in group - rounded top
-                binding.root.setBackgroundResource(R.drawable.bg_product_item_top)
-            } else if (isLastInGroup) {
-                // Last in group - rounded bottom
-                binding.root.setBackgroundResource(R.drawable.bg_product_item)
+            // Apply specific drawables with a very thin neutral stroke
+            val rootDrawable = ContextCompat.getDrawable(context, when {
+                isFirstInGroup && isLastInGroup -> R.drawable.bg_product_item_all
+                isFirstInGroup -> R.drawable.bg_product_item_top
+                isLastInGroup -> R.drawable.bg_product_item
+                else -> R.drawable.bg_product_item_middle
+            })?.mutate()
+
+            val bgDrawable = if (rootDrawable is android.graphics.drawable.LayerDrawable) {
+                rootDrawable.getDrawable(0) as? android.graphics.drawable.GradientDrawable
             } else {
-                // Middle item - no rounding
-                binding.root.setBackgroundColor(ContextCompat.getColor(context, R.color.white))
+                rootDrawable as? android.graphics.drawable.GradientDrawable
             }
+
+            bgDrawable?.let {
+                // Ultra-thin neutral border
+                val strokeWidth = (context.resources.displayMetrics.density * 0.8f).toInt().coerceAtLeast(1)
+                val strokeColor = ContextCompat.getColor(context, R.color.card_stroke_color)
+                it.setStroke(strokeWidth, strokeColor)
+                binding.root.background = rootDrawable
+            }
+            
+            // Add shadow and ensure it's not clipped
+            binding.root.elevation = 2f * context.resources.displayMetrics.density
+            binding.root.outlineProvider = android.view.ViewOutlineProvider.BACKGROUND
+            
+            // Re-enable gray divider between items, but not for the last item in a group
+            binding.divider.visibility = if (isLastInGroup) View.GONE else View.VISIBLE
+            binding.divider.setBackgroundColor(ContextCompat.getColor(context, R.color.divider_color))
+
+            // Remove the background tint to keep the white/stroke look
+            binding.root.backgroundTintList = null
         }
     }
 }

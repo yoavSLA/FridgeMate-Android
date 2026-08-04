@@ -12,6 +12,7 @@
     <color name="warning_yellow_bg">#FFF8E1</color>
     <color name="warning_yellow_text">#856404</color>
     <color name="divider_color">#EEEEEE</color>
+    <color name="card_stroke_color">#E0E0E0</color>
 
     <color name="accent_green">#00BC90</color>
     <color name="accent_green_gradient_start">#00BC7D</color>
