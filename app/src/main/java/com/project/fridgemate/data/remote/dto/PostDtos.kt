@@ -2,16 +2,12 @@ package com.project.fridgemate.data.remote.dto
 
 import com.google.gson.annotations.SerializedName
 
-// ── Author (populated from authorUserId) ────────────────────────────────────
-
 data class PostAuthorDto(
     @SerializedName("_id") val id: String,
     val displayName: String,
     val profileImage: String?,
     val address: AddressDto?
 )
-
-// ── Post ────────────────────────────────────────────────────────────────────
 
 data class PostDto(
     @SerializedName("_id") val id: String,
@@ -37,8 +33,6 @@ data class PostLocationDto(
     val placeName: String?
 )
 
-// ── Comment ─────────────────────────────────────────────────────────────────
-
 data class CommentAuthorDto(
     @SerializedName("_id") val id: String,
     val displayName: String,
@@ -55,8 +49,6 @@ data class CommentDto(
     val updatedAt: String
 )
 
-// ── Linked Recipe (populated from recipeId) ────────────────────────────────
-
 data class PostRecipeDto(
     @SerializedName("_id") val id: String,
     val title: String?,
@@ -65,8 +57,6 @@ data class PostRecipeDto(
     val difficulty: String?,
     val imageUrl: String?
 )
-
-// ── Requests ────────────────────────────────────────────────────────────────
 
 data class CreatePostRequest(
     val title: String,
@@ -96,8 +86,6 @@ data class CreateCommentRequest(
 data class UpdateCommentRequest(
     val text: String
 )
-
-// ── Responses ───────────────────────────────────────────────────────────────
 
 data class PostListResponse(
     val items: List<PostDto>,

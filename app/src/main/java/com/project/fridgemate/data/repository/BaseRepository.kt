@@ -15,7 +15,7 @@ abstract class BaseRepository {
     }
 
     protected fun networkErrorMessage(e: Exception): String {
-        return if (e is java.net.ConnectException || e is java.net.UnknownHostException) {
+        return if ((e is java.net.ConnectException) || (e is java.net.UnknownHostException)) {
             "Unable to connect to server. Please check your connection."
         } else {
             e.localizedMessage ?: "An unexpected error occurred."

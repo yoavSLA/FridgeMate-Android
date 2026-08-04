@@ -9,7 +9,6 @@ import com.project.fridgemate.R
 object ErrorMapper {
 
     fun mapToUserFriendly(context: Context, rawError: String?): String {
-        android.util.Log.d("ErrorMapper", "Mapping error: $rawError")
         if (rawError == null) return context.getString(R.string.error_generic)
 
         val errorLower = rawError.lowercase()

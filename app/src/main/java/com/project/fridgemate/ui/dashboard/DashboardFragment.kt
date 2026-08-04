@@ -1,6 +1,5 @@
 package com.project.fridgemate.ui.dashboard
 
-import android.animation.ObjectAnimator
 import android.annotation.SuppressLint
 import android.content.Intent
 import android.os.Bundle
@@ -44,7 +43,9 @@ import kotlinx.coroutines.launch
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.updatePadding
+import com.google.android.material.badge.ExperimentalBadgeUtils
 
+@SuppressLint("UnsafeOptInUsageError")
 class DashboardFragment : Fragment() {
 
     private var _binding: FragmentDashboardBinding? = null
@@ -117,10 +118,8 @@ class DashboardFragment : Fragment() {
         if (!fridge.isAdded) transaction.add(R.id.dashboard_nav_host, fridge, "fridge")
         if (!journal.isAdded) transaction.add(R.id.dashboard_nav_host, journal, "journal")
 
-        // Hide all first
         transaction.hide(feed).hide(recipes).hide(fridge).hide(journal)
 
-        // Show selected one
         val selected = when (currentTabId) {
             R.id.tab_feed -> feed
             R.id.tab_recipes -> recipes
@@ -171,7 +170,6 @@ class DashboardFragment : Fragment() {
     private fun setupTabListeners() {
         binding.tabMyFridge.setOnClickListener {
             if (currentTabId == it.id) {
-                // Re-selected: trigger silent refresh
                 fridgeViewModel.loadItems()
             } else {
                 currentTabId = it.id
@@ -181,7 +179,6 @@ class DashboardFragment : Fragment() {
         }
         binding.tabFeed.setOnClickListener {
             if (currentTabId == it.id) {
-                // Re-selected: trigger silent refresh and scroll to top
                 feedViewModel.loadPosts(refresh = true, silent = true)
             } else {
                 currentTabId = it.id
@@ -190,8 +187,6 @@ class DashboardFragment : Fragment() {
             }
         }
         binding.tabRecipes.setOnClickListener {
-            // Recipes might not have a public refresh method easily accessible here, 
-            // but we can add one if needed.
             if (currentTabId != it.id) {
                 currentTabId = it.id
                 updateTabUI(currentTabId)
@@ -208,10 +203,10 @@ class DashboardFragment : Fragment() {
     }
 
     private fun updateTabUI(tabId: Int) {
-        resetTab(binding.tabFeed, binding.ivTabFeed, binding.tvTabFeed)
-        resetTab(binding.tabMyFridge, binding.ivTabFridge, binding.tvTabFridge)
-        resetTab(binding.tabRecipes, binding.ivTabRecipes, binding.tvTabRecipes)
-        resetTab(binding.tabJournal, binding.ivTabJournal, binding.tvTabJournal)
+        resetTab(binding.ivTabFeed, binding.tvTabFeed)
+        resetTab(binding.ivTabFridge, binding.tvTabFridge)
+        resetTab(binding.ivTabRecipes, binding.tvTabRecipes)
+        resetTab(binding.ivTabJournal, binding.tvTabJournal)
 
         val accentColor = ContextCompat.getColor(requireContext(), R.color.accent_green)
         when (tabId) {
@@ -238,7 +233,7 @@ class DashboardFragment : Fragment() {
         }
     }
 
-    private fun resetTab(tab: View, icon: android.widget.ImageView, text: android.widget.TextView) {
+    private fun resetTab(icon: android.widget.ImageView, text: android.widget.TextView) {
         val gray = ContextCompat.getColor(requireContext(), R.color.gray_text)
         icon.setColorFilter(gray)
         text.setTextColor(gray)
@@ -254,13 +249,11 @@ class DashboardFragment : Fragment() {
 
         val transaction = fm.beginTransaction()
         
-        // Hide all
         feed?.let { transaction.hide(it) }
         recipes?.let { transaction.hide(it) }
         fridge?.let { transaction.hide(it) }
         journal?.let { transaction.hide(it) }
 
-        // Show targeted
         when (tabId) {
             R.id.tab_feed -> feed?.let { transaction.show(it) }
             R.id.tab_recipes -> recipes?.let { transaction.show(it) }
@@ -334,7 +327,7 @@ class DashboardFragment : Fragment() {
                 .actionDashboardFragmentToFridgeChatFragment(fridgeId, fridgeName)
             findNavController().navigate(action)
         }
-            if (fridgeViewModel.activeFridgeId.value.isNullOrBlank()) {
+        if (fridgeViewModel.activeFridgeId.value.isNullOrBlank()) {
             fridgeViewModel.loadItems()
         }
     }
@@ -431,7 +424,7 @@ class DashboardFragment : Fragment() {
 
     override fun onDestroyView() {
         chatBadge?.let { badge ->
-            if (chatBadgeAttached && _binding != null) {
+            if (chatBadgeAttached && (_binding != null)) {
                 BadgeUtils.detachBadgeDrawable(badge, binding.btnChat)
             }
         }

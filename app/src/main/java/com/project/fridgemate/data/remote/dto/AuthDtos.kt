@@ -2,8 +2,6 @@ package com.project.fridgemate.data.remote.dto
 
 import com.google.gson.annotations.SerializedName
 
-// ── Requests ────────────────────────────────────────────────────────────────
-
 data class LoginRequest(
     val email: String,
     val password: String
@@ -33,8 +31,6 @@ data class GoogleLoginRequest(
     val idToken: String
 )
 
-// ── Responses ───────────────────────────────────────────────────────────────
-
 data class LoginResponse(
     val message: String,
     val accessToken: String,
@@ -53,8 +49,6 @@ data class RefreshTokenResponse(
 data class MessageResponse(
     val message: String
 )
-
-// ── Shared DTOs ─────────────────────────────────────────────────────────────
 
 data class AddressDto(
     val country: String? = null,

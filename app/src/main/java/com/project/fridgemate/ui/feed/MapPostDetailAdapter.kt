@@ -102,7 +102,6 @@ class MapPostDetailAdapter(
                 tvCookingTime.text = recipe.cookingTime
                 tvDifficulty.text = recipe.difficulty
 
-                // Hide icons if info is missing
                 ivTimeIcon.visibility = if (recipe.cookingTime.isBlank()) View.GONE else View.VISIBLE
                 tvCookingTime.visibility = if (recipe.cookingTime.isBlank()) View.GONE else View.VISIBLE
                 ivDifficultyIcon.visibility = if (recipe.difficulty.isBlank()) View.GONE else View.VISIBLE

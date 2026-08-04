@@ -50,7 +50,7 @@ class InventoryItemRepository(context: Context) : BaseRepository() {
             val json = JSONObject().put("ownerId", ownerId ?: JSONObject.NULL).toString()
             val body = json.toRequestBody("application/json".toMediaType())
             api.assignOwner(fridgeId, itemId, body).isSuccessful
-        } catch (e: Exception) {
+        } catch (_: Exception) {
             false
         }
     }
@@ -59,7 +59,7 @@ class InventoryItemRepository(context: Context) : BaseRepository() {
         val socket = SocketManager.connect()
 
         val onOwnerChanged = Emitter.Listener { args ->
-            val json = args.firstOrNull() as? JSONObject ?: return@Listener
+            val json = (args.firstOrNull() as? JSONObject) ?: return@Listener
             runCatching {
                 gson.fromJson(json.toString(), ItemOwnerChangedDto::class.java)
             }.getOrNull()?.let { trySend(it) }

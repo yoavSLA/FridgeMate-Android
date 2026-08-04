@@ -2,14 +2,10 @@ package com.project.fridgemate.data.remote.dto
 
 import com.google.gson.annotations.SerializedName
 
-// ── Requests ────────────────────────────────────────────────────────────────
-
 data class GenerateRecipesRequest(
     val ingredients: List<String>,
     val count: Int = 3
 )
-
-// ── Responses ───────────────────────────────────────────────────────────────
 
 data class GenerateRecipesResponse(
     val message: String,

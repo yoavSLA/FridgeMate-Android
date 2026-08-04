@@ -87,7 +87,6 @@ class SettingsFragment : Fragment() {
                     binding.cardSharedFridge.visibility = View.GONE
                     binding.cardFridgeScanner.visibility = View.GONE
                     clearRecipeCache()
-                    // Redirect to onboarding
                     val navController = findNavController()
                     if (navController.currentDestination?.id == R.id.settingsFragment) {
                         navController.navigate(R.id.onboardingFragment)
@@ -125,13 +124,6 @@ class SettingsFragment : Fragment() {
                 val userFriendly = ErrorMapper.mapToUserFriendly(requireContext(), it)
                 ToastHelper.showToast(requireContext(), userFriendly, Toast.LENGTH_LONG)
                 viewModel.clearError()
-            }
-        }
-
-        viewModel.actionSuccess.observe(viewLifecycleOwner) { message ->
-            message?.let {
-                ToastHelper.showToast(requireContext(), it)
-                viewModel.clearActionSuccess()
             }
         }
 
@@ -210,7 +202,6 @@ class SettingsFragment : Fragment() {
 
         dialogBinding.btnConfirmLeave.setOnClickListener {
             viewModel.leaveFridge()
-            // Clear fridge items state immediately
             fridgeViewModel.loadItems()
             dialog.dismiss()
         }

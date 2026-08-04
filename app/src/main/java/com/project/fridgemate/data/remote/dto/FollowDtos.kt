@@ -2,13 +2,11 @@ package com.project.fridgemate.data.remote.dto
 
 import com.google.gson.annotations.SerializedName
 
-/** Result of toggling follow on a target user. */
 data class FollowToggleResponse(
     val following: Boolean,
     val followersCount: Int
 )
 
-/** Lightweight user row used in followers/following/search lists. */
 data class UserListItemDto(
     @SerializedName(value = "id", alternate = ["_id"]) val id: String,
     val displayName: String,

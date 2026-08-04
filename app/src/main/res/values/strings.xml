@@ -97,6 +97,9 @@
     <string name="owner_assign_failed">Couldn\'t assign owner. Please try again.</string>
     <string name="owner_assigned_format">Assigned to %1$s</string>
     <string name="owner_removed">Owner removed</string>
+    <string name="show_only_my_items">Show only my items</string>
+    <string name="filter_my_items">My Items</string>
+    <string name="fridge_empty_owned_desc">You don\'t have any items assigned to you.</string>
 
     <!-- Recipes Screen -->
     <string name="recipes_empty_title">Ready to cook?</string>
@@ -239,7 +242,7 @@
     <string name="onboarding_feat_inventory">Keep track of your inventory</string>
     <string name="onboarding_feat_recipes">Get recipes based on what\'s inside</string>
     <string name="onboarding_scan_title">Fill Your Fridge!</string>
-    <string name="onboarding_scan_desc">Snap a photo of your fridge, and let AI magic identify everything for you. It\'s the fastest way to get started!</string>
+    <string name="onboarding_scan_desc">Snap a photo of your fridge, and we\'ll automatically identify everything for you. It\'s the fastest way to get started!</string>
     <string name="onboarding_finish_button">Finish</string>
     <string name="onboarding_skip_scan">Skip for now</string>
     <string name="quantity_format">(%1$s)</string>
@@ -280,6 +283,7 @@
     <string name="journal_carbs_hint">Carbs</string>
     <string name="journal_fat_hint">Fat</string>
     <string name="journal_macro_suffix">g</string>
+    <string name="journal_macro_suffix_format">%1$dg</string>
     <string name="no_journal_entries">No journal entries yet. Tap + to add one!</string>
     <plurals name="journal_entries_count">
         <item quantity="one">%1$d entry</item>
@@ -330,6 +334,7 @@
     <string name="member_name_placeholder">Member Name</string>
     <string name="profile_name_placeholder">Alex Johnson</string>
     <string name="detecting_location">Detecting location…</string>
+    <string name="ingredient_amount_format">%1$s  \u2014  %2$s</string>
     <string name="cd_back">Back</string>
     <string name="cd_location">Location</string>
     <string name="cd_logo">FridgeMate Logo</string>

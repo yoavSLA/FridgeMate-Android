@@ -19,6 +19,7 @@ import com.project.fridgemate.data.remote.dto.FcmTokenRequest
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+
 class UserRepository(context: Context) : BaseRepository() {
 
     private val api = ApiClient.createApi(UserApi::class.java)
@@ -52,7 +53,7 @@ class UserRepository(context: Context) : BaseRepository() {
         val response = api.updateProfile(id, request)
         return if (response.isSuccessful) {
             val dto = response.body()
-            if (dto != null) cacheUser(dto)
+            dto?.let { cacheUser(it) }
             dto
         } else null
     }
@@ -117,8 +118,6 @@ class UserRepository(context: Context) : BaseRepository() {
         }
     }
 
-
-
     suspend fun uploadProfileImage(imageBytes: ByteArray, mimeType: String): String? {
         val extension = when (mimeType) {
             "image/png" -> "png"
@@ -176,6 +175,7 @@ class UserRepository(context: Context) : BaseRepository() {
             followingCount = followingCount
         )
     }
+
     suspend fun registerFcmToken(token: String): Result<Unit> {
         return try {
             val response = api.registerFcmToken(FcmTokenRequest(token))
@@ -189,9 +189,6 @@ class UserRepository(context: Context) : BaseRepository() {
         }
     }
 
-    /**
-     * Fetches the current FCM token and registers it with the server if the user is logged in.
-     */
     fun syncFcmToken() {
         if (!ApiClient.getTokenManager().isLoggedIn) return
 

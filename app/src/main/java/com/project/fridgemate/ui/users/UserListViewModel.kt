@@ -49,7 +49,7 @@ class UserListViewModel(application: Application) : AndroidViewModel(application
         }
         searchJob = viewModelScope.launch {
             val startTime = System.currentTimeMillis()
-            delay(300) // debounce typing
+            delay(300)
             _isLoading.value = true
             _error.value = null
 

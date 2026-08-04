@@ -3,6 +3,7 @@ package com.project.fridgemate.data.remote
 import android.content.Context
 import android.content.SharedPreferences
 import android.util.Base64
+import androidx.core.content.edit
 import androidx.security.crypto.EncryptedSharedPreferences
 import androidx.security.crypto.MasterKeys
 import org.json.JSONObject
@@ -13,9 +14,8 @@ class TokenManager(context: Context) {
         val masterKey = MasterKeys.getOrCreate(MasterKeys.AES256_GCM_SPEC)
         try {
             createPrefs(context, masterKey)
-        } catch (e: Exception) {
-            // If decryption fails (e.g. key corruption), clear and recreate
-            context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE).edit().clear().apply()
+        } catch (_: Exception) {
+            context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE).edit { clear() }
             createPrefs(context, masterKey)
         }
     }
@@ -48,7 +48,7 @@ class TokenManager(context: Context) {
         return try {
             val payload = token.split(".").getOrNull(1) ?: return null
             val decoded = Base64.decode(payload, Base64.URL_SAFE or Base64.NO_WRAP or Base64.NO_PADDING)
-            JSONObject(String(decoded)).optString("userId", null)
+            JSONObject(String(decoded)).optString("userId")
         } catch (e: Exception) {
             null
         }

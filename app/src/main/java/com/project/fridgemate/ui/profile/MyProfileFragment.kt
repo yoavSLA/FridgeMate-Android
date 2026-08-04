@@ -191,7 +191,6 @@ class MyProfileFragment : Fragment() {
             user ?: return@observe
             binding.etFullName.setText(user.displayName)
             binding.tvEmail.text = user.email ?: ""
-            // Only pre-fill bio when empty to not stomp the user's typing on refresh
             if (binding.etBio.text.isNullOrEmpty()) {
                 binding.etBio.setText(user.bio ?: "")
             }

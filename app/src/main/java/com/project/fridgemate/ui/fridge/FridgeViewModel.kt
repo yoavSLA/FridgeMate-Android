@@ -29,11 +29,11 @@ class FridgeViewModel(application: Application) : AndroidViewModel(application) 
     private val chatRepository = FridgeChatRepository()
 
     sealed class State {
-        object Loading : State()
+        data object Loading : State()
         data class Items(val items: List<FridgeItem>) : State()
-        object Empty : State()
-        object NoFridge : State()
-        object NotLoggedIn : State()
+        data object Empty : State()
+        data object NoFridge : State()
+        data object NotLoggedIn : State()
         data class Error(val message: String) : State()
     }
 
@@ -49,15 +49,20 @@ class FridgeViewModel(application: Application) : AndroidViewModel(application) 
     private val _activeFridgeName = MutableLiveData<String?>(null)
     val activeFridgeName: LiveData<String?> = _activeFridgeName
 
-    private val _unreadCount = MutableLiveData<Int>(0)
+    private val _unreadCount = MutableLiveData(0)
     val unreadCount: LiveData<Int> = _unreadCount
 
     private val _lastScannedAt = MutableLiveData<String?>(null)
     val lastScannedAt: LiveData<String?> = _lastScannedAt
+
+    private val _showOnlyMyItems = MutableLiveData<Boolean>(false)
+    val showOnlyMyItems: LiveData<Boolean> = _showOnlyMyItems
+
     private var chatOpen: Boolean = false
+    private var currentRawItems: List<InventoryItemDto> = emptyList()
 
     private val unreadBumpListener = Emitter.Listener { args ->
-        val payload = args.firstOrNull() as? JSONObject ?: return@Listener
+        val payload = (args.firstOrNull() as? JSONObject) ?: return@Listener
         val incomingFridgeId = payload.optString("fridgeId")
         if (incomingFridgeId.isBlank()) return@Listener
         if (incomingFridgeId != _activeFridgeId.value) return@Listener
@@ -93,13 +98,10 @@ class FridgeViewModel(application: Application) : AndroidViewModel(application) 
 
     fun assignOwner(itemId: String, newOwnerId: String?) {
         val fridgeId = _activeFridgeId.value ?: return
-        val newOwnerName = newOwnerId?.let { _members.value?.get(it)?.displayName }
         viewModelScope.launch {
             val success = itemRepository.assignOwner(fridgeId, itemId, newOwnerId)
-            _ownerAssignMessage.value = when {
-                !success -> getApplication<Application>().getString(R.string.owner_assign_failed)
-                newOwnerName != null -> getApplication<Application>().getString(R.string.owner_assigned_format, newOwnerName)
-                else -> getApplication<Application>().getString(R.string.owner_removed)
+            if (!success) {
+                _ownerAssignMessage.value = getApplication<Application>().getString(R.string.owner_assign_failed)
             }
             if (success) loadItems()
         }
@@ -107,6 +109,17 @@ class FridgeViewModel(application: Application) : AndroidViewModel(application) 
 
     fun consumeOwnerAssignMessage() {
         _ownerAssignMessage.value = null
+    }
+
+    fun setShowOnlyMyItems(show: Boolean) {
+        if (_showOnlyMyItems.value == show) return
+        _showOnlyMyItems.value = show
+        val currentState = _state.value
+        if (currentState is State.Items || currentState is State.Empty) {
+            val items = buildFridgeItemList(currentRawItems)
+            _state.value = if (items.any { it is FridgeItem.Product }) State.Items(items)
+            else State.Empty
+        }
     }
 
     private fun loadMembers() {
@@ -161,6 +174,7 @@ class FridgeViewModel(application: Application) : AndroidViewModel(application) 
             val startTime = System.currentTimeMillis()
             val cached = itemRepository.getCachedItems()
             if (cached.isNotEmpty()) {
+                currentRawItems = cached
                 _state.value = State.Items(buildFridgeItemList(cached))
             } else {
                 _state.value = State.Loading
@@ -174,6 +188,7 @@ class FridgeViewModel(application: Application) : AndroidViewModel(application) 
             when (fridgeResult) {
                 is FridgeResult.NoFridge -> {
                     itemRepository.clearCache()
+                    currentRawItems = emptyList()
                     _activeFridgeId.value = null
                     _activeFridgeName.value = null
                     _lastScannedAt.value = null
@@ -199,8 +214,10 @@ class FridgeViewModel(application: Application) : AndroidViewModel(application) 
                     when (val itemResult = itemRepository.getItems(fridgeResult.data.id)) {
                         is FridgeResult.Success -> {
                             val items = itemResult.data
-                            _state.value = if (items.isEmpty()) State.Empty
-                            else State.Items(buildFridgeItemList(items))
+                            currentRawItems = items
+                            val builtItems = buildFridgeItemList(items)
+                            _state.value = if (builtItems.any { it is FridgeItem.Product }) State.Items(builtItems)
+                            else State.Empty
                         }
                         is FridgeResult.Error -> {
                             _error.value = itemResult.message
@@ -219,16 +236,21 @@ class FridgeViewModel(application: Application) : AndroidViewModel(application) 
 
     private fun buildFridgeItemList(items: List<InventoryItemDto>): List<FridgeItem> {
         val result = mutableListOf<FridgeItem>()
-        _lastScannedAt.value?.let {
-            result.add(FridgeItem.LastScanned(it))
+        val currentUserId = ApiClient.getTokenManager().userId
+        val filterByMe = _showOnlyMyItems.value == true
+
+        val filteredItems = if (filterByMe && currentUserId != null) {
+            items.filter { it.ownerId == currentUserId }
+        } else {
+            items
         }
-        val lowItems = items.filter { it.isRunningLow }
+
+        val lowItems = filteredItems.filter { it.isRunningLow }
         if (lowItems.isNotEmpty()) {
             result.add(FridgeItem.RunningLow(lowItems.map { Pair(it.name, it.quantity) }))
         }
 
-        // Group by category, similar to web frontend
-        val grouped = items.groupBy { it.category ?: "Other" }
+        val grouped = filteredItems.groupBy { it.category ?: "Other" }
         grouped.keys.sorted().forEach { category ->
             result.add(FridgeItem.CategoryHeader(category))
             grouped[category]?.forEach { item ->

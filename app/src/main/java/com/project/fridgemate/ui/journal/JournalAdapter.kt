@@ -1,6 +1,5 @@
 package com.project.fridgemate.ui.journal
 
-import android.text.format.DateUtils
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -42,9 +41,9 @@ class JournalAdapter(
             )
             
             binding.tvTotalCalories.text = String.format(Locale.getDefault(), "%,d", group.totalCalories)
-            binding.tvTotalProtein.text = "${group.totalProtein}g"
-            binding.tvTotalCarbs.text = "${group.totalCarbs}g"
-            binding.tvTotalFat.text = "${group.totalFat}g"
+            binding.tvTotalProtein.text = binding.root.context.getString(R.string.journal_macro_suffix_format, group.totalProtein)
+            binding.tvTotalCarbs.text = binding.root.context.getString(R.string.journal_macro_suffix_format, group.totalCarbs)
+            binding.tvTotalFat.text = binding.root.context.getString(R.string.journal_macro_suffix_format, group.totalFat)
 
             binding.entriesContainer.removeAllViews()
             val inflater = LayoutInflater.from(binding.root.context)
@@ -64,7 +63,7 @@ class JournalAdapter(
 
                 if (entry.calories.isNotEmpty()) {
                     rowBinding.tvCalories.visibility = View.VISIBLE
-                    val calVal = entry.calories.replace(Regex("[^\\d]"), "")
+                    val calVal = entry.calories.replace(Regex("\\D"), "")
                     rowBinding.tvCalories.text = rowBinding.root.context.getString(R.string.kcal_format, calVal)
                 } else {
                     rowBinding.tvCalories.visibility = View.GONE

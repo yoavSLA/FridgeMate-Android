@@ -70,7 +70,6 @@ class OnboardingFragment : Fragment() {
     private fun setupObservers() {
         viewModel.hasFridge.observe(viewLifecycleOwner) { hasFridge ->
             if (hasFridge == true) {
-                // Successful join/create - now check if the fridge is empty
                 isJoining = true
                 fridgeViewModel.loadItems()
             }
@@ -103,13 +102,6 @@ class OnboardingFragment : Fragment() {
                 val userFriendly = ErrorMapper.mapToUserFriendly(requireContext(), it)
                 ToastHelper.showToast(requireContext(), userFriendly, Toast.LENGTH_LONG)
                 viewModel.clearError()
-            }
-        }
-
-        viewModel.actionSuccess.observe(viewLifecycleOwner) { message ->
-            message?.let {
-                ToastHelper.showToast(requireContext(), it)
-                viewModel.clearActionSuccess()
             }
         }
     }

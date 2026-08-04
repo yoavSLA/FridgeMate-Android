@@ -15,8 +15,6 @@ class AuthRepository : BaseRepository() {
     private val authApi: AuthApi = ApiClient.getAuthApi()
     private val tokenManager: TokenManager = ApiClient.getTokenManager()
 
-    val isLoggedIn: Boolean
-        get() = tokenManager.isLoggedIn
 
     suspend fun login(email: String, password: String): AuthResult {
         return try {
@@ -93,7 +91,7 @@ class AuthRepository : BaseRepository() {
             authenticatedApi.logout()
             tokenManager.clearTokens()
             AuthResult.Success
-        } catch (e: Exception) {
+        } catch (_: Exception) {
             tokenManager.clearTokens()
             AuthResult.Success
         }

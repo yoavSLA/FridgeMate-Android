@@ -1,39 +1,43 @@
 package com.project.fridgemate.ui.profile
+
 import android.view.LayoutInflater
-import android.view.View
 import android.view.ViewGroup
-import android.widget.CheckBox
 import androidx.recyclerview.widget.RecyclerView
-import com.project.fridgemate.R
+import com.project.fridgemate.databinding.ItemAllergyBinding
+
 data class AllergyItem(
     val name: String,
     var isChecked: Boolean = false
 )
+
 class AllergyAdapter(
     private val items: List<AllergyItem>,
     private val onToggle: (name: String, isChecked: Boolean) -> Unit = { _, _ -> }
 ) : RecyclerView.Adapter<AllergyAdapter.AllergyViewHolder>() {
 
-    inner class AllergyViewHolder(view: View) : RecyclerView.ViewHolder(view) {
-        val checkBox: CheckBox = view.findViewById(R.id.cbAllergy)
-    }
+    inner class AllergyViewHolder(val binding: ItemAllergyBinding) : RecyclerView.ViewHolder(binding.root)
+
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): AllergyViewHolder {
-        val view = LayoutInflater.from(parent.context)
-            .inflate(R.layout.item_allergy, parent, false)
-        return AllergyViewHolder(view)
+        val binding = ItemAllergyBinding.inflate(LayoutInflater.from(parent.context), parent, false)
+        return AllergyViewHolder(binding)
     }
+
     override fun onBindViewHolder(holder: AllergyViewHolder, position: Int) {
         val item = items[position]
-        holder.checkBox.setOnCheckedChangeListener(null)
-        holder.checkBox.text = item.name
-        holder.checkBox.isChecked = item.isChecked
+        with(holder.binding.cbAllergy) {
+            setOnCheckedChangeListener(null)
+            text = item.name
+            isChecked = item.isChecked
 
-        holder.checkBox.setOnCheckedChangeListener { _, isChecked ->
-            item.isChecked = isChecked
-            onToggle(item.name, isChecked)
+            setOnCheckedChangeListener { _, isChecked ->
+                item.isChecked = isChecked
+                onToggle(item.name, isChecked)
+            }
         }
     }
+
     override fun getItemCount() = items.size
+
     fun getSelectedAllergies(): List<String> {
         return items.filter { it.isChecked }.map { it.name }
     }

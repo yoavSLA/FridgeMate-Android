@@ -66,12 +66,13 @@ class NotificationAdapter(
         private fun getTimeAgo(timestamp: Long): String {
             val now = System.currentTimeMillis()
             val diff = now - timestamp
+            val context = binding.root.context
 
             return when {
-                diff < TimeUnit.MINUTES.toMillis(1) -> "Now"
-                diff < TimeUnit.HOURS.toMillis(1) -> "${TimeUnit.MILLISECONDS.toMinutes(diff)}m"
-                diff < TimeUnit.DAYS.toMillis(1) -> "${TimeUnit.MILLISECONDS.toHours(diff)}h"
-                diff < TimeUnit.DAYS.toMillis(7) -> "${TimeUnit.MILLISECONDS.toDays(diff)}d"
+                diff < TimeUnit.MINUTES.toMillis(1) -> context.getString(R.string.time_now)
+                diff < TimeUnit.HOURS.toMillis(1) -> context.getString(R.string.time_min, TimeUnit.MILLISECONDS.toMinutes(diff))
+                diff < TimeUnit.DAYS.toMillis(1) -> context.getString(R.string.time_hour, TimeUnit.MILLISECONDS.toHours(diff))
+                diff < TimeUnit.DAYS.toMillis(7) -> context.getString(R.string.time_day, TimeUnit.MILLISECONDS.toDays(diff))
                 else -> SimpleDateFormat("MMM d", Locale.getDefault()).format(Date(timestamp))
             }
         }

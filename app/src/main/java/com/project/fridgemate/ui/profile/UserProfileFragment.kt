@@ -79,7 +79,6 @@ class UserProfileFragment : Fragment() {
 
     override fun onResume() {
         super.onResume()
-        // Coming back from edit screen: refresh display
         resolvedUserId?.let { viewModel.refresh(it) }
     }
 
@@ -111,14 +110,11 @@ class UserProfileFragment : Fragment() {
                     )
                 )
             },
-            onLocationClick = { post ->
+            onLocationClick = { _ ->
                 feedViewModel.setViewMode(FeedViewMode.MAP)
-                // Set initial focus for map if we want, but since we are navigating away, 
-                // it might be better to just let the user see the whole map or handle focus via VM.
                 findNavController().popBackStack(R.id.dashboardFragment, false)
             },
             onAuthorClick = { post ->
-                // No-op when already on that user's profile
                 if (post.authorId.isNotEmpty() && post.authorId != resolvedUserId) {
                     findNavController().navigate(
                         UserProfileFragmentDirections.actionUserProfileFragmentSelf(post.authorId)
@@ -192,8 +188,6 @@ class UserProfileFragment : Fragment() {
             binding.tvLocation.text = locationText
             binding.layoutLocationHeader.visibility = if (locationText.isEmpty()) View.GONE else View.VISIBLE
 
-            // Bio (in details card)
-            binding.tvBioLabel.visibility = if (user.bio.isNullOrBlank()) View.GONE else View.VISIBLE
             binding.tvBio.text = user.bio ?: ""
             binding.tvBio.visibility = if (user.bio.isNullOrBlank()) View.GONE else View.VISIBLE
 
@@ -201,24 +195,16 @@ class UserProfileFragment : Fragment() {
             binding.tvFollowersCount.text = user.followersCount.toString()
             binding.tvFollowingCount.text = user.followingCount.toString()
 
-            // Email (in header card)
-            binding.layoutEmailHeader.visibility = if (!user.email.isNullOrEmpty()) View.VISIBLE else View.GONE
             binding.tvEmail.text = user.email
 
-            // Dietary Preference
             val dietText = when (user.dietPreference) {
                 "VEGETARIAN" -> getString(R.string.diet_vegetarian)
                 "VEGAN" -> getString(R.string.diet_vegan)
                 "PESCATARIAN" -> getString(R.string.diet_pescatarian)
                 else -> ""
             }
-            binding.tvDietaryLabel.visibility = if (dietText.isNotEmpty()) View.VISIBLE else View.GONE
-            binding.tvDietaryValue.visibility = if (dietText.isNotEmpty()) View.VISIBLE else View.GONE
             binding.tvDietaryValue.text = dietText
 
-            // Allergies
-            binding.tvAllergiesLabel.visibility = if (user.allergies.isNotEmpty()) View.VISIBLE else View.GONE
-            binding.chipGroupAllergies.visibility = if (user.allergies.isNotEmpty()) View.VISIBLE else View.GONE
             binding.chipGroupAllergies.removeAllViews()
             user.allergies.forEach { allergy ->
                 val chip = Chip(requireContext()).apply {
@@ -232,7 +218,6 @@ class UserProfileFragment : Fragment() {
                 binding.chipGroupAllergies.addView(chip)
             }
 
-            // Show cardDetails if any of the above are visible (Bio, Dietary, Allergies)
             val hasDetails = dietText.isNotEmpty() || user.allergies.isNotEmpty() || !user.bio.isNullOrBlank()
             binding.cardDetails.visibility = if (hasDetails) View.VISIBLE else View.GONE
 

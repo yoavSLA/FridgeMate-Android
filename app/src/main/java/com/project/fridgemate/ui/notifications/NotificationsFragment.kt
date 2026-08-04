@@ -93,7 +93,6 @@ class NotificationsFragment : Fragment() {
         if (hasError && isEmpty) {
             binding.rvNotifications.visibility = View.GONE
             binding.emptyState.visibility = View.GONE
-            // Error view is visible via showError()
         } else {
             binding.rvNotifications.visibility = if (isEmpty) View.GONE else View.VISIBLE
             binding.emptyState.visibility = if (isEmpty) View.VISIBLE else View.GONE

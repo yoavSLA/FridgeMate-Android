@@ -13,16 +13,12 @@ import retrofit2.http.Query
 
 interface InventoryItemApi {
 
-    // mineOrUnowned: when true, only items owned by the caller or unowned are returned
-    // (e.g. for recipe generation, which shouldn't suggest other members' items)
     @GET("fridges/{fridgeId}/items")
     suspend fun getItems(
         @Path("fridgeId") fridgeId: String,
         @Query("mineOrUnowned") mineOrUnowned: Boolean
     ): Response<PaginatedResponse<InventoryItemDto>>
 
-    // Body is built manually (see InventoryItemRepository) so an explicit JSON null can be sent
-    // to unassign an owner — Gson's default converter omits null fields from request bodies.
     @PATCH("fridges/{fridgeId}/items/{itemId}/owner")
     suspend fun assignOwner(
         @Path("fridgeId") fridgeId: String,

@@ -17,8 +17,6 @@ data class ChatMessageDto(
     val payload: ChatMessagePayloadDto? = null,
 )
 
-// Polymorphic payload — only one shape today (recipe), more later if needed.
-// All fields nullable; the consumer reads them based on the parent message's `type`.
 data class ChatMessagePayloadDto(
     val recipeId: String? = null,
     val title: String? = null,

@@ -43,7 +43,7 @@ class PostAdapter(
             override fun areContentsTheSame(oldItem: Post, newItem: Post) = oldItem == newItem
 
             override fun getChangePayload(oldItem: Post, newItem: Post): Any? {
-                return if (oldItem.isLiked != newItem.isLiked || oldItem.likesCount != newItem.likesCount) {
+                return if ((oldItem.isLiked != newItem.isLiked) || (oldItem.likesCount != newItem.likesCount)) {
                     PAYLOAD_LIKE
                 } else {
                     null
@@ -52,7 +52,7 @@ class PostAdapter(
         }
     }
 
-    inner class PostViewHolder(val binding: ItemPostBinding) :
+    class PostViewHolder(val binding: ItemPostBinding) :
         RecyclerView.ViewHolder(binding.root)
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): PostViewHolder {
@@ -126,7 +126,6 @@ class PostAdapter(
                 tvCookingTime.text = recipe.cookingTime
                 tvDifficulty.text = recipe.difficulty
                 
-                // Hide icons if info is missing
                 ivTimeIcon.visibility = if (recipe.cookingTime.isBlank()) View.GONE else View.VISIBLE
                 tvCookingTime.visibility = if (recipe.cookingTime.isBlank()) View.GONE else View.VISIBLE
                 ivDifficultyIcon.visibility = if (recipe.difficulty.isBlank()) View.GONE else View.VISIBLE
@@ -155,7 +154,7 @@ class PostAdapter(
             tvCommentsCount.text = post.commentsCount.toString()
 
             btnLike.setOnClickListener { 
-                val currentPos = holder.adapterPosition
+                val currentPos = holder.bindingAdapterPosition
                 if (currentPos != RecyclerView.NO_POSITION) {
                     onLikeClick(getItem(currentPos))
                 }
@@ -206,10 +205,9 @@ class PostAdapter(
     private fun setupComments(holder: PostViewHolder, post: Post) {
         val rv = holder.binding.rvComments
         
-        // Use the existing adapter if possible to avoid flickering and unnecessary layout passes
         var adapter = rv.adapter as? CommentAdapter
         if (adapter == null) {
-            rv.itemAnimator = null // No animations for nested recycler
+            rv.itemAnimator = null
             rv.layoutManager = LinearLayoutManager(holder.itemView.context)
             adapter = CommentAdapter(
                 onDeleteComment = { comment -> onDeleteComment(post.id, comment.id) },

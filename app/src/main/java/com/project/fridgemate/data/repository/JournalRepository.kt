@@ -8,7 +8,6 @@ import com.project.fridgemate.data.remote.api.JournalApi
 import com.project.fridgemate.data.remote.dto.CreateJournalRequest
 import com.project.fridgemate.data.remote.dto.JournalEntryDto
 import com.project.fridgemate.data.remote.dto.JournalListResponse
-import com.project.fridgemate.data.remote.dto.JournalResponse
 import com.project.fridgemate.data.remote.dto.UpdateJournalRequest
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.MultipartBody
@@ -40,7 +39,7 @@ class JournalRepository(context: Context) : BaseRepository() {
                     }
                 } ?: emptyList()
 
-                if (entities.isNotEmpty() || (data.items != null && data.items.isEmpty())) {
+                if (entities.isNotEmpty() || ((data.items != null) && data.items.isEmpty())) {
                     dao.clearAll()
                     dao.insertAll(entities)
                 }
@@ -134,7 +133,7 @@ class JournalRepository(context: Context) : BaseRepository() {
         val time = try {
             if (date.isNullOrEmpty()) System.currentTimeMillis()
             else dateFormat.parse(date)?.time ?: System.currentTimeMillis()
-        } catch (e: Exception) {
+        } catch (_: Exception) {
             System.currentTimeMillis()
         }
         
@@ -150,7 +149,7 @@ class JournalRepository(context: Context) : BaseRepository() {
             imageUrl = imageUrl ?: "",
             recipeId = meal?.recipeId?.let { 
                 if (it.isJsonPrimitive) it.asString 
-                else if (it.isJsonObject) it.asJsonObject.get("id")?.asString ?: it.asJsonObject.get("_id")?.asString
+                else if (it.isJsonObject) it.asJsonObject["id"]?.asString ?: it.asJsonObject["_id"]?.asString
                 else it.toString() 
             }
         )
