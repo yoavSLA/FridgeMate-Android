@@ -3,6 +3,7 @@ package com.project.fridgemate.data.remote
 import android.content.Context
 import com.project.fridgemate.BuildConfig
 import com.project.fridgemate.data.remote.api.AuthApi
+import com.project.fridgemate.data.remote.api.ScanApi
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
@@ -13,9 +14,13 @@ object ApiClient {
 
     private const val TIMEOUT_SECONDS = 30L
 
+    // A scan blocks on an AI vision call, which regularly outlives the shared timeout.
+    private const val SCAN_TIMEOUT_SECONDS = 120L
+
     private lateinit var tokenManager: TokenManager
     private lateinit var publicRetrofit: Retrofit
     private lateinit var authenticatedRetrofit: Retrofit
+    private lateinit var scanRetrofit: Retrofit
 
     fun init(context: Context) {
         tokenManager = TokenManager(context.applicationContext)
@@ -41,8 +46,14 @@ object ApiClient {
             .readTimeout(TIMEOUT_SECONDS, TimeUnit.SECONDS)
             .build()
 
+        val scanClient = authenticatedClient.newBuilder()
+            .readTimeout(SCAN_TIMEOUT_SECONDS, TimeUnit.SECONDS)
+            .writeTimeout(SCAN_TIMEOUT_SECONDS, TimeUnit.SECONDS)
+            .build()
+
         publicRetrofit = buildRetrofit(publicClient)
         authenticatedRetrofit = buildRetrofit(authenticatedClient)
+        scanRetrofit = buildRetrofit(scanClient)
     }
 
     fun getTokenManager(): TokenManager = tokenManager
@@ -50,6 +61,8 @@ object ApiClient {
     fun getAuthApi(): AuthApi = publicRetrofit.create(AuthApi::class.java)
 
     fun getJournalApi(): com.project.fridgemate.data.remote.api.JournalApi = authenticatedRetrofit.create(com.project.fridgemate.data.remote.api.JournalApi::class.java)
+
+    fun getScanApi(): ScanApi = scanRetrofit.create(ScanApi::class.java)
 
     fun <T> createApi(apiClass: Class<T>): T = authenticatedRetrofit.create(apiClass)
 

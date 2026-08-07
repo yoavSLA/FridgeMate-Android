@@ -28,8 +28,10 @@ import com.project.fridgemate.databinding.DialogLeaveFridgeBinding
 import com.project.fridgemate.databinding.FragmentSettingsBinding
 import com.project.fridgemate.ui.fridge.FridgeViewModel
 import com.project.fridgemate.utils.ErrorMapper
+import com.project.fridgemate.utils.ScanError
+import com.project.fridgemate.utils.ScanErrorSnackbar
+import com.project.fridgemate.utils.ScanImage
 import com.project.fridgemate.utils.ToastHelper
-import java.io.ByteArrayOutputStream
 
 class SettingsFragment : Fragment() {
 
@@ -124,6 +126,13 @@ class SettingsFragment : Fragment() {
                 val userFriendly = ErrorMapper.mapToUserFriendly(requireContext(), it)
                 ToastHelper.showToast(requireContext(), userFriendly, Toast.LENGTH_LONG)
                 viewModel.clearError()
+            }
+        }
+
+        viewModel.scanError.observe(viewLifecycleOwner) { scanError ->
+            scanError?.let {
+                showScanError(it)
+                viewModel.clearScanError()
             }
         }
 
@@ -230,16 +239,25 @@ class SettingsFragment : Fragment() {
     }
 
     private fun handleBitmap(bitmap: Bitmap) {
-        val stream = ByteArrayOutputStream()
-        bitmap.compress(Bitmap.CompressFormat.JPEG, 85, stream)
-        viewModel.uploadFridgeScan(stream.toByteArray(), "image/jpeg")
+        viewModel.uploadFridgeScan(ScanImage.fromBitmap(bitmap), ScanImage.MIME_TYPE)
     }
 
     private fun handleUri(uri: Uri) {
-        val contentResolver = requireContext().contentResolver
-        val mimeType = contentResolver.getType(uri) ?: "image/jpeg"
-        val bytes = contentResolver.openInputStream(uri)?.use { it.readBytes() } ?: return
-        viewModel.uploadFridgeScan(bytes, mimeType)
+        val bytes = ScanImage.fromUri(requireContext(), uri)
+        if (bytes == null) {
+            showScanError(ScanError.UNREADABLE_IMAGE)
+            return
+        }
+        viewModel.uploadFridgeScan(bytes, ScanImage.MIME_TYPE)
+    }
+
+    private fun showScanError(error: ScanError) {
+        ScanErrorSnackbar.show(
+            root = binding.root,
+            error = error,
+            onRetry = { viewModel.retryLastScan() },
+            onNewPhoto = { showImageSourceDialog() }
+        )
     }
 
     private fun clearRecipeCache() {
