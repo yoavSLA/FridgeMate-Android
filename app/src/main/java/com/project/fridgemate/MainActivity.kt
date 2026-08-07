@@ -27,6 +27,7 @@ import androidx.lifecycle.repeatOnLifecycle
 import com.project.fridgemate.data.local.ScanSummaryStorage
 import com.project.fridgemate.data.model.Notification
 import com.project.fridgemate.data.remote.ApiClient
+import com.project.fridgemate.data.remote.socket.SocketManager
 import com.project.fridgemate.data.repository.UserRepository
 import com.project.fridgemate.databinding.ActivityMainBinding
 import com.project.fridgemate.ui.notifications.NotificationViewModel
@@ -82,6 +83,13 @@ class MainActivity : AppCompatActivity() {
         super.onNewIntent(intent)
         setIntent(intent)
         handleNotificationIntent(intent)
+    }
+
+    override fun onStart() {
+        super.onStart()
+        if (ApiClient.getTokenManager().isLoggedIn) {
+            SocketManager.connect()
+        }
     }
 
     private fun observeNotifications() {

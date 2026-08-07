@@ -109,7 +109,10 @@ class FeedFragment : Fragment() {
             else -> binding.scopeAll.id
         }
         binding.scopeToggle.check(initialId)
-        binding.scopeToggle.post { animateToggle(initialId, animate = false) }
+        binding.scopeToggle.post {
+            if (_binding == null) return@post
+            animateToggle(initialId, animate = false)
+        }
 
         binding.scopeToggle.addOnButtonCheckedListener { _, checkedId, isChecked ->
             if (!isChecked) return@addOnButtonCheckedListener
@@ -268,6 +271,7 @@ class FeedFragment : Fragment() {
         
         if (viewHolder == null) {
             viewPager.post {
+                if (_binding == null) return@post
                 val updatedViewHolder = recyclerView.findViewHolderForAdapterPosition(position)
                 if (updatedViewHolder != null) {
                     measureAndSetHeight(updatedViewHolder.itemView)
@@ -281,6 +285,7 @@ class FeedFragment : Fragment() {
     private fun measureAndSetHeight(itemView: View) {
         val container = itemView.findViewById<View>(R.id.llItemContainer) ?: return
         itemView.post {
+            if (_binding == null) return@post
             val width = binding.vpPostDetail.width
             if (width <= 0) return@post
             val wMeasureSpec = View.MeasureSpec.makeMeasureSpec(width, View.MeasureSpec.EXACTLY)
@@ -361,7 +366,10 @@ class FeedFragment : Fragment() {
         )
         binding.vpPostDetail.adapter = detailAdapter
         detailAdapter?.submitList(posts)
-        binding.vpPostDetail.post { updateViewPagerHeight(0) }
+        binding.vpPostDetail.post {
+            if (_binding == null) return@post
+            updateViewPagerHeight(0)
+        }
         if (posts.size > 1) {
             binding.tlDots.visibility = View.VISIBLE
             tabLayoutMediator = TabLayoutMediator(binding.tlDots, binding.vpPostDetail) { _, _ -> }
@@ -485,7 +493,10 @@ class FeedFragment : Fragment() {
             notifViewModel.pendingPostId.value?.let { postId ->
                 val idx = posts.indexOfFirst { it.id == postId }
                 if (idx >= 0) {
-                    binding.rvPosts.post { binding.rvPosts.scrollToPosition(idx) }
+                    binding.rvPosts.post {
+                        if (_binding == null) return@post
+                        binding.rvPosts.scrollToPosition(idx)
+                    }
                     notifViewModel.consumePendingPostId()
                 }
             }
@@ -496,7 +507,10 @@ class FeedFragment : Fragment() {
             val posts = viewModel.posts.value ?: return@observe
             val idx = posts.indexOfFirst { it.id == postId }
             if (idx >= 0) {
-                binding.rvPosts.post { binding.rvPosts.scrollToPosition(idx) }
+                binding.rvPosts.post {
+                    if (_binding == null) return@post
+                    binding.rvPosts.scrollToPosition(idx)
+                }
                 notifViewModel.consumePendingPostId()
             }
         }
