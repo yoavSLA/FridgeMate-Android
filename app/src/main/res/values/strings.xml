@@ -84,7 +84,7 @@
     <string name="scan_error_image_too_large">That photo is too large to scan. Try another one.</string>
     <string name="scan_error_timeout">This scan is taking longer than usual. It may still finish — check back in a moment.</string>
     <string name="scan_error_rate_limit">Our scanner is busy right now. Give it a minute and try again.</string>
-    <string name="scan_error_offline">You\'re offline, so the scan can\'t run. Reconnect and try again.</string>
+    <string name="scan_error_offline">Our kitchen is temporarily closed. Please try again shortly.</string>
     <string name="scan_action_retry">Retry</string>
     <string name="scan_action_new_photo">New Photo</string>
 
