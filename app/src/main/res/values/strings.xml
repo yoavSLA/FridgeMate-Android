@@ -75,6 +75,19 @@
     <string name="error_enter_fridge_name">Please enter a fridge name</string>
     <string name="error_enter_invite_code">Please enter an invite code</string>
 
+    <!-- Fridge Scan Errors -->
+    <string name="scan_error_not_a_fridge">That doesn\'t look like a fridge. Try a photo of your shelves or groceries.</string>
+    <string name="scan_error_too_blurry">That photo is too blurry to read. Hold steady and take another one.</string>
+    <string name="scan_error_too_dark">That photo is too dark. Turn on a light and take another one.</string>
+    <string name="scan_error_no_items">We couldn\'t spot any items. Try moving closer to the shelves.</string>
+    <string name="scan_error_unreadable_image">We couldn\'t read that image. Pick a JPEG, PNG or WebP photo.</string>
+    <string name="scan_error_image_too_large">That photo is too large to scan. Try another one.</string>
+    <string name="scan_error_timeout">This scan is taking longer than usual. It may still finish — check back in a moment.</string>
+    <string name="scan_error_rate_limit">Our scanner is busy right now. Give it a minute and try again.</string>
+    <string name="scan_error_offline">You\'re offline, so the scan can\'t run. Reconnect and try again.</string>
+    <string name="scan_action_retry">Retry</string>
+    <string name="scan_action_new_photo">New Photo</string>
+
     <!-- Dashboard & Navigation -->
     <string name="greeting_format">Hello, %1$s! 👋</string>
     <string name="tab_feed">Feed</string>

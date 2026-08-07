@@ -9,7 +9,7 @@ import okhttp3.RequestBody.Companion.toRequestBody
 
 class ScanRepository : BaseRepository() {
 
-    private val scanApi: ScanApi = ApiClient.createApi(ScanApi::class.java)
+    private val scanApi: ScanApi = ApiClient.getScanApi()
 
     suspend fun uploadScan(imageBytes: ByteArray, mimeType: String): FridgeResult<ScanDto> {
         return try {

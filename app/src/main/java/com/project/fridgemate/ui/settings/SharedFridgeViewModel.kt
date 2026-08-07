@@ -1,12 +1,17 @@
 package com.project.fridgemate.ui.settings
 
 import android.app.Application
+import android.content.Context
+import android.net.ConnectivityManager
+import android.net.NetworkCapabilities
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.switchMap
+import androidx.work.Constraints
 import androidx.work.Data
+import androidx.work.NetworkType
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkInfo
 import androidx.work.WorkManager
@@ -20,6 +25,8 @@ import com.project.fridgemate.data.remote.dto.ScanDto
 import com.project.fridgemate.data.repository.FridgeRepository
 import com.project.fridgemate.data.repository.FridgeResult
 import com.project.fridgemate.R
+import com.project.fridgemate.utils.ScanError
+import com.project.fridgemate.utils.ScanErrorMapper
 import com.project.fridgemate.workers.ScanUploadWorker
 import kotlinx.coroutines.launch
 import java.io.File
@@ -164,6 +171,12 @@ class SharedFridgeViewModel(application: Application) : AndroidViewModel(applica
     private val _scanSummary = MutableLiveData<ScanChangesDto?>(null)
     val scanSummary: LiveData<ScanChangesDto?> = _scanSummary
 
+    private val _scanError = MutableLiveData<ScanError?>(null)
+    val scanError: LiveData<ScanError?> = _scanError
+
+    /** Kept so a transient failure can be retried without asking for the photo again. */
+    private var lastScanImage: Pair<ByteArray, String>? = null
+
     private val _activeScanId = MutableLiveData<UUID?>(null)
     val scanWorkInfo: LiveData<WorkInfo?> = _activeScanId.switchMap { id ->
         if (id == null) MutableLiveData(null)
@@ -171,6 +184,14 @@ class SharedFridgeViewModel(application: Application) : AndroidViewModel(applica
     }
 
     fun uploadFridgeScan(imageBytes: ByteArray, mimeType: String) {
+        lastScanImage = imageBytes to mimeType
+        _scanError.value = null
+
+        if (!isOnline()) {
+            _scanError.value = ScanError.OFFLINE
+            return
+        }
+
         _isScanning.value = true
         _scanResult.value = null
         _scanSummary.value = null
@@ -191,12 +212,29 @@ class SharedFridgeViewModel(application: Application) : AndroidViewModel(applica
 
             val uploadRequest = OneTimeWorkRequestBuilder<ScanUploadWorker>()
                 .addTag("fridge_scan")
+                .setConstraints(
+                    Constraints.Builder()
+                        .setRequiredNetworkType(NetworkType.CONNECTED)
+                        .build()
+                )
                 .setInputData(inputData)
                 .build()
 
             _activeScanId.value = uploadRequest.id
             workManager.enqueue(uploadRequest)
         }
+    }
+
+    fun retryLastScan() {
+        lastScanImage?.let { (bytes, mimeType) -> uploadFridgeScan(bytes, mimeType) }
+    }
+
+    private fun isOnline(): Boolean {
+        val connectivityManager = getApplication<Application>()
+            .getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+        val capabilities = connectivityManager
+            .getNetworkCapabilities(connectivityManager.activeNetwork)
+        return capabilities?.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET) == true
     }
 
     private fun saveImageToTempFile(bytes: ByteArray): File? {
@@ -218,13 +256,17 @@ class SharedFridgeViewModel(application: Application) : AndroidViewModel(applica
                     _scanResult.value = scan.detectedItems
                     _scanSummary.value = scan.changes
                     _lastScannedAt.value = scan.createdAt
+                    if (scan.detectedItems.isEmpty()) {
+                        _scanError.value = ScanError.NO_ITEMS_DETECTED
+                    }
                 }
                 _isScanning.value = false
                 _activeScanId.value = null
             }
             WorkInfo.State.FAILED -> {
-                _error.value = workInfo.outputData.getString(ScanUploadWorker.KEY_ERROR) 
-                    ?: getApplication<Application>().getString(R.string.error_scan_failed)
+                _scanError.value = ScanErrorMapper.fromMessage(
+                    workInfo.outputData.getString(ScanUploadWorker.KEY_ERROR)
+                )
                 _isScanning.value = false
                 _activeScanId.value = null
             }
@@ -242,7 +284,10 @@ class SharedFridgeViewModel(application: Application) : AndroidViewModel(applica
     fun clearScanResult() {
         _scanResult.value = null
         _scanSummary.value = null
+        _scanError.value = null
     }
+
+    fun clearScanError() { _scanError.value = null }
 
     fun clearRecipeCache() {
         viewModelScope.launch {
