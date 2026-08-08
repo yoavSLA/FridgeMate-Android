@@ -46,6 +46,7 @@ fun NotificationDto.toNotification(): Notification {
         "POST_LIKE", "POST_COMMENT" -> metadata?.get("postId") as? String
         "FOLLOW" -> metadata?.get("followerId") as? String
         "CHAT_MESSAGE", "FRIDGE_INVITE" -> metadata?.get("fridgeId") as? String
+        "SCAN_COMPLETE" -> metadata?.get("scanId") as? String
         else -> null
     }
 

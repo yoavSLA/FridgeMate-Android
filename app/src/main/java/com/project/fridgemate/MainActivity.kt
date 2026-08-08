@@ -24,10 +24,11 @@ import androidx.core.view.updatePadding
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
-import com.project.fridgemate.data.local.ScanSummaryStorage
 import com.project.fridgemate.data.model.Notification
 import com.project.fridgemate.data.remote.ApiClient
 import com.project.fridgemate.data.remote.socket.SocketManager
+import com.project.fridgemate.data.repository.FridgeResult
+import com.project.fridgemate.data.repository.ScanRepository
 import com.project.fridgemate.data.repository.UserRepository
 import com.project.fridgemate.databinding.ActivityMainBinding
 import com.project.fridgemate.ui.notifications.NotificationViewModel
@@ -41,6 +42,9 @@ class MainActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityMainBinding
     private lateinit var userRepository: UserRepository
+
+    // Notification intents are handled before onCreate finishes wiring the activity up.
+    private val scanRepository by lazy { ScanRepository(applicationContext) }
 
     private val notificationViewModel: NotificationViewModel by viewModels()
 
@@ -101,9 +105,9 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
-        notificationViewModel.pendingScanSummaryOpen.observe(this) { pending ->
+        notificationViewModel.pendingScanSummary.observe(this) { pending ->
             pending ?: return@observe
-            showScanSummaryPopup()
+            showScanSummaryPopup(pending.scanId)
             notificationViewModel.consumePendingScanSummary()
         }
     }
@@ -236,7 +240,8 @@ class MainActivity : AppCompatActivity() {
                 notificationViewModel.requestNavToFridgeChat(fridgeId, fridgeName)
             }
             "SCAN_COMPLETE" -> {
-                showScanSummaryPopup()
+                val scanId = metadata?.optString("scanId")?.takeIf { it.isNotBlank() }
+                showScanSummaryPopup(scanId)
             }
         }
 
@@ -245,16 +250,28 @@ class MainActivity : AppCompatActivity() {
         intent.removeExtra("notificationId")
     }
 
-    private fun showScanSummaryPopup() {
-        val storage = ScanSummaryStorage(this)
-        val summary = storage.getLastScanSummary()
-        val createdAt = storage.getLastScanCreatedAt()
+    private fun showScanSummaryPopup(scanId: String?) {
+        lifecycleScope.launch {
+            val result = if (scanId != null) {
+                scanRepository.getScan(scanId)
+            } else {
+                scanRepository.getLatestScan()
+            }
 
-        if ((summary != null) && (createdAt != null)) {
-            ScanSummaryDialog.newInstance(summary, createdAt)
-                .show(supportFragmentManager, ScanSummaryDialog.TAG)
-        } else {
-            ToastHelper.showToast(this, getString(R.string.error_scan_summary_not_found))
+            val scan = (result as? FridgeResult.Success)?.data
+            val summary = scan?.changes
+
+            if (supportFragmentManager.isStateSaved || isFinishing) return@launch
+
+            if (summary != null) {
+                ScanSummaryDialog.newInstance(summary, scan.createdAt)
+                    .show(supportFragmentManager, ScanSummaryDialog.TAG)
+            } else {
+                ToastHelper.showToast(
+                    this@MainActivity,
+                    getString(R.string.error_scan_summary_not_found)
+                )
+            }
         }
     }
 
