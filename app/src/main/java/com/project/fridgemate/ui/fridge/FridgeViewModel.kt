@@ -99,11 +99,21 @@ class FridgeViewModel(application: Application) : AndroidViewModel(application) 
     fun assignOwner(itemId: String, newOwnerId: String?) {
         val fridgeId = _activeFridgeId.value ?: return
         viewModelScope.launch {
-            val success = itemRepository.assignOwner(fridgeId, itemId, newOwnerId)
-            if (!success) {
+            val updatedItem = itemRepository.assignOwner(fridgeId, itemId, newOwnerId)
+            if (updatedItem != null) {
+                // Update local state immediately for better responsiveness
+                currentRawItems = currentRawItems.map {
+                    if (it.id == itemId) updatedItem else it
+                }
+                val builtItems = buildFridgeItemList(currentRawItems)
+                _state.value = if (builtItems.any { it is FridgeItem.Product }) State.Items(builtItems)
+                else State.Empty
+
+                // Still trigger a refresh to sync with any other server-side changes
+                loadItems(isRefresh = true)
+            } else {
                 _ownerAssignMessage.value = getApplication<Application>().getString(R.string.owner_assign_failed)
             }
-            if (success) loadItems()
         }
     }
 
@@ -142,7 +152,7 @@ class FridgeViewModel(application: Application) : AndroidViewModel(application) 
         ownerChangeSocketJob = viewModelScope.launch {
             while (isActive) {
                 itemRepository.observeOwnerChanges().collect { event ->
-                    if (event.fridgeId == _activeFridgeId.value) loadItems()
+                    if (event.fridgeId == _activeFridgeId.value) loadItems(isRefresh = true)
                 }
                 if (isActive) delay(2000)
             }
@@ -165,7 +175,7 @@ class FridgeViewModel(application: Application) : AndroidViewModel(application) 
         super.onCleared()
     }
 
-    fun loadItems() {
+    fun loadItems(isRefresh: Boolean = false) {
         if (!ApiClient.getTokenManager().isLoggedIn) {
             _state.value = State.NotLoggedIn
             return
@@ -173,17 +183,22 @@ class FridgeViewModel(application: Application) : AndroidViewModel(application) 
         viewModelScope.launch {
             val startTime = System.currentTimeMillis()
             val cached = itemRepository.getCachedItems()
-            if (cached.isNotEmpty()) {
-                currentRawItems = cached
-                _state.value = State.Items(buildFridgeItemList(cached))
-            } else {
-                _state.value = State.Loading
+            if (!isRefresh) {
+                if (cached.isNotEmpty()) {
+                    currentRawItems = cached
+                    _state.value = State.Items(buildFridgeItemList(cached))
+                } else {
+                    _state.value = State.Loading
+                }
             }
 
             val fridgeResult = fridgeRepository.getMyFridge()
             
-            val elapsed = System.currentTimeMillis() - startTime
-            if (elapsed < 1500) delay(1500 - elapsed)
+            // Only delay for the initial load to show a smooth transition
+            if (!isRefresh) {
+                val elapsed = System.currentTimeMillis() - startTime
+                if (elapsed < 1500) delay(1500 - elapsed)
+            }
 
             when (fridgeResult) {
                 is FridgeResult.NoFridge -> {
@@ -213,9 +228,39 @@ class FridgeViewModel(application: Application) : AndroidViewModel(application) 
                     _lastScannedAt.value = fridgeResult.data.lastScannedAt
                     when (val itemResult = itemRepository.getItems(fridgeResult.data.id)) {
                         is FridgeResult.Success -> {
-                            val items = itemResult.data
-                            currentRawItems = items
-                            val builtItems = buildFridgeItemList(items)
+                            val serverItems = itemResult.data
+                            
+                            if (isRefresh) {
+                                // Merge logic to prevent items from "vanishing" due to server-side ownership filtering.
+                                // We iterate through the current list to preserve the original order.
+                                val serverItemMap = serverItems.associateBy { it.id }
+                                val currentUserId = ApiClient.getTokenManager().userId
+                                
+                                val mergedItems = currentRawItems.mapNotNull { local ->
+                                    val serverMatch = serverItemMap[local.id]
+                                    if (serverMatch != null) {
+                                        serverMatch // Take fresh server data
+                                    } else {
+                                        // Item is missing from server. Keep it if it's owned by someone else (filtered out)
+                                        if (local.ownerId != null && local.ownerId != currentUserId && local.fridgeId == _activeFridgeId.value) {
+                                            local
+                                        } else {
+                                            null // Actually deleted or unowned and missing
+                                        }
+                                    }
+                                }.toMutableList()
+                                
+                                // Add any new items from server that weren't in our local list
+                                val currentIds = currentRawItems.map { it.id }.toSet()
+                                val newItems = serverItems.filter { it.id !in currentIds }
+                                mergedItems.addAll(newItems)
+                                
+                                currentRawItems = mergedItems
+                            } else {
+                                currentRawItems = serverItems
+                            }
+                            
+                            val builtItems = buildFridgeItemList(currentRawItems)
                             _state.value = if (builtItems.any { it is FridgeItem.Product }) State.Items(builtItems)
                             else State.Empty
                         }
@@ -240,7 +285,8 @@ class FridgeViewModel(application: Application) : AndroidViewModel(application) 
         val filterByMe = _showOnlyMyItems.value == true
 
         val filteredItems = if (filterByMe && currentUserId != null) {
-            items.filter { it.ownerId == currentUserId }
+            // Show my items AND items that are not yet assigned to anyone
+            items.filter { it.ownerId == currentUserId || it.ownerId == null }
         } else {
             items
         }
@@ -253,7 +299,8 @@ class FridgeViewModel(application: Application) : AndroidViewModel(application) 
         val grouped = filteredItems.groupBy { it.category ?: "Other" }
         grouped.keys.sorted().forEach { category ->
             result.add(FridgeItem.CategoryHeader(category))
-            grouped[category]?.forEach { item ->
+            // Sort products alphabetically within each category for a stable UI
+            grouped[category]?.sortedBy { it.name }?.forEach { item ->
                 result.add(
                     FridgeItem.Product(
                         item.id,

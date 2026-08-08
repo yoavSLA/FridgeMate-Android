@@ -5,6 +5,7 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.RecyclerView
+import androidx.recyclerview.widget.DiffUtil
 import com.project.fridgemate.R
 import com.project.fridgemate.data.remote.dto.FridgeMemberDetailDto
 import com.project.fridgemate.databinding.ItemCategoryHeaderBinding
@@ -12,11 +13,43 @@ import com.project.fridgemate.databinding.ItemProductBinding
 import com.project.fridgemate.databinding.ItemRunningLowBinding
 
 class FridgeAdapter(
-    private val items: List<FridgeItem>,
-    private val members: Map<String, FridgeMemberDetailDto> = emptyMap(),
+    private var items: List<FridgeItem>,
+    private var members: Map<String, FridgeMemberDetailDto> = emptyMap(),
     private val onOwnerIconClick: (View, FridgeItem.Product) -> Unit = { _, _ -> },
     private val onOwnerRemoveClick: (FridgeItem.Product) -> Unit = {}
 ) : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
+
+    fun updateItems(newItems: List<FridgeItem>, newMembers: Map<String, FridgeMemberDetailDto>) {
+        val diffCallback = FridgeDiffCallback(items, newItems)
+        val diffResult = DiffUtil.calculateDiff(diffCallback)
+        
+        this.items = newItems
+        this.members = newMembers
+        diffResult.dispatchUpdatesTo(this)
+    }
+
+    private class FridgeDiffCallback(
+        private val oldList: List<FridgeItem>,
+        private val newList: List<FridgeItem>
+    ) : DiffUtil.Callback() {
+        override fun getOldListSize() = oldList.size
+        override fun getNewListSize() = newList.size
+
+        override fun areItemsTheSame(oldItemPosition: Int, newItemPosition: Int): Boolean {
+            val oldItem = oldList[oldItemPosition]
+            val newItem = newList[newItemPosition]
+            return when {
+                oldItem is FridgeItem.Product && newItem is FridgeItem.Product -> oldItem.id == newItem.id
+                oldItem is FridgeItem.CategoryHeader && newItem is FridgeItem.CategoryHeader -> oldItem.name == newItem.name
+                oldItem is FridgeItem.RunningLow && newItem is FridgeItem.RunningLow -> true
+                else -> false
+            }
+        }
+
+        override fun areContentsTheSame(oldItemPosition: Int, newItemPosition: Int): Boolean {
+            return oldList[oldItemPosition] == newList[newItemPosition]
+        }
+    }
 
     companion object {
         private const val TYPE_RUNNING_LOW = 0

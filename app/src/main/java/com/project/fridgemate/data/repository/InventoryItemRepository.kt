@@ -45,13 +45,22 @@ class InventoryItemRepository(context: Context) : BaseRepository() {
 
 
 
-    suspend fun assignOwner(fridgeId: String, itemId: String, ownerId: String?): Boolean {
+    suspend fun assignOwner(fridgeId: String, itemId: String, ownerId: String?): InventoryItemDto? {
         return try {
             val json = JSONObject().put("ownerId", ownerId ?: JSONObject.NULL).toString()
             val body = json.toRequestBody("application/json".toMediaType())
-            api.assignOwner(fridgeId, itemId, body).isSuccessful
+            val response = api.assignOwner(fridgeId, itemId, body)
+            if (response.isSuccessful) {
+                val updatedItem = response.body()?.data
+                if (updatedItem != null) {
+                    dao.updateOwnerId(itemId, ownerId)
+                }
+                updatedItem
+            } else {
+                null
+            }
         } catch (_: Exception) {
-            false
+            null
         }
     }
 
