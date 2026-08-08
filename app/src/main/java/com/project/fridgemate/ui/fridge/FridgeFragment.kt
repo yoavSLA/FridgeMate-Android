@@ -11,6 +11,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.project.fridgemate.R
 import com.project.fridgemate.databinding.FragmentFridgeBinding
 import com.project.fridgemate.databinding.PopupAssignOwnerBinding
+import com.project.fridgemate.databinding.PopupLowStockBinding
 import com.project.fridgemate.utils.ErrorMapper
 import com.project.fridgemate.utils.ToastHelper
 
@@ -49,7 +50,9 @@ class FridgeFragment : Fragment() {
             items = emptyList(),
             members = emptyMap(),
             onOwnerIconClick = { anchor, product -> showAssignOwnerPopup(anchor, product) },
-            onOwnerRemoveClick = { product -> viewModel.assignOwner(product.id, null) }
+            onOwnerRemoveClick = { product -> viewModel.assignOwner(product.id, null) },
+            onLowStockClick = { anchor, product -> showLowStockPopup(anchor, product) },
+            onLowStockBannerClick = { items -> showLowStockList(items) }
         )
         binding.rvFridge.adapter = fridgeAdapter
     }
@@ -172,6 +175,31 @@ class FridgeFragment : Fragment() {
         val popupWidth = popupBinding.root.measuredWidth
         val xOffset = anchor.width - popupWidth
         popupWindow.showAsDropDown(anchor, xOffset, 4)
+    }
+
+    private fun showLowStockList(items: List<FridgeItem.Product>) {
+        if (items.isEmpty()) return
+        LowStockListDialog.newInstance(items)
+            .show(childFragmentManager, LowStockListDialog.TAG)
+    }
+
+    private fun showLowStockPopup(anchor: View, product: FridgeItem.Product) {
+        val popupBinding = PopupLowStockBinding.inflate(layoutInflater)
+        popupBinding.tvLowStockName.text = product.name
+        popupBinding.tvLowStockHave.text = product.quantity
+        popupBinding.tvLowStockBuy.text = product.suggestedRestockQuantity
+            ?: getString(R.string.low_stock_no_suggestion)
+        popupBinding.tvLowStockReason.text =
+            lowStockDaysText(requireContext(), product.daysOfSupply)
+
+        val popupWindow = PopupWindow(
+            popupBinding.root,
+            ViewGroup.LayoutParams.WRAP_CONTENT,
+            ViewGroup.LayoutParams.WRAP_CONTENT,
+            true
+        )
+        popupWindow.elevation = 8f
+        popupWindow.showAsDropDown(anchor, 0, 4)
     }
 
     private fun showEmptyState() {

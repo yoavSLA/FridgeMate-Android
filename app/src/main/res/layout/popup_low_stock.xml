@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:background="@drawable/bg_popup_menu"
+    android:elevation="8dp"
+    android:maxWidth="280dp"
+    android:minWidth="240dp"
+    android:orientation="vertical"
+    android:paddingHorizontal="16dp"
+    android:paddingVertical="14dp">
+
+    <TextView
+        android:id="@+id/tv_low_stock_name"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:ellipsize="end"
+        android:maxLines="2"
+        android:textColor="@color/popup_text"
+        android:textSize="15sp"
+        android:textStyle="bold"
+        tools:text="Ketchup Bottle" />
+
+    <TextView
+        android:id="@+id/tv_low_stock_reason"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:background="@drawable/bg_warning_pill"
+        android:paddingHorizontal="10dp"
+        android:paddingVertical="4dp"
+        android:textColor="@color/warning_yellow_text"
+        android:textSize="12sp"
+        android:textStyle="bold"
+        tools:text="About 2 days left" />
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:layout_marginTop="12dp"
+        android:background="@color/divider_color" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="12dp"
+        android:baselineAligned="false"
+        android:orientation="horizontal">
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/low_stock_have_label"
+                android:textColor="@color/gray_text"
+                android:textSize="11sp" />
+
+            <TextView
+                android:id="@+id/tv_low_stock_have"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:textColor="@color/popup_text"
+                android:textSize="14sp"
+                android:textStyle="bold"
+                tools:text="1 bottle" />
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/low_stock_buy_label"
+                android:textColor="@color/gray_text"
+                android:textSize="11sp" />
+
+            <TextView
+                android:id="@+id/tv_low_stock_buy"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:textColor="@color/accent_green_dark"
+                android:textSize="14sp"
+                android:textStyle="bold"
+                tools:text="3 bottles" />
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+</LinearLayout>

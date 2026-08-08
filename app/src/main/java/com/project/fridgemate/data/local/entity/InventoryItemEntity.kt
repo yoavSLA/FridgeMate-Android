@@ -12,5 +12,8 @@ data class InventoryItemEntity(
     val quantity: String,
     val category: String? = null,
     val ownership: String,
-    val isRunningLow: Boolean
+    val isRunningLow: Boolean,
+    val daysOfSupply: Double? = null,
+    val suggestedRestockQuantity: String? = null,
+    val lowStockReason: String? = null
 )

@@ -16,7 +16,9 @@ interface InventoryItemApi {
     @GET("fridges/{fridgeId}/items")
     suspend fun getItems(
         @Path("fridgeId") fridgeId: String,
-        @Query("mineOrUnowned") mineOrUnowned: Boolean
+        @Query("mineOrUnowned") mineOrUnowned: Boolean,
+        @Query("page") page: Int,
+        @Query("limit") limit: Int
     ): Response<PaginatedResponse<InventoryItemDto>>
 
     @PATCH("fridges/{fridgeId}/items/{itemId}/owner")

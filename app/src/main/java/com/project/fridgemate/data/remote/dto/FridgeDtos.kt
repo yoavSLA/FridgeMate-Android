@@ -46,7 +46,12 @@ data class InventoryItemDto(
     val quantity: String,
     val category: String? = null,
     val ownership: String,
-    val isRunningLow: Boolean
+    val isRunningLow: Boolean,
+    /** Estimated days the remaining quantity lasts the household. */
+    val daysOfSupply: Double? = null,
+    /** How much to buy to get back to a full stock, e.g. "3 cartons". */
+    val suggestedRestockQuantity: String? = null,
+    val lowStockReason: String? = null
 )
 
 data class ItemOwnerChangedDto(
