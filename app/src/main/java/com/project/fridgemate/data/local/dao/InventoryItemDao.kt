@@ -17,4 +17,7 @@ interface InventoryItemDao {
 
     @Query("DELETE FROM inventory_items")
     suspend fun deleteAll()
+
+    @Query("UPDATE inventory_items SET ownerId = :ownerId WHERE id = :itemId")
+    suspend fun updateOwnerId(itemId: String, ownerId: String?)
 }

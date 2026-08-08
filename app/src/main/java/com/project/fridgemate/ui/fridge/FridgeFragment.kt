@@ -22,6 +22,7 @@ class FridgeFragment : Fragment() {
     private val viewModel: FridgeViewModel by activityViewModels()
 
     private var currentItems: List<FridgeItem> = emptyList()
+    private var fridgeAdapter: FridgeAdapter? = null
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -35,11 +36,22 @@ class FridgeFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         binding.rvFridge.layoutManager = LinearLayoutManager(requireContext())
+        setupAdapter()
 
         setupFilterChips()
         observeViewModel()
         setupErrorState()
         viewModel.loadItems()
+    }
+
+    private fun setupAdapter() {
+        fridgeAdapter = FridgeAdapter(
+            items = emptyList(),
+            members = emptyMap(),
+            onOwnerIconClick = { anchor, product -> showAssignOwnerPopup(anchor, product) },
+            onOwnerRemoveClick = { product -> viewModel.assignOwner(product.id, null) }
+        )
+        binding.rvFridge.adapter = fridgeAdapter
     }
 
     private fun setupFilterChips() {
@@ -123,19 +135,14 @@ class FridgeFragment : Fragment() {
     private fun showItems(items: List<FridgeItem>) {
         currentItems = items
         binding.loadingOverlay.visibility = View.GONE
-        bindAdapter()
+        fridgeAdapter?.updateItems(items, viewModel.members.value ?: emptyMap())
         binding.rvFridge.visibility = View.VISIBLE
         binding.clFilterHeader.visibility = View.VISIBLE
         binding.emptyState.visibility = View.GONE
     }
 
     private fun bindAdapter() {
-        binding.rvFridge.adapter = FridgeAdapter(
-            items = currentItems,
-            members = viewModel.members.value ?: emptyMap(),
-            onOwnerIconClick = { anchor, product -> showAssignOwnerPopup(anchor, product) },
-            onOwnerRemoveClick = { product -> viewModel.assignOwner(product.id, null) }
-        )
+        fridgeAdapter?.updateItems(currentItems, viewModel.members.value ?: emptyMap())
     }
 
     private fun showAssignOwnerPopup(anchor: View, product: FridgeItem.Product) {
