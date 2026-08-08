@@ -46,6 +46,7 @@ class FeedFragment : Fragment() {
     private var tabLayoutMediator: TabLayoutMediator? = null
     private var heightAnimator: ValueAnimator? = null
     private var detailAdapter: MapPostDetailAdapter? = null
+    private var detailPostIds: List<String>? = null
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -214,6 +215,20 @@ class FeedFragment : Fragment() {
 
                 updateEmptyState(posts)
             }
+
+            // Sync Map Detail Adapter if visible
+            if (isMap && binding.cvPostDetail.visibility == View.VISIBLE && detailAdapter != null) {
+                // If we have current items in the adapter, update them from the fresh posts list
+                // but don't remove items that are temporarily missing (e.g. paginated out)
+                val adapterItems = detailAdapter?.currentList ?: emptyList()
+                val newList = adapterItems.map { adapterPost ->
+                    posts.find { it.id == adapterPost.id } ?: adapterPost
+                }
+                
+                if (newList.isNotEmpty()) {
+                    detailAdapter?.submitList(newList)
+                }
+            }
             
             updateMapMarkers(posts)
         }
@@ -332,8 +347,28 @@ class FeedFragment : Fragment() {
             binding.cvNoPosts.visibility = View.VISIBLE
         } else {
             binding.cvNoPosts.visibility = View.GONE
-            val groupedPosts = validPosts.groupBy { GeoPoint(it.latitude, it.longitude) }
-            groupedPosts.forEach { (point, postsAtLocation) ->
+            
+            val clusters = mutableListOf<MutableList<Post>>()
+            val threshold = 100.0 // meters - cluster posts within 100m to account for indoor GPS drift
+            
+            for (post in validPosts) {
+                val postPoint = GeoPoint(post.latitude, post.longitude)
+                var foundCluster = false
+                for (cluster in clusters) {
+                    val clusterCenter = GeoPoint(cluster[0].latitude, cluster[0].longitude)
+                    if (postPoint.distanceToAsDouble(clusterCenter) < threshold) {
+                        cluster.add(post)
+                        foundCluster = true
+                        break
+                    }
+                }
+                if (!foundCluster) {
+                    clusters.add(mutableListOf(post))
+                }
+            }
+
+            clusters.forEach { postsAtLocation ->
+                val point = GeoPoint(postsAtLocation[0].latitude, postsAtLocation[0].longitude)
                 val marker = Marker(binding.mapView)
                 marker.position = point
                 marker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_CENTER)
@@ -354,6 +389,7 @@ class FeedFragment : Fragment() {
     private fun showPostDetails(posts: List<Post>) {
         binding.cvPostDetail.visibility = View.VISIBLE
         tabLayoutMediator?.detach()
+        detailPostIds = posts.map { it.id }
         detailAdapter = MapPostDetailAdapter(
             onRecipeClick = { linkedRecipe ->
                 val action = DashboardFragmentDirections.actionDashboardFragmentToRecipeDetailFragment(
