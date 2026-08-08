@@ -40,9 +40,15 @@ interface RecipeDao {
     @Query("SELECT * FROM recipes WHERE id = :id LIMIT 1")
     fun getById(id: Long): LiveData<RecipeEntity?>
 
-    @Query("SELECT * FROM recipes WHERE serverId = :serverId LIMIT 1")
+    @Query("SELECT * FROM recipes WHERE serverId = :serverId ORDER BY cachedAt DESC LIMIT 1")
     fun getByServerId(serverId: String): LiveData<RecipeEntity?>
 
-    @Query("SELECT * FROM recipes WHERE serverId = :serverId LIMIT 1")
+    @Query("SELECT * FROM recipes WHERE serverId = :serverId ORDER BY cachedAt DESC LIMIT 1")
     suspend fun getByServerIdSync(serverId: String): RecipeEntity?
+
+    @Query("SELECT * FROM recipes WHERE serverId = :serverId AND type = :type LIMIT 1")
+    suspend fun getByServerIdAndTypeSync(serverId: String, type: String): RecipeEntity?
+
+    @Query("DELETE FROM recipes WHERE type = :type AND id NOT IN (SELECT id FROM recipes WHERE type = :type ORDER BY cachedAt DESC LIMIT :keep)")
+    suspend fun trimType(type: String, keep: Int)
 }

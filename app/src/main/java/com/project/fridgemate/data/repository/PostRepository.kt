@@ -28,6 +28,10 @@ class PostRepository(context: Context) : BaseRepository() {
     private val postApi: PostApi = ApiClient.createApi(PostApi::class.java)
     private val postDao = AppDatabase.getInstance(context).postDao()
 
+    companion object {
+        private const val MAX_CACHED_POSTS = 60
+    }
+
     fun observePostStatChanges(): Flow<PostStatChange> = callbackFlow {
         val socket = SocketManager.connect()
 
@@ -62,7 +66,7 @@ class PostRepository(context: Context) : BaseRepository() {
             if (response.isSuccessful) {
                 val data = response.body()!!
                 if (scope.isNullOrEmpty() || scope == "all") {
-                    cachePosts(data.items)
+                    cachePosts(data.items, replace = page <= 1)
                 }
                 FridgeResult.Success(data)
             } else {
@@ -224,11 +228,12 @@ class PostRepository(context: Context) : BaseRepository() {
         }
     }
 
-    private suspend fun cachePosts(posts: List<PostDto>) {
+    private suspend fun cachePosts(posts: List<PostDto>, replace: Boolean) {
         try {
             val entities = posts.map { it.toEntity() }
-            postDao.clearNonOwnerPosts()
+            if (replace) postDao.clearNonOwnerPosts()
             postDao.insertAll(entities)
+            postDao.trimTo(MAX_CACHED_POSTS)
         } catch (_: Exception) { }
     }
 

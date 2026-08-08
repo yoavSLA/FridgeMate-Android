@@ -17,6 +17,10 @@ class ScanRepository(context: Context) : BaseRepository() {
     private val dao = AppDatabase.getInstance(context).scanDao()
     private val gson = Gson()
 
+    companion object {
+        private const val MAX_CACHED_SCANS = 20
+    }
+
     suspend fun uploadScan(imageBytes: ByteArray, mimeType: String): FridgeResult<ScanDto> {
         return try {
             val requestBody = imageBytes.toRequestBody(mimeType.toMediaType())
@@ -88,6 +92,7 @@ class ScanRepository(context: Context) : BaseRepository() {
     private suspend fun cacheScans(scans: List<ScanDto>) {
         try {
             dao.insertAll(scans.map { it.toEntity() })
+            dao.trimTo(MAX_CACHED_SCANS)
         } catch (_: Exception) { }
     }
 

@@ -17,6 +17,7 @@ class RecipeRepository(private val recipeDao: RecipeDao) : BaseRepository() {
 
     companion object {
         private const val CACHE_TTL_MS = 30 * 60 * 1000L
+        private const val MAX_CACHED_FEED_RECIPES = 30
     }
 
     fun getRecommended(): LiveData<List<RecipeEntity>> =
@@ -108,14 +109,21 @@ class RecipeRepository(private val recipeDao: RecipeDao) : BaseRepository() {
             val response = recipeApi.favoriteRecipe(serverId)
             if (response.isSuccessful || response.code() == 409) {
                 recipeDao.updateFavoriteByServerId(serverId, true)
-                val existing = recipeDao.getByServerIdSync(serverId)
-                if (existing != null && existing.type == RecipeEntity.TYPE_RECOMMENDED) {
-                    recipeDao.insert(existing.copy(
-                        id = 0,
-                        type = RecipeEntity.TYPE_FAVORITE,
-                        isFavorite = true,
-                        cachedAt = System.currentTimeMillis()
-                    ))
+                // Copy whichever cached row we have into the favorites list. Reading the
+                // recipe by serverId alone could return the recommended *or* feed copy,
+                // which previously left the Favorites tab empty until the next refresh.
+                val alreadyFavorite =
+                    recipeDao.getByServerIdAndTypeSync(serverId, RecipeEntity.TYPE_FAVORITE)
+                if (alreadyFavorite == null) {
+                    val source = recipeDao.getByServerIdSync(serverId)
+                    if (source != null) {
+                        recipeDao.insert(source.copy(
+                            id = 0,
+                            type = RecipeEntity.TYPE_FAVORITE,
+                            isFavorite = true,
+                            cachedAt = System.currentTimeMillis()
+                        ))
+                    }
                 }
                 Result.success(Unit)
             } else {
@@ -151,6 +159,7 @@ class RecipeRepository(private val recipeDao: RecipeDao) : BaseRepository() {
                 val dto = response.body()!!
                 val entity = dto.toEntity(RecipeEntity.TYPE_FEED)
                 val roomId = recipeDao.insert(entity)
+                recipeDao.trimType(RecipeEntity.TYPE_FEED, MAX_CACHED_FEED_RECIPES)
                 Result.success(entity.copy(id = roomId))
             } else {
                 Result.failure(Exception("Recipe not found"))
