@@ -6,23 +6,43 @@
     android:layout_height="wrap_content"
     android:layout_marginTop="8dp"
     android:layout_marginBottom="16dp"
-    app:cardBackgroundColor="#FFF8E1"
-    app:cardCornerRadius="16dp"
+    android:clickable="true"
+    android:focusable="true"
+    app:cardBackgroundColor="@color/warning_yellow_bg"
+    app:cardCornerRadius="18dp"
     app:cardElevation="0dp"
-    app:strokeColor="#FFECB3"
+    app:rippleColor="@color/warning_yellow_tint"
+    app:strokeColor="@color/warning_yellow_stroke"
     app:strokeWidth="1dp">
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:padding="16dp">
+        android:paddingHorizontal="16dp"
+        android:paddingVertical="14dp">
 
         <ImageView
             android:id="@+id/iv_warning"
+            android:layout_width="34dp"
+            android:layout_height="34dp"
+            android:background="@drawable/bg_warning_circle"
+            android:contentDescription="@string/low_stock_hint"
+            android:padding="8dp"
+            android:src="@drawable/ic_warning"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:tint="@color/warning_yellow_text" />
+
+        <ImageView
+            android:id="@+id/iv_chevron"
             android:layout_width="20dp"
             android:layout_height="20dp"
-            android:src="@drawable/ic_warning"
-            app:layout_constraintStart_toStartOf="parent"
+            android:alpha="0.7"
+            android:contentDescription="@string/low_stock_hint"
+            android:src="@drawable/ic_chevron_right"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toTopOf="parent"
             app:tint="@color/warning_yellow_text" />
 
@@ -30,28 +50,42 @@
             android:id="@+id/tv_warning_title"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginStart="10dp"
-            android:text="@string/running_low_title"
+            android:layout_marginStart="12dp"
+            android:layout_marginEnd="8dp"
             android:textColor="@color/warning_yellow_text"
             android:textSize="15sp"
             android:textStyle="bold"
-            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintEnd_toStartOf="@id/iv_chevron"
             app:layout_constraintStart_toEndOf="@id/iv_warning"
-            app:layout_constraintTop_toTopOf="@id/iv_warning"
-            app:layout_constraintBottom_toBottomOf="@id/iv_warning" />
+            app:layout_constraintTop_toTopOf="parent"
+            tools:text="17 items running low" />
 
         <TextView
-            android:id="@+id/tv_low_stock_list"
+            android:id="@+id/tv_low_stock_preview"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:lineSpacingExtra="2dp"
+            android:layout_marginTop="3dp"
+            android:ellipsize="end"
+            android:maxLines="2"
             android:textColor="@color/warning_yellow_text"
             android:textSize="13sp"
-            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintEnd_toEndOf="@id/tv_warning_title"
             app:layout_constraintStart_toStartOf="@id/tv_warning_title"
             app:layout_constraintTop_toBottomOf="@id/tv_warning_title"
-            tools:text="You need to restock: Milk, Spinach, Olive Oil" />
+            tools:text="Water Bottle, Apple, Chicken Breast and 14 more" />
+
+        <TextView
+            android:id="@+id/tv_low_stock_hint"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="6dp"
+            android:alpha="0.75"
+            android:text="@string/low_stock_hint"
+            android:textColor="@color/warning_yellow_text"
+            android:textSize="11sp"
+            app:layout_constraintEnd_toEndOf="@id/tv_warning_title"
+            app:layout_constraintStart_toStartOf="@id/tv_warning_title"
+            app:layout_constraintTop_toBottomOf="@id/tv_low_stock_preview" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 </com.google.android.material.card.MaterialCardView>

@@ -31,11 +31,14 @@
 
             <ImageView
                 android:id="@+id/iv_low_stock_warning"
-                android:layout_width="20dp"
-                android:layout_height="20dp"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
                 android:layout_marginEnd="6dp"
-                android:background="@drawable/bg_warning_badge"
-                android:padding="3dp"
+                android:background="@drawable/bg_warning_circle"
+                android:clickable="true"
+                android:contentDescription="@string/low_stock_badge_desc"
+                android:focusable="true"
+                android:padding="4dp"
                 android:src="@drawable/ic_warning"
                 android:visibility="gone"
                 app:tint="@color/warning_yellow_text"

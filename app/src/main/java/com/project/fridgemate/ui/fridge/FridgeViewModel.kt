@@ -291,28 +291,33 @@ class FridgeViewModel(application: Application) : AndroidViewModel(application) 
             items
         }
 
-        val lowItems = filteredItems.filter { it.isRunningLow }
+        val products = filteredItems.map { it.toProduct() }
+
+        // Most urgent first; items the server couldn't estimate go last.
+        val lowItems = products
+            .filter { it.isLowStock }
+            .sortedWith(compareBy({ it.daysOfSupply ?: Double.MAX_VALUE }, { it.name }))
         if (lowItems.isNotEmpty()) {
-            result.add(FridgeItem.RunningLow(lowItems.map { Pair(it.name, it.quantity) }))
+            result.add(FridgeItem.RunningLow(lowItems))
         }
 
-        val grouped = filteredItems.groupBy { it.category ?: "Other" }
+        val grouped = products.groupBy { it.category ?: "Other" }
         grouped.keys.sorted().forEach { category ->
             result.add(FridgeItem.CategoryHeader(category))
             // Sort products alphabetically within each category for a stable UI
-            grouped[category]?.sortedBy { it.name }?.forEach { item ->
-                result.add(
-                    FridgeItem.Product(
-                        item.id,
-                        item.name,
-                        item.quantity,
-                        item.category,
-                        item.isRunningLow,
-                        item.ownerId
-                    )
-                )
-            }
+            grouped[category]?.sortedBy { it.name }?.forEach { result.add(it) }
         }
         return result
     }
+
+    private fun InventoryItemDto.toProduct() = FridgeItem.Product(
+        id = id,
+        name = name,
+        quantity = quantity,
+        category = category,
+        isLowStock = isRunningLow,
+        ownerId = ownerId,
+        daysOfSupply = daysOfSupply,
+        suggestedRestockQuantity = suggestedRestockQuantity
+    )
 }

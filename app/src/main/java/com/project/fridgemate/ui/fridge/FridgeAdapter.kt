@@ -16,7 +16,9 @@ class FridgeAdapter(
     private var items: List<FridgeItem>,
     private var members: Map<String, FridgeMemberDetailDto> = emptyMap(),
     private val onOwnerIconClick: (View, FridgeItem.Product) -> Unit = { _, _ -> },
-    private val onOwnerRemoveClick: (FridgeItem.Product) -> Unit = {}
+    private val onOwnerRemoveClick: (FridgeItem.Product) -> Unit = {},
+    private val onLowStockClick: (View, FridgeItem.Product) -> Unit = { _, _ -> },
+    private val onLowStockBannerClick: (List<FridgeItem.Product>) -> Unit = {}
 ) : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
 
     fun updateItems(newItems: List<FridgeItem>, newMembers: Map<String, FridgeMemberDetailDto>) {
@@ -55,6 +57,9 @@ class FridgeAdapter(
         private const val TYPE_RUNNING_LOW = 0
         private const val TYPE_CATEGORY_HEADER = 1
         private const val TYPE_PRODUCT = 2
+
+        /** Names shown in the banner before it falls back to "and N more". */
+        private const val MAX_PREVIEW_NAMES = 3
     }
 
     override fun getItemViewType(position: Int): Int {
@@ -86,7 +91,7 @@ class FridgeAdapter(
 
     override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
         when (val item = items[position]) {
-            is FridgeItem.RunningLow -> (holder as RunningLowViewHolder).bind(item)
+            is FridgeItem.RunningLow -> (holder as RunningLowViewHolder).bind(item, onLowStockBannerClick)
             is FridgeItem.CategoryHeader -> {
                 val colors = getCategoryColors(item.name)
                 val isFirstCategory = items.indexOfFirst { it is FridgeItem.CategoryHeader } == position
@@ -97,7 +102,8 @@ class FridgeAdapter(
                 val isLastInGroup = position == items.size - 1 || items[position + 1] !is FridgeItem.Product
                 val colors = getCategoryColors(item.category ?: "Other")
                 (holder as ProductViewHolder).bind(
-                    item, isFirstInGroup, isLastInGroup, colors, members[item.ownerId], onOwnerIconClick, onOwnerRemoveClick
+                    item, isFirstInGroup, isLastInGroup, colors, members[item.ownerId],
+                    onOwnerIconClick, onOwnerRemoveClick, onLowStockClick
                 )
             }
         }
@@ -136,9 +142,23 @@ class FridgeAdapter(
 
     class RunningLowViewHolder(private val binding: ItemRunningLowBinding) :
         RecyclerView.ViewHolder(binding.root) {
-        fun bind(item: FridgeItem.RunningLow) {
-            val listString = item.ingredients.joinToString(", ") { (name, qty) -> "$name ($qty)" }
-            binding.tvLowStockList.text = binding.root.context.getString(R.string.low_stock_restock_format, listString)
+        fun bind(item: FridgeItem.RunningLow, onClick: (List<FridgeItem.Product>) -> Unit) {
+            val context = binding.root.context
+            val count = item.items.size
+            binding.tvWarningTitle.text = context.resources.getQuantityString(
+                R.plurals.running_low_title, count, count
+            )
+
+            val preview = item.items.take(MAX_PREVIEW_NAMES)
+            val shown = preview.joinToString(", ") { it.name }
+            val hidden = count - preview.size
+            binding.tvLowStockPreview.text = if (hidden > 0) {
+                context.getString(R.string.low_stock_preview_more_format, shown, hidden)
+            } else {
+                shown
+            }
+
+            binding.root.setOnClickListener { onClick(item.items) }
         }
     }
 
@@ -169,12 +189,21 @@ class FridgeAdapter(
             colors: CategoryColors,
             owner: FridgeMemberDetailDto?,
             onOwnerIconClick: (View, FridgeItem.Product) -> Unit,
-            onOwnerRemoveClick: (FridgeItem.Product) -> Unit
+            onOwnerRemoveClick: (FridgeItem.Product) -> Unit,
+            onLowStockClick: (View, FridgeItem.Product) -> Unit
         ) {
             val context = binding.root.context
             binding.tvProductName.text = item.name
             binding.tvProductQuantity.text = item.quantity
+
             binding.ivLowStockWarning.visibility = if (item.isLowStock) View.VISIBLE else View.GONE
+            binding.ivLowStockWarning.setOnClickListener { onLowStockClick(it, item) }
+            // Long-pressing anywhere on the row reaches the same proposal as the badge.
+            binding.root.setOnLongClickListener {
+                if (!item.isLowStock) return@setOnLongClickListener false
+                onLowStockClick(binding.ivLowStockWarning, item)
+                true
+            }
 
             val accentColor = ContextCompat.getColor(context, colors.accentRes)
             

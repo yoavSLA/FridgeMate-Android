@@ -28,16 +28,33 @@ class InventoryItemRepository(context: Context) : BaseRepository() {
         return dao.getAll().map { it.toDto() }
     }
 
+    /**
+     * The fridge screen renders every item at once, so walk the paged endpoint to
+     * completion — otherwise the server's default page size silently truncates
+     * larger fridges.
+     */
     suspend fun getItems(fridgeId: String, mineOrUnowned: Boolean = false): FridgeResult<List<InventoryItemDto>> {
         return try {
-            val response = api.getItems(fridgeId, mineOrUnowned)
-            if (response.isSuccessful) {
-                val items = response.body()?.items ?: emptyList()
-                if (!mineOrUnowned) cacheItems(items)
-                FridgeResult.Success(items)
-            } else {
-                FridgeResult.Error("Failed to fetch items: ${response.code()}")
+            val items = mutableListOf<InventoryItemDto>()
+            var page = 1
+
+            while (true) {
+                val response = api.getItems(fridgeId, mineOrUnowned, page, PAGE_SIZE)
+                if (!response.isSuccessful) {
+                    return FridgeResult.Error("Failed to fetch items: ${response.code()}")
+                }
+
+                val body = response.body()
+                val batch = body?.items ?: emptyList()
+                items.addAll(batch)
+
+                val total = body?.total ?: items.size
+                if (batch.isEmpty() || items.size >= total || page >= MAX_PAGES) break
+                page++
             }
+
+            if (!mineOrUnowned) cacheItems(items)
+            FridgeResult.Success(items)
         } catch (e: Exception) {
             FridgeResult.Error(networkErrorMessage(e))
         }
@@ -105,7 +122,10 @@ class InventoryItemRepository(context: Context) : BaseRepository() {
         quantity = quantity,
         category = category,
         ownership = ownership,
-        isRunningLow = isRunningLow
+        isRunningLow = isRunningLow,
+        daysOfSupply = daysOfSupply,
+        suggestedRestockQuantity = suggestedRestockQuantity,
+        lowStockReason = lowStockReason
     )
 
     private fun InventoryItemEntity.toDto() = InventoryItemDto(
@@ -116,6 +136,15 @@ class InventoryItemRepository(context: Context) : BaseRepository() {
         quantity = quantity,
         category = category,
         ownership = ownership,
-        isRunningLow = isRunningLow
+        isRunningLow = isRunningLow,
+        daysOfSupply = daysOfSupply,
+        suggestedRestockQuantity = suggestedRestockQuantity,
+        lowStockReason = lowStockReason
     )
+
+    companion object {
+        private const val PAGE_SIZE = 100
+        /** Stops a bad `total` from turning the fetch loop into an infinite one. */
+        private const val MAX_PAGES = 20
+    }
 }

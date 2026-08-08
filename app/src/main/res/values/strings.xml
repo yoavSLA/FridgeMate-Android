@@ -103,8 +103,22 @@
     <string name="fridge_empty_desc">Your fridge is empty. Items will appear here once added.</string>
     <string name="fridge_not_logged_in_title">Not logged in</string>
     <string name="fridge_not_logged_in_desc">Please log in to see your fridge.</string>
-    <string name="running_low_title">Running low on ingredients</string>
-    <string name="low_stock_restock_format">You need to restock: %1$s</string>
+    <plurals name="running_low_title">
+        <item quantity="one">%d item running low</item>
+        <item quantity="other">%d items running low</item>
+    </plurals>
+    <string name="low_stock_preview_more_format">%1$s and %2$d more</string>
+    <string name="low_stock_hint">Tap to see the full shopping list</string>
+    <string name="low_stock_list_subtitle">Most urgent first</string>
+    <string name="low_stock_badge_desc">Show restock suggestion</string>
+    <string name="low_stock_under_a_day">Under a day left</string>
+    <string name="low_stock_have_label">In the fridge</string>
+    <string name="low_stock_buy_label">Suggested buy</string>
+    <string name="low_stock_no_suggestion">Time to top this up</string>
+    <plurals name="low_stock_days_left">
+        <item quantity="one">About %d day left</item>
+        <item quantity="other">About %d days left</item>
+    </plurals>
     <string name="no_fridge_title">No Fridge Yet</string>
     <string name="no_fridge_desc">Create a new shared fridge or join one with an invite code.</string>
     <string name="owner_assign_failed">Couldn\'t assign owner. Please try again.</string>
