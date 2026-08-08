@@ -27,6 +27,7 @@ import com.project.fridgemate.data.repository.FridgeResult
 import com.project.fridgemate.R
 import com.project.fridgemate.utils.ScanError
 import com.project.fridgemate.utils.ScanErrorMapper
+import com.project.fridgemate.utils.ScanFilter
 import com.project.fridgemate.workers.ScanUploadWorker
 import kotlinx.coroutines.launch
 import java.io.File
@@ -253,10 +254,26 @@ class SharedFridgeViewModel(application: Application) : AndroidViewModel(applica
                 val resultJson = workInfo.outputData.getString(ScanUploadWorker.KEY_SCAN_RESULT)
                 if (resultJson != null) {
                     val scan = gson.fromJson(resultJson, ScanDto::class.java)
-                    _scanResult.value = scan.detectedItems
-                    _scanSummary.value = scan.changes
+                    
+                    // Filter to catch generic items that slipped through AI rules
+                    val filteredDetected = ScanFilter.filterByItemName(scan.detectedItems) { it.name }
+                    val filteredAdded = ScanFilter.filterByItemName(scan.changes?.added ?: emptyList()) { it.name }
+                    val filteredUpdated = ScanFilter.filterByItemName(scan.changes?.updated ?: emptyList()) { it.name }
+                    val filteredRemoved = ScanFilter.filterByItemName(scan.changes?.removed ?: emptyList()) { it.name }
+                    
+                    val filteredChanges = scan.changes?.copy(
+                        added = filteredAdded,
+                        updated = filteredUpdated,
+                        removed = filteredRemoved
+                    )
+
+                    _scanResult.value = filteredDetected
+                    _scanSummary.value = filteredChanges
                     _lastScannedAt.value = scan.createdAt
-                    if (scan.detectedItems.isEmpty()) {
+                    if (filteredDetected.isEmpty() && scan.detectedItems.isNotEmpty()) {
+                        // All items were filtered out as generic
+                        _scanError.value = ScanError.NO_ITEMS_DETECTED
+                    } else if (filteredDetected.isEmpty()) {
                         _scanError.value = ScanError.NO_ITEMS_DETECTED
                     }
                 }
