@@ -16,11 +16,13 @@ object ApiClient {
 
     // A scan blocks on an AI vision call, which regularly outlives the shared timeout.
     private const val SCAN_TIMEOUT_SECONDS = 120L
+    private const val AI_TIMEOUT_SECONDS = 120L
 
     private lateinit var tokenManager: TokenManager
     private lateinit var publicRetrofit: Retrofit
     private lateinit var authenticatedRetrofit: Retrofit
     private lateinit var scanRetrofit: Retrofit
+    private lateinit var aiRetrofit: Retrofit
 
     fun init(context: Context) {
         tokenManager = TokenManager(context.applicationContext)
@@ -51,9 +53,15 @@ object ApiClient {
             .writeTimeout(SCAN_TIMEOUT_SECONDS, TimeUnit.SECONDS)
             .build()
 
+        val aiClient = authenticatedClient.newBuilder()
+            .readTimeout(AI_TIMEOUT_SECONDS, TimeUnit.SECONDS)
+            .writeTimeout(AI_TIMEOUT_SECONDS, TimeUnit.SECONDS)
+            .build()
+
         publicRetrofit = buildRetrofit(publicClient)
         authenticatedRetrofit = buildRetrofit(authenticatedClient)
         scanRetrofit = buildRetrofit(scanClient)
+        aiRetrofit = buildRetrofit(aiClient)
     }
 
     fun getTokenManager(): TokenManager = tokenManager
@@ -63,6 +71,8 @@ object ApiClient {
     fun getJournalApi(): com.project.fridgemate.data.remote.api.JournalApi = authenticatedRetrofit.create(com.project.fridgemate.data.remote.api.JournalApi::class.java)
 
     fun getScanApi(): ScanApi = scanRetrofit.create(ScanApi::class.java)
+
+    fun <T> createAiApi(apiClass: Class<T>): T = aiRetrofit.create(apiClass)
 
     fun <T> createApi(apiClass: Class<T>): T = authenticatedRetrofit.create(apiClass)
 

@@ -12,12 +12,13 @@ import com.project.fridgemate.data.remote.dto.ServerRecipeDto
 
 class RecipeRepository(private val recipeDao: RecipeDao) : BaseRepository() {
 
-    private val recipeApi: RecipeApi = ApiClient.createApi(RecipeApi::class.java)
+    private val recipeApi: RecipeApi = ApiClient.createAiApi(RecipeApi::class.java)
     private val gson = Gson()
 
     companion object {
         private const val CACHE_TTL_MS = 30 * 60 * 1000L
         private const val MAX_CACHED_FEED_RECIPES = 30
+        private const val MAX_INGREDIENTS = 50
     }
 
     fun getRecommended(): LiveData<List<RecipeEntity>> =
@@ -51,7 +52,7 @@ class RecipeRepository(private val recipeDao: RecipeDao) : BaseRepository() {
     ): Result<Unit> {
         return try {
             val response = recipeApi.generateRecipes(
-                GenerateRecipesRequest(ingredients, count)
+                GenerateRecipesRequest(ingredients.take(MAX_INGREDIENTS), count)
             )
             if (response.isSuccessful) {
                 val recipes = response.body()?.recipes ?: emptyList()
