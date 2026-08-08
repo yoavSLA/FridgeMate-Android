@@ -48,8 +48,10 @@ class NotificationViewModel : ViewModel() {
     private val _pendingSettingsOpen = MutableLiveData<Unit?>(null)
     val pendingSettingsOpen: LiveData<Unit?> = _pendingSettingsOpen
 
-    private val _pendingScanSummaryOpen = MutableLiveData<Unit?>(null)
-    val pendingScanSummaryOpen: LiveData<Unit?> = _pendingScanSummaryOpen
+    data class PendingScanSummary(val scanId: String?)
+
+    private val _pendingScanSummary = MutableLiveData<PendingScanSummary?>(null)
+    val pendingScanSummary: LiveData<PendingScanSummary?> = _pendingScanSummary
 
     private var socketJob: Job? = null
     private var updatedJob: Job? = null
@@ -140,12 +142,12 @@ class NotificationViewModel : ViewModel() {
         _pendingSettingsOpen.value = null
     }
 
-    fun requestNavToScanSummary() {
-        _pendingScanSummaryOpen.value = Unit
+    fun requestNavToScanSummary(scanId: String?) {
+        _pendingScanSummary.value = PendingScanSummary(scanId)
     }
 
     fun consumePendingScanSummary() {
-        _pendingScanSummaryOpen.value = null
+        _pendingScanSummary.value = null
     }
 
     fun handleNotificationClick(notification: Notification): Boolean {
@@ -182,7 +184,7 @@ class NotificationViewModel : ViewModel() {
                 true
             }
             NotificationType.SCAN_COMPLETE -> {
-                requestNavToScanSummary()
+                requestNavToScanSummary(notification.relatedId)
                 true
             }
             else -> false

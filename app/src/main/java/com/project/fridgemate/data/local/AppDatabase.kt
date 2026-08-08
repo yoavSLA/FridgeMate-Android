@@ -8,6 +8,7 @@ import com.project.fridgemate.data.local.dao.FridgeDao
 import com.project.fridgemate.data.local.dao.InventoryItemDao
 import com.project.fridgemate.data.local.dao.PostDao
 import com.project.fridgemate.data.local.dao.RecipeDao
+import com.project.fridgemate.data.local.dao.ScanDao
 import com.project.fridgemate.data.local.dao.UserDao
 import com.project.fridgemate.data.local.dao.JournalDao
 import com.project.fridgemate.data.local.entity.FridgeEntity
@@ -15,11 +16,12 @@ import com.project.fridgemate.data.local.entity.InventoryItemEntity
 import com.project.fridgemate.data.local.entity.JournalEntity
 import com.project.fridgemate.data.local.entity.PostEntity
 import com.project.fridgemate.data.local.entity.RecipeEntity
+import com.project.fridgemate.data.local.entity.ScanEntity
 import com.project.fridgemate.data.local.entity.UserEntity
 
 @Database(
-    entities = [RecipeEntity::class, PostEntity::class, FridgeEntity::class, UserEntity::class, InventoryItemEntity::class, JournalEntity::class],
-    version = 13,
+    entities = [RecipeEntity::class, PostEntity::class, FridgeEntity::class, UserEntity::class, InventoryItemEntity::class, JournalEntity::class, ScanEntity::class],
+    version = 14,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -30,6 +32,7 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun userDao(): UserDao
     abstract fun inventoryItemDao(): InventoryItemDao
     abstract fun journalDao(): JournalDao
+    abstract fun scanDao(): ScanDao
 
     companion object {
         @Volatile

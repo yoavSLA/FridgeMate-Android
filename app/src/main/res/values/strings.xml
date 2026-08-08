@@ -228,6 +228,8 @@
     <string name="you_suffix"> (You)</string>
     <string name="unassigned_owner">Unknown</string>
     <string name="scan_summary">Scan Summary</string>
+    <string name="scan_summary_empty_title">Nothing changed</string>
+    <string name="scan_summary_empty_desc">This scan matched what was already in your fridge, so no items were added, updated, or removed.</string>
     <string name="close">Close</string>
     <string name="upload_fridge_photo">Upload Fridge Photo</string>
     <string name="scanning_fridge">Scanning your fridge…</string>
