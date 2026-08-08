@@ -5,7 +5,6 @@ import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
 import androidx.work.workDataOf
 import com.google.gson.Gson
-import com.project.fridgemate.data.local.ScanSummaryStorage
 import com.project.fridgemate.data.repository.FridgeResult
 import com.project.fridgemate.data.repository.ScanRepository
 import java.io.File
@@ -15,8 +14,7 @@ class ScanUploadWorker(
     workerParams: WorkerParameters
 ) : CoroutineWorker(context, workerParams) {
 
-    private val scanRepository = ScanRepository()
-    private val scanSummaryStorage = ScanSummaryStorage(context)
+    private val scanRepository = ScanRepository(context)
     private val gson = Gson()
 
     override suspend fun doWork(): Result {
@@ -32,10 +30,6 @@ class ScanUploadWorker(
             is FridgeResult.Success -> {
                 val scan = result.data
                 if (scan.status == "completed") {
-                    scan.changes?.let { changes ->
-                        scanSummaryStorage.saveLastScanSummary(changes, scan.createdAt)
-                    }
-                    
                     val outputData = workDataOf(
                         KEY_SCAN_RESULT to gson.toJson(scan)
                     )

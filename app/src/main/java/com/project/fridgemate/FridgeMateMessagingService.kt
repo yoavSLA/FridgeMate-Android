@@ -8,12 +8,8 @@ import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
-import com.project.fridgemate.data.local.ScanSummaryStorage
 import com.project.fridgemate.data.remote.ApiClient
-import com.project.fridgemate.data.remote.dto.ScanChangesDto
 import com.project.fridgemate.data.repository.UserRepository
-import com.google.gson.Gson
-import org.json.JSONObject
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -55,29 +51,6 @@ class FridgeMateMessagingService : FirebaseMessagingService() {
         data: Map<String, String> = emptyMap()
     ) {
         NotificationHelper.createNotificationChannel(this)
-
-        val type = data["type"]
-        val storage = ScanSummaryStorage(this)
-        
-        if (type == "SCAN_COMPLETE") {
-            data["metadata"]?.let { metadataJson ->
-                try {
-                    val metadata = JSONObject(metadataJson)
-                    val createdAt = metadata.optString("createdAt")
-                    val changesObj = metadata.optJSONObject("changes")
-                    val changes = if (changesObj != null) {
-                        Gson().fromJson(changesObj.toString(), ScanChangesDto::class.java)
-                    } else {
-                        val str = metadata.optString("changes")
-                        Gson().fromJson(str, ScanChangesDto::class.java)
-                    }
-
-                    if (changes != null && createdAt.isNotBlank()) {
-                        storage.saveLastScanSummary(changes, createdAt)
-                    }
-                } catch (_: Exception) { }
-            }
-        }
 
         val intent = Intent(this, MainActivity::class.java).apply {
             flags = Intent.FLAG_ACTIVITY_SINGLE_TOP or Intent.FLAG_ACTIVITY_CLEAR_TOP

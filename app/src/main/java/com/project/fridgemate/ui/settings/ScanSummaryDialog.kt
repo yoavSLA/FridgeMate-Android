@@ -46,8 +46,15 @@ class ScanSummaryDialog : BottomSheetDialogFragment() {
         summaryData.updated.forEach { item -> summaryItems.add(ScanSummaryItem.Updated(item.name, item.oldQuantity, item.newQuantity)) }
         summaryData.removed.forEach { item -> summaryItems.add(ScanSummaryItem.Removed(item.name, item.quantity)) }
 
-        binding.rvSummary.layoutManager = LinearLayoutManager(requireContext())
-        binding.rvSummary.adapter = ScanSummaryAdapter(summaryItems)
+        if (summaryItems.isEmpty()) {
+            binding.rvSummary.visibility = View.GONE
+            binding.layoutEmpty.visibility = View.VISIBLE
+        } else {
+            binding.rvSummary.visibility = View.VISIBLE
+            binding.layoutEmpty.visibility = View.GONE
+            binding.rvSummary.layoutManager = LinearLayoutManager(requireContext())
+            binding.rvSummary.adapter = ScanSummaryAdapter(summaryItems)
+        }
 
         createdAt?.let {
             binding.tvDateTime.text = formatDateTime(it)
