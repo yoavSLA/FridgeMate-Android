@@ -130,6 +130,14 @@ class FeedFragment : Fragment() {
         val button = binding.scopeToggle.findViewById<View>(checkedId) ?: return
         val slider = binding.toggleSlider
 
+        // If button hasn't been measured yet, wait and try again
+        if (button.width == 0) {
+            button.post {
+                if (_binding != null) animateToggle(checkedId, animate)
+            }
+            return
+        }
+
         slider.visibility = View.VISIBLE
         
         val targetX = button.x
@@ -563,6 +571,8 @@ class FeedFragment : Fragment() {
     override fun onHiddenChanged(hidden: Boolean) {
         super.onHiddenChanged(hidden)
         if (!hidden) {
+            lastRenderedMode = null
+            requestSyncUi()
             viewModel.loadPosts(refresh = true, silent = true)
         }
     }
