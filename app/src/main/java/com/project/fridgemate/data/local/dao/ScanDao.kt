@@ -23,4 +23,10 @@ interface ScanDao {
 
     @Query("DELETE FROM scans")
     suspend fun deleteAll()
+
+    @Query(
+        "DELETE FROM scans WHERE id NOT IN " +
+            "(SELECT id FROM scans ORDER BY createdAt DESC LIMIT :keep)"
+    )
+    suspend fun trimTo(keep: Int)
 }

@@ -27,6 +27,12 @@ interface PostDao {
     @Query("DELETE FROM posts WHERE isOwner = 0")
     suspend fun clearNonOwnerPosts()
 
+    @Query(
+        "DELETE FROM posts WHERE isOwner = 0 AND id NOT IN " +
+            "(SELECT id FROM posts WHERE isOwner = 0 ORDER BY createdAt DESC LIMIT :keep)"
+    )
+    suspend fun trimTo(keep: Int)
+
     @Query("DELETE FROM posts WHERE id = :postId")
     suspend fun deleteById(postId: String)
 }

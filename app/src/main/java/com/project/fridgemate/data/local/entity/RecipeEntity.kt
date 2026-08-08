@@ -1,9 +1,10 @@
 package com.project.fridgemate.data.local.entity
 
 import androidx.room.Entity
+import androidx.room.Index
 import androidx.room.PrimaryKey
 
-@Entity(tableName = "recipes")
+@Entity(tableName = "recipes", indices = [Index(value = ["serverId", "type"])])
 data class RecipeEntity(
     @PrimaryKey(autoGenerate = true) val id: Long = 0,
     val serverId: String? = null,

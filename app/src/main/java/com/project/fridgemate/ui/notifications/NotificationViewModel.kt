@@ -1,8 +1,9 @@
 package com.project.fridgemate.ui.notifications
 
+import android.app.Application
+import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.project.fridgemate.data.model.Notification
 import com.project.fridgemate.data.model.NotificationType
@@ -15,9 +16,9 @@ import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 
-class NotificationViewModel : ViewModel() {
+class NotificationViewModel(application: Application) : AndroidViewModel(application) {
 
-    private val repo = NotificationRepository()
+    private val repo = NotificationRepository(application.applicationContext)
 
     private val _notifications = MutableLiveData<List<Notification>>(emptyList())
     val notifications: LiveData<List<Notification>> = _notifications
@@ -58,17 +59,27 @@ class NotificationViewModel : ViewModel() {
     private var removedJob: Job? = null
 
     init {
-        loadUnreadCount()
+        viewModelScope.launch {
+            primeFromCache()
+            loadUnreadCount()
+        }
         startSocketListener()
         startUpdatedListener()
         startRemovedListener()
     }
 
-    fun loadUnreadCount() {
-        viewModelScope.launch {
-            repo.getUnreadCount()
-                .onSuccess { _unreadCount.value = it }
+
+    private suspend fun primeFromCache() {
+        val cached = repo.getCachedNotifications()
+        if (cached.isNotEmpty() && _notifications.value.isNullOrEmpty()) {
+            _notifications.value = cached
+            _unreadCount.value = cached.count { !it.isRead }
         }
+    }
+
+    private suspend fun loadUnreadCount() {
+        repo.getUnreadCount()
+            .onSuccess { _unreadCount.value = it }
     }
 
     fun loadAndMarkAllAsRead() {
@@ -83,7 +94,8 @@ class NotificationViewModel : ViewModel() {
 
             when (val loaded = loadedResult.getOrNull()) {
                 null -> {
-                    _error.value = "Unable to load notifications" 
+                    primeFromCache()
+                    _error.value = "Unable to load notifications"
                 }
                 else -> {
                     _notifications.value = loaded.map { it.copy(isRead = true) }
@@ -91,7 +103,7 @@ class NotificationViewModel : ViewModel() {
                 }
             }
             _isLoading.value = false
-            repo.markAllAsRead()
+            if (loadedResult.isSuccess) repo.markAllAsRead()
         }
     }
 
@@ -206,6 +218,7 @@ class NotificationViewModel : ViewModel() {
                     if (!wasUnread) {
                         _unreadCount.value = (_unreadCount.value ?: 0) + 1
                     }
+                    repo.cacheNotification(notification)
                     _incomingNotificationFlow.tryEmit(notification)
                 }
                 if (isActive) delay(2000)
@@ -226,6 +239,7 @@ class NotificationViewModel : ViewModel() {
                     if (!wasUnread) {
                         _unreadCount.value = (_unreadCount.value ?: 0) + 1
                     }
+                    repo.cacheNotification(notification)
                 }
                 if (isActive) delay(2000)
             }
@@ -237,6 +251,7 @@ class NotificationViewModel : ViewModel() {
         removedJob = viewModelScope.launch {
             while (isActive) {
                 repo.observeRemovedNotifications().collect { removedId ->
+                    repo.removeCachedNotification(removedId)
                     val current = _notifications.value.orEmpty()
                     val target = current.firstOrNull { it.id == removedId } ?: return@collect
                     _notifications.value = current.filter { it.id != removedId }
